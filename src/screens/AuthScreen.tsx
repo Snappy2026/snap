@@ -82,7 +82,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
         navigation.replace('MainTabs', { screen: 'Camera' });
       } else {
         // Sign Up New Account
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email: email.trim(),
           password: password.trim(),
           options: {
@@ -94,6 +94,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
           },
         });
         if (error) throw error;
+
+        // Upsert into profiles table so new signup appears instantly in Master Admin Console
+        if (signUpData?.user) {
+          await (supabase.from('profiles') as any).upsert({
+            id: signUpData.user.id,
+            username: username.trim() || email.split('@')[0],
+            display_name: displayName.trim() || username.trim() || email.split('@')[0],
+            role: selectedRole,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        }
 
         if (onEnableDemoMode) onEnableDemoMode();
         navigation.replace('MainTabs', { screen: 'Camera' });
