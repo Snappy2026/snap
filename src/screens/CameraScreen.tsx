@@ -347,7 +347,6 @@ export const CameraScreen: React.FC = () => {
         {/* Top SnapBar Header */}
         <SnapBar
           title="Camera"
-          onProfilePress={() => navigation.navigate('Auth')}
         />
 
         {/* Viewfinder Stream */}

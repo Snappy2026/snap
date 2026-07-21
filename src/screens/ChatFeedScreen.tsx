@@ -294,7 +294,6 @@ export const ChatFeedScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <SnapBar
         title="Chat"
-        onProfilePress={() => navigation.navigate('Auth')}
       />
 
       {typingUsers.length > 0 && (
