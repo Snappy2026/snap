@@ -399,6 +399,26 @@ export const StoriesScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <SnapBar title="Discover" />
 
+      {/* DEBUG TOGGLE UI FOR TESTING */}
+      {Platform.OS === "web" && (
+        <div style={{ display: 'flex', gap: '8px', padding: '8px 16px', backgroundColor: '#1C1C1E', borderBottom: '1px solid #333' }}>
+          <button
+            type="button"
+            onClick={() => setUserRole(userRole === 'creator' ? 'customer' : 'creator')}
+            style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: userRole === 'creator' ? '#00F2FE' : '#333', color: userRole === 'creator' ? '#000' : '#FFF', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            {userRole === 'creator' ? '✅ Role: Creator' : '❌ Role: Customer'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsVipMember(!isVipMember)}
+            style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: isVipMember ? '#FFD700' : '#333', color: isVipMember ? '#000' : '#FFF', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            {isVipMember ? '✅ VIP Active' : '❌ VIP Inactive'}
+          </button>
+        </div>
+      )}
+
       {/* On web: use native HTML scroll containers to fix iOS Safari touch blocking */}
       {/* On native: use React Native ScrollView */}
       {Platform.OS === "web" ? (
