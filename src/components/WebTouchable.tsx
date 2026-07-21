@@ -1,12 +1,15 @@
 // ============================================================================
 // WebTouchable Component
-// On web: renders a raw HTML <div> with React onClick — the most basic,
-// guaranteed-to-work click handler on any browser including iOS Safari.
-// Completely bypasses React Native Web's View, Pressable, TouchableOpacity.
-// On native: uses standard Pressable.
+// On iOS Safari, touch events inside ScrollView get intercepted.
+// React synthetic events (onClick on div) get blocked because React delegates
+// events to the root container, and ScrollView stops propagation.
+//
+// Solution: Use <button> HTML elements on web. Buttons have the STRONGEST
+// native click handling in ALL browsers — iOS Safari processes button clicks
+// at the browser engine level, before any JavaScript event interception.
 // ============================================================================
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Pressable, Platform, ViewStyle } from 'react-native';
 
 interface WebTouchableProps {
@@ -16,43 +19,76 @@ interface WebTouchableProps {
 }
 
 export const WebTouchable: React.FC<WebTouchableProps> = ({ onPress, style, children }) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const onPressRef = useRef(onPress);
+  onPressRef.current = onPress;
+
+  // Attach click listener directly to DOM node (not through React delegation)
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const btn = buttonRef.current;
+    if (!btn) return;
+
+    const handler = () => {
+      onPressRef.current();
+    };
+
+    // Direct DOM listener — bypasses React's event delegation completely
+    btn.addEventListener('click', handler);
+
+    return () => {
+      btn.removeEventListener('click', handler);
+    };
+  }, []);
+
   if (Platform.OS === 'web') {
-    // On web: use a raw HTML <div> with onClick
-    // This is the most reliable way to handle taps on iOS Safari
-    const flatStyle = Array.isArray(style) ? Object.assign({}, ...style.filter(Boolean)) : (style || {});
+    const flatStyle = Array.isArray(style)
+      ? Object.assign({}, ...style.filter(Boolean))
+      : (style || {});
 
     return (
-      <div
-        onClick={(e) => {
-          e.stopPropagation();
-          onPress();
-        }}
-        onTouchEnd={(e) => {
-          // Also handle touchend for maximum mobile compatibility
-          e.stopPropagation();
-          e.preventDefault();
-          onPress();
-        }}
+      <button
+        ref={buttonRef}
+        type="button"
         style={{
-          ...flatStyle,
+          // Reset all button defaults
+          border: 'none',
+          background: 'none',
+          padding: 0,
+          margin: 0,
+          font: 'inherit',
+          color: 'inherit',
+          textAlign: 'inherit' as any,
+          appearance: 'none',
+          WebkitAppearance: 'none',
+          outline: 'none',
+          // Apply component styles
+          display: 'flex',
+          flexDirection: 'column' as any,
+          alignItems: flatStyle.alignItems || 'stretch',
+          justifyContent: flatStyle.justifyContent || 'flex-start',
+          width: flatStyle.width as any,
+          height: flatStyle.height as any,
+          borderRadius: flatStyle.borderRadius as any,
+          overflow: flatStyle.overflow as any || 'visible',
+          backgroundColor: flatStyle.backgroundColor || 'transparent',
+          marginRight: flatStyle.marginRight as any,
+          marginBottom: flatStyle.marginBottom as any,
+          position: flatStyle.position as any,
+          // iOS Safari specific
           cursor: 'pointer',
           WebkitTapHighlightColor: 'transparent',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
           touchAction: 'manipulation',
-        } as React.CSSProperties}
+        }}
       >
         {children}
-      </div>
+      </button>
     );
   }
 
   // On native: use standard Pressable
   return (
-    <Pressable
-      onPress={onPress}
-      style={style as any}
-    >
+    <Pressable onPress={onPress} style={style as any}>
       {children}
     </Pressable>
   );
