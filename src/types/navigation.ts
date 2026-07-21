@@ -5,6 +5,7 @@
 import { Snap, Story } from './database';
 
 export type MainTabParamList = {
+  Map: undefined;
   ChatFeed: undefined;
   Camera: undefined;
   Stories: undefined;

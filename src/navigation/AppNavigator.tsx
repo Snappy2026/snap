@@ -11,6 +11,7 @@ import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'rea
 import { RootStackParamList, MainTabParamList } from '../types/navigation';
 import { supabase } from '../lib/supabase';
 
+import MapScreen from '../screens/MapScreen';
 import CameraScreen from '../screens/CameraScreen';
 import ChatFeedScreen from '../screens/ChatFeedScreen';
 import StoriesScreen from '../screens/StoriesScreen';
@@ -29,11 +30,26 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
     <View style={styles.tabBarContainer}>
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;
-        let label = '📷';
-        if (route.name === 'ChatFeed') label = '💬';
-        if (route.name === 'Camera') label = '📷';
-        if (route.name === 'Stories') label = '▶️';
-        if (route.name === 'VipMembers') label = '👑';
+
+        let icon = '📍';
+        let title = 'Map';
+
+        if (route.name === 'Map') {
+          icon = '📍';
+          title = 'Map';
+        } else if (route.name === 'ChatFeed') {
+          icon = '💬';
+          title = 'Chat';
+        } else if (route.name === 'Camera') {
+          icon = '📷';
+          title = 'Camera';
+        } else if (route.name === 'Stories') {
+          icon = '👥';
+          title = 'Stories';
+        } else if (route.name === 'VipMembers') {
+          icon = '☰';
+          title = 'Discover';
+        }
 
         const onPress = () => {
           const event = navigation.emit({
@@ -52,8 +68,10 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
             key={route.key}
             onPress={onPress}
             style={[styles.tabItem, isFocused && styles.tabItemFocused]}
+            activeOpacity={0.7}
           >
-            <Text style={styles.tabIcon}>{label}</Text>
+            <Text style={[styles.tabIcon, isFocused && styles.tabIconFocused]}>{icon}</Text>
+            <Text style={[styles.tabLabel, isFocused && styles.tabLabelFocused]}>{title}</Text>
           </TouchableOpacity>
         );
       })}
@@ -64,12 +82,13 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
 const MainTabNavigator: React.FC = () => {
   return (
     <Tab.Navigator
-      initialRouteName="Camera" // Camera-first entry experience
+      initialRouteName="Camera"
       tabBar={(props: BottomTabBarProps) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
       }}
     >
+      <Tab.Screen name="Map" component={MapScreen} />
       <Tab.Screen name="ChatFeed" component={ChatFeedScreen} />
       <Tab.Screen name="Camera" component={CameraScreen} />
       <Tab.Screen name="Stories" component={StoriesScreen} />
@@ -84,13 +103,11 @@ export const AppNavigator: React.FC = () => {
   const [demoMode, setDemoMode] = React.useState(false);
 
   React.useEffect(() => {
-    // Check initial auth session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setAuthLoading(false);
     });
 
-    // Listen for auth state changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
@@ -157,26 +174,42 @@ export const AppNavigator: React.FC = () => {
 const styles = StyleSheet.create({
   tabBarContainer: {
     position: 'absolute',
-    bottom: 30,
-    left: 20,
-    right: 20,
-    height: 60,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderRadius: 30,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 70,
+    backgroundColor: '#000000',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderTopWidth: 1,
+    borderTopColor: '#1A1A1A',
+    paddingBottom: 10,
+    zIndex: 100,
   },
   tabItem: {
-    padding: 12,
-    borderRadius: 20,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
   },
-  tabItemFocused: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
+  tabItemFocused: {},
   tabIcon: {
     fontSize: 22,
+    opacity: 0.6,
+  },
+  tabIconFocused: {
+    opacity: 1,
+    transform: [{ scale: 1.1 }],
+  },
+  tabLabel: {
+    color: '#8E8E93',
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 3,
+  },
+  tabLabelFocused: {
+    color: '#FFFFFF',
+    fontWeight: '800',
   },
 });
