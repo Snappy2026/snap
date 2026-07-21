@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Snapchat Starter",
+    "slug": "snapchat-starter",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Snapchat requires access to the camera to capture photos and record videos.",
+        "NSMicrophoneUsageDescription": "Snapchat requires access to the microphone to record audio with video snaps."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "Snapchat requires access to the camera to capture photos and record videos.",
+          "enableMicrophonePermission": true,
+          "microphonePermissionText": "Snapchat requires access to the microphone to record audio with video snaps."
+        }
+      ]
+    ]
+  }
+}
