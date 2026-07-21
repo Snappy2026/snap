@@ -1,4 +1,8 @@
-// ============================================================================
+import os
+
+filepath = "src/screens/ChatFeedScreen.tsx"
+
+new_code = """// ============================================================================
 // ChatFeedScreen Component
 // Real-time Adult+ Inbox Feed merging Snaps and Messages chronologically.
 // ============================================================================
@@ -76,18 +80,12 @@ export const ChatFeedScreen: React.FC = () => {
       // Fetch Snaps (sent and received)
       const { data: snaps, error: snapsError } = await supabase
         .from("snaps")
-        .select(
-          `*, sender_profile:profiles!snaps_sender_id_fkey(id, username, display_name, avatar_url), recipient_profile:profiles!snaps_recipient_id_fkey(id, username, display_name, avatar_url)`,
-        )
+        .select(`*, sender_profile:profiles!snaps_sender_id_fkey(id, username, display_name, avatar_url), recipient_profile:profiles!snaps_recipient_id_fkey(id, username, display_name, avatar_url)`)
         .or(`recipient_id.eq.${userId},sender_id.eq.${userId}`);
 
       // Fetch Messages (sent and received)
-      const { data: messages, error: msgsError } = await (
-        supabase.from("messages") as any
-      )
-        .select(
-          `*, sender_profile:profiles!messages_sender_id_fkey(id, username, display_name, avatar_url), recipient_profile:profiles!messages_recipient_id_fkey(id, username, display_name, avatar_url)`,
-        )
+      const { data: messages, error: msgsError } = await (supabase.from("messages") as any)
+        .select(`*, sender_profile:profiles!messages_sender_id_fkey(id, username, display_name, avatar_url), recipient_profile:profiles!messages_recipient_id_fkey(id, username, display_name, avatar_url)`)
         .or(`recipient_id.eq.${userId},sender_id.eq.${userId}`);
 
       if (snapsError) console.error("Snaps Error:", snapsError.message);
@@ -103,38 +101,31 @@ export const ChatFeedScreen: React.FC = () => {
         statusText: string,
         isUnread: boolean,
         timeAgoStr: string,
-        realSnap?: Snap,
+        realSnap?: Snap
       ) => {
         const existing = itemsMap.get(friendId);
         if (!existing || existing.timestamp < itemTimestamp) {
           itemsMap.set(friendId, {
             friendId,
-            name:
-              friendProfile?.display_name ||
-              friendProfile?.username ||
-              "Adult+ Friend",
-            avatar:
-              friendProfile?.avatar_url ||
-              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+            name: friendProfile?.display_name || friendProfile?.username || "Adult+ Friend",
+            avatar: friendProfile?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
             type,
             statusText,
             timeAgo: timeAgoStr,
             timestamp: itemTimestamp,
             isUnread,
-            realSnap,
+            realSnap
           });
         }
       };
 
       // Process Snaps
       if (snaps) {
-        (snaps as any[]).forEach((s) => {
+        (snaps as any[]).forEach(s => {
           const isSentByMe = s.sender_id === userId;
           const friendId = isSentByMe ? s.recipient_id : s.sender_id;
-          const friendProfile = isSentByMe
-            ? s.recipient_profile
-            : s.sender_profile;
-
+          const friendProfile = isSentByMe ? s.recipient_profile : s.sender_profile;
+          
           const time = new Date(s.created_at).getTime();
           let statusText = "";
           let isUnread = false;
@@ -142,34 +133,21 @@ export const ChatFeedScreen: React.FC = () => {
           if (isSentByMe) {
             statusText = s.viewed_at ? "Opened" : "Delivered";
           } else {
-            statusText = s.viewed_at
-              ? "Received"
-              : `New ${s.media_type === "image" ? "Snap" : "Video"}`;
+            statusText = s.viewed_at ? "Received" : `New ${s.media_type === "image" ? "Snap" : "Video"}`;
             isUnread = !s.viewed_at;
           }
 
-          processFriend(
-            friendId,
-            friendProfile,
-            time,
-            s.media_type,
-            statusText,
-            isUnread,
-            formatTimeAgo(s.created_at),
-            s as Snap,
-          );
+          processFriend(friendId, friendProfile, time, s.media_type, statusText, isUnread, formatTimeAgo(s.created_at), s as Snap);
         });
       }
 
       // Process Messages
       if (messages) {
-        (messages as any[]).forEach((m) => {
+        (messages as any[]).forEach(m => {
           const isSentByMe = m.sender_id === userId;
           const friendId = isSentByMe ? m.recipient_id : m.sender_id;
-          const friendProfile = isSentByMe
-            ? m.recipient_profile
-            : m.sender_profile;
-
+          const friendProfile = isSentByMe ? m.recipient_profile : m.sender_profile;
+          
           const time = new Date(m.created_at).getTime();
           let statusText = "";
           let isUnread = false;
@@ -181,23 +159,14 @@ export const ChatFeedScreen: React.FC = () => {
             isUnread = !m.read_at;
           }
 
-          processFriend(
-            friendId,
-            friendProfile,
-            time,
-            "chat",
-            statusText,
-            isUnread,
-            formatTimeAgo(m.created_at),
-          );
+          processFriend(friendId, friendProfile, time, "chat", statusText, isUnread, formatTimeAgo(m.created_at));
         });
       }
 
       // Sort by timestamp descending
-      const sorted = Array.from(itemsMap.values()).sort(
-        (a, b) => b.timestamp - a.timestamp,
-      );
+      const sorted = Array.from(itemsMap.values()).sort((a, b) => b.timestamp - a.timestamp);
       setFeedItems(sorted);
+
     } catch (err) {
       console.error("[ChatFeed Error]", err);
     } finally {
@@ -217,13 +186,8 @@ export const ChatFeedScreen: React.FC = () => {
         .channel("realtime_snaps_inbox")
         .on(
           "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "snaps",
-            filter: `recipient_id=eq.${userData.user.id}`,
-          },
-          () => fetchInbox(),
+          { event: "*", schema: "public", table: "snaps", filter: `recipient_id=eq.${userData.user.id}` },
+          () => fetchInbox()
         )
         .subscribe();
 
@@ -231,13 +195,8 @@ export const ChatFeedScreen: React.FC = () => {
         .channel("realtime_messages_inbox")
         .on(
           "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "messages",
-            filter: `recipient_id=eq.${userData.user.id}`,
-          },
-          () => fetchInbox(),
+          { event: "*", schema: "public", table: "messages", filter: `recipient_id=eq.${userData.user.id}` },
+          () => fetchInbox()
         )
         .subscribe();
 
@@ -346,9 +305,7 @@ export const ChatFeedScreen: React.FC = () => {
         </View>
       ) : feedItems.length === 0 ? (
         <View style={styles.centerContainer}>
-          <Text style={{ color: "#999" }}>
-            No messages yet. Add a friend to start chatting!
-          </Text>
+          <Text style={{color: '#999'}}>No messages yet. Add a friend to start chatting!</Text>
         </View>
       ) : (
         <FlatList
@@ -452,4 +409,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
 });
-export default ChatFeedScreen;
+"""
+
+with open(filepath, 'w') as f:
+    f.write(new_code)
+print("ChatFeedScreen.tsx has been updated!")
