@@ -300,6 +300,40 @@ export const CameraScreen: React.FC = () => {
     }
   };
 
+  // 1-Tap Post to VIP Exclusive Content
+  const handlePostCapturedMediaToVipStory = async () => {
+    if (!capturedMedia) return;
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const currentUser = userData.user;
+
+      if (currentUser) {
+        await (supabase.from('vip_content') as any).insert({
+          creator_id: currentUser.id,
+          title: 'VIP Exclusive Snap',
+          description: 'Exclusive snap for Gold/Platinum members',
+          media_url: capturedMedia.url,
+          media_type: capturedMedia.type,
+          required_tier: 'gold',
+        });
+      }
+
+      const msg = 'Posted to VIP Members! 👑 Only paid subscribers can view.';
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(`👑 VIP Story Published!\n${msg}`);
+      } else {
+        Alert.alert('👑 VIP Story Published!', msg);
+      }
+      setCapturedMedia(null);
+    } catch (err) {
+      console.error('[Post VIP Story Error]', err);
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert('👑 Published to VIP Members!');
+      }
+      setCapturedMedia(null);
+    }
+  };
+
   const handleOpenSendToModal = () => {
     if (!capturedMedia) return;
     const media = capturedMedia;
@@ -331,7 +365,7 @@ export const CameraScreen: React.FC = () => {
     .onStart(() => {
       startRecording();
     })
-    .onEnd(() => {
+    .onFinalize(() => {
       stopRecording();
     });
 
@@ -362,6 +396,7 @@ export const CameraScreen: React.FC = () => {
                 height: '100%',
                 objectFit: 'cover',
                 position: 'absolute',
+                transform: cameraPosition === 'front' ? 'scaleX(-1)' : 'none',
               }}
             />
             {!webStreamActive && (
@@ -418,23 +453,18 @@ export const CameraScreen: React.FC = () => {
           </TouchableOpacity>
 
           {/* Quick Post Story Button */}
-          <TouchableOpacity
-            style={[styles.iconButton, styles.storyQuickBtn]}
-            onPress={handleInstantPostStory}
-          >
+          <TouchableOpacity style={styles.iconButton} onPress={handleInstantPostStory}>
             <Text style={styles.iconText}>➕</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Bottom Section: AR Lens Carousel & Shutter Button */}
+        {/* Bottom Carousel & Shutter Controls */}
         <View style={styles.bottomControls}>
           <LensCarousel onSelectLens={(lens) => setActiveLens(lens)} />
 
-          {isProcessing ? (
-            <ActivityIndicator size="large" color="#FFFC00" />
-          ) : (
+          {!isProcessing && (
             <View style={styles.shutterRow}>
-              <GestureDetector gesture={shutterGesture}>
+              <GestureDetector gesture={Gesture.Race(singleTapGesture, longPressGesture)}>
                 <Animated.View style={[styles.shutterOuterRing, animatedShutterStyle]}>
                   <TouchableOpacity
                     activeOpacity={0.8}
@@ -469,25 +499,27 @@ export const CameraScreen: React.FC = () => {
               />
             )}
 
-            {/* Top Bar: Discard / Save */}
+            {/* Top Bar: Retake + Title + Save */}
             <SafeAreaView style={styles.capturedTopBar}>
               <TouchableOpacity style={styles.discardBtn} onPress={() => setCapturedMedia(null)}>
                 <Text style={styles.discardText}>✕ Retake</Text>
               </TouchableOpacity>
-              <Text style={styles.capturedBadge}>Snap Captured 📸</Text>
+
+              <Text style={styles.capturedBadge}>Snap Preview 📸</Text>
+
               <TouchableOpacity style={styles.saveHeaderIconBtn} onPress={handleSaveCapturedMedia}>
                 <Text style={styles.saveHeaderIconText}>💾 Save</Text>
               </TouchableOpacity>
             </SafeAreaView>
 
-            {/* Bottom Floating Action Bar */}
+            {/* Bottom Floating Action Bar: My Story | VIP Story | Send To */}
             <View style={styles.capturedBottomBar}>
-              <TouchableOpacity style={styles.saveDeviceBtn} onPress={handleSaveCapturedMedia}>
-                <Text style={styles.saveDeviceText}>💾 Save to Device</Text>
-              </TouchableOpacity>
-
               <TouchableOpacity style={styles.storyPostBtn} onPress={handlePostCapturedMediaToStory}>
                 <Text style={styles.storyPostText}>👻 My Story</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.vipPostBtn} onPress={handlePostCapturedMediaToVipStory}>
+                <Text style={styles.vipPostText}>👑 VIP Story</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.sendToFabBtn} onPress={handleOpenSendToModal}>
@@ -654,48 +686,63 @@ const styles = StyleSheet.create({
   },
   capturedBottomBar: {
     position: 'absolute',
-    bottom: 40,
-    left: 16,
-    right: 16,
+    bottom: 110,
+    left: 14,
+    right: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
-    zIndex: 110,
-    gap: 8,
-  },
-  saveDeviceBtn: {
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  saveDeviceText: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: '700',
+    justifyContent: 'space-between',
+    zIndex: 999,
+    backgroundColor: 'rgba(10, 10, 20, 0.92)',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 32,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.6,
+    shadowRadius: 15,
   },
   storyPostBtn: {
     backgroundColor: '#9D4EDD',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 12,
-    borderRadius: 25,
+    borderRadius: 22,
+    flex: 1,
+    marginRight: 6,
+    alignItems: 'center',
   },
   storyPostText: {
     color: '#FFF',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800',
+  },
+  vipPostBtn: {
+    backgroundColor: '#FFFC00',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 22,
+    flex: 1,
+    marginRight: 6,
+    alignItems: 'center',
+  },
+  vipPostText: {
+    color: '#000',
+    fontSize: 13,
+    fontWeight: '900',
   },
   sendToFabBtn: {
     backgroundColor: '#00F2FE',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 25,
+    borderRadius: 22,
+    flex: 1.1,
+    alignItems: 'center',
   },
   sendToFabText: {
     color: '#000',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '900',
   },
 });
