@@ -4,7 +4,7 @@
 // and dynamic category filtering for the Discover Grid.
 // ============================================================================
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -15,6 +15,8 @@ import {
   SafeAreaView,
   Dimensions,
   ActivityIndicator,
+  Platform,
+  Modal,
 } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -136,9 +138,12 @@ export const StoriesScreen: React.FC = () => {
   const [dbStories, setDbStories] = useState<Story[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  // Story Viewer Modal State
+  // Story Viewer Modal & Add Story Modal State
   const [showStoryModal, setShowStoryModal] = useState(false);
   const [modalStories, setModalStories] = useState<StoryViewerItem[]>([]);
+  const [showAddStoryModal, setShowAddStoryModal] = useState(false);
+
+  const fileInputRef = useRef<any>(null);
 
   useEffect(() => {
     if (!isFocused) return;
@@ -173,6 +178,52 @@ export const StoriesScreen: React.FC = () => {
     (s) => s.user_id === currentUserId || s.user_id === 'demo-user-id' || currentUserId === null
   );
 
+  const handleDeviceFileUpload = (event: any) => {
+    const file = event.target?.files?.[0];
+    if (file) {
+      const isVideo = file.type.startsWith('video');
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        if (e.target?.result) {
+          const mediaUrl = e.target.result as string;
+          const { data: userData } = await supabase.auth.getUser();
+          const user = userData?.user;
+
+          const newStoryItem: Story = {
+            id: `uploaded-story-${Date.now()}`,
+            user_id: user?.id || 'demo-user-id',
+            media_url: mediaUrl,
+            media_type: isVideo ? 'video' : 'image',
+            created_at: new Date().toISOString(),
+            expires_at: new Date(Date.now() + 86400000).toISOString(),
+            user_profile: {
+              display_name: user?.user_metadata?.display_name || 'My Story',
+            },
+          };
+
+          // Save to 24h local session store & Supabase DB
+          sessionStore.addStory(newStoryItem);
+          setDbStories((prev) => [newStoryItem, ...prev]);
+
+          if (user) {
+            await (supabase.from('stories') as any).insert({
+              user_id: user.id,
+              media_url: mediaUrl,
+              media_type: isVideo ? 'video' : 'image',
+            });
+          }
+
+          setShowAddStoryModal(false);
+          const msg = 'New Snap Story added! 🔥 View it in full screen now.';
+          if (Platform.OS === 'web' && typeof window !== 'undefined') {
+            window.alert(`👻 New Story Posted!\n\n${msg}`);
+          }
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const openMyStory = () => {
     if (myStories.length > 0) {
       setModalStories(
@@ -183,18 +234,10 @@ export const StoriesScreen: React.FC = () => {
           user_profile: { display_name: s.user_profile?.display_name || 'My Story' },
         }))
       );
+      setShowStoryModal(true);
     } else {
-      // Fallback default My Story reel
-      setModalStories([
-        {
-          id: 'my-default-story',
-          media_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800',
-          media_type: 'image',
-          user_profile: { display_name: 'My Story' },
-        },
-      ]);
+      setShowAddStoryModal(true);
     }
-    setShowStoryModal(true);
   };
 
   const openStoryReel = (friend: FriendStoryItem) => {
@@ -374,12 +417,78 @@ export const StoriesScreen: React.FC = () => {
         </View>
       </ScrollView>
 
+      {/* Hidden File Picker Input for Device Photo/Video Upload */}
+      {Platform.OS === 'web' && (
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept="image/*,video/*"
+          style={{ display: 'none' }}
+          onChange={handleDeviceFileUpload}
+        />
+      )}
+
       {/* INSTANT 100% FULL-SCREEN STORY PLAYER MODAL */}
       <StoryViewerModal
         visible={showStoryModal}
         stories={modalStories}
         onClose={() => setShowStoryModal(false)}
       />
+
+      {/* ADD NEW SNAP STORY SELECTION MODAL */}
+      <Modal
+        visible={showAddStoryModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowAddStoryModal(false)}
+      >
+        <View style={styles.addModalOverlay}>
+          <View style={styles.addModalContent}>
+            <View style={styles.addModalHeader}>
+              <Text style={styles.addModalTitle}>👻 Add New Snap Story</Text>
+              <TouchableOpacity onPress={() => setShowAddStoryModal(false)} style={styles.addModalClose}>
+                <Text style={styles.addModalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.addModalSubtitle}>
+              Post a 24-hour Snap Story visible to your followers and friends.
+            </Text>
+
+            <TouchableOpacity
+              style={styles.addOptionBtnPrimary}
+              onPress={() => {
+                if (Platform.OS === 'web' && fileInputRef.current) {
+                  fileInputRef.current.click();
+                } else {
+                  setShowAddStoryModal(false);
+                  navigation.navigate('MainTabs', { screen: 'Camera' });
+                }
+              }}
+            >
+              <Text style={styles.addOptionIcon}>📁</Text>
+              <View>
+                <Text style={styles.addOptionText}>Upload Photo / Video from Device</Text>
+                <Text style={styles.addOptionSubtext}>Select any photo or video from gallery</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.addOptionBtnSecondary}
+              onPress={() => {
+                setShowAddStoryModal(false);
+                navigation.navigate('MainTabs', { screen: 'Camera' });
+              }}
+            >
+              <Text style={styles.addOptionIcon}>📸</Text>
+              <View>
+                <Text style={styles.addOptionTextSecondary}>Snap Photo with Camera</Text>
+                <Text style={styles.addOptionSubtext}>Launch live camera viewfinder</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -546,6 +655,79 @@ const styles = StyleSheet.create({
   publisherName: {
     color: '#A0A0B0',
     fontSize: 12,
+  },
+  addModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'flex-end',
+  },
+  addModalContent: {
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#FFFC00',
+  },
+  addModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  addModalTitle: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  addModalClose: {
+    padding: 6,
+  },
+  addModalCloseText: {
+    color: '#8E8E93',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  addModalSubtitle: {
+    color: '#8E8E93',
+    fontSize: 13,
+    marginBottom: 6,
+  },
+  addOptionBtnPrimary: {
+    backgroundColor: 'rgba(255, 252, 0, 0.18)',
+    borderWidth: 1.5,
+    borderColor: '#FFFC00',
+    padding: 14,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  addOptionIcon: {
+    fontSize: 24,
+  },
+  addOptionText: {
+    color: '#FFFC00',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  addOptionSubtext: {
+    color: '#AAA',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  addOptionBtnSecondary: {
+    backgroundColor: '#2C2C2E',
+    padding: 14,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  addOptionTextSecondary: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 });
 

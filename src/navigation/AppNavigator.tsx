@@ -31,13 +31,10 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;
 
-        let icon = '📍';
-        let title = 'Map';
+        let icon = '📷';
+        let title = 'Camera';
 
-        if (route.name === 'Map') {
-          icon = '📍';
-          title = 'Map';
-        } else if (route.name === 'ChatFeed') {
+        if (route.name === 'ChatFeed') {
           icon = '💬';
           title = 'Chat';
         } else if (route.name === 'Camera') {
@@ -47,8 +44,8 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
           icon = '👥';
           title = 'Stories';
         } else if (route.name === 'VipMembers') {
-          icon = '☰';
-          title = 'Discover';
+          icon = '👑';
+          title = 'VIP';
         }
 
         const onPress = () => {
@@ -88,7 +85,6 @@ const MainTabNavigator: React.FC = () => {
         headerShown: false,
       }}
     >
-      <Tab.Screen name="Map" component={MapScreen} />
       <Tab.Screen name="ChatFeed" component={ChatFeedScreen} />
       <Tab.Screen name="Camera" component={CameraScreen} />
       <Tab.Screen name="Stories" component={StoriesScreen} />
