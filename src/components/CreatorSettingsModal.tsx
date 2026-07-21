@@ -46,6 +46,61 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
   const [email, setEmail] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150');
 
+  // File Upload & Camera Selfie Handlers
+  const fileInputRef = React.useRef<any>(null);
+
+  const handleDevicePhotoUpload = () => {
+    if (Platform.OS === 'web' && fileInputRef.current) {
+      fileInputRef.current.click();
+    } else {
+      Alert.alert('Upload Photo', 'Select a photo from your device camera roll.');
+    }
+  };
+
+  const handleFileChange = (event: any) => {
+    const file = event.target?.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setAvatarUrl(e.target.result as string);
+          if (typeof window !== 'undefined') window.alert('📸 Profile picture updated from your device!');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCameraSelfieCapture = async () => {
+    try {
+      if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.mediaDevices) {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        await video.play();
+
+        setTimeout(() => {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            setAvatarUrl(dataUrl);
+            if (typeof window !== 'undefined') window.alert('📸 Selfie captured & set as profile picture!');
+          }
+          stream.getTracks().forEach((track) => track.stop());
+        }, 500);
+      } else {
+        Alert.alert('Take Photo', 'Camera selfie captured!');
+      }
+    } catch (err) {
+      console.error('[Selfie Error]', err);
+      Alert.alert('Camera Notice', 'Please allow camera permission to capture selfie.');
+    }
+  };
+
   // Creator Membership Price & Stripe Connect Settings
   const [goldMonthlyPrice, setGoldMonthlyPrice] = useState('9.99');
   const [platinumYearlyPrice, setPlatinumYearlyPrice] = useState('99.00');
@@ -186,21 +241,25 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
+          {/* Hidden File Input for Web File Upload */}
+          {Platform.OS === 'web' && (
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+          )}
+
           {/* Profile Card & Avatar Editor */}
           <View style={styles.profileCard}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => {
-                const url = prompt ? prompt('Enter Profile Avatar Image URL:', avatarUrl) : null;
-                if (url && url.trim()) setAvatarUrl(url.trim());
-              }}
-              style={{ alignItems: 'center' }}
-            >
+            <View style={{ alignItems: 'center' }}>
               <Image source={{ uri: avatarUrl }} style={styles.avatar} />
               <View style={styles.editAvatarBadge}>
-                <Text style={styles.editAvatarText}>📸 Change</Text>
+                <Text style={styles.editAvatarText}>ACTIVE</Text>
               </View>
-            </TouchableOpacity>
+            </View>
 
             <View style={styles.profileDetails}>
               <TextInput
@@ -222,6 +281,25 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
                 <Text style={styles.signOutText}>Sign Out 🚪</Text>
               </TouchableOpacity>
             </View>
+          </View>
+
+          {/* 📸 Profile Photo Upload / Capture Controls */}
+          <View style={styles.avatarActionRow}>
+            <TouchableOpacity
+              style={styles.uploadPhotoBtn}
+              onPress={handleDevicePhotoUpload}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.uploadPhotoText}>📁 Upload from Device</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.takeSelfieBtn}
+              onPress={handleCameraSelfieCapture}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.takeSelfieText}>📸 Take Selfie Photo</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Quick Preset Avatars Picker */}
@@ -555,6 +633,39 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
     padding: 0,
+  },
+  avatarActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: -6,
+  },
+  uploadPhotoBtn: {
+    flex: 1,
+    backgroundColor: '#1C1C1E',
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#00F2FE',
+  },
+  uploadPhotoText: {
+    color: '#00F2FE',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  takeSelfieBtn: {
+    flex: 1,
+    backgroundColor: '#1C1C1E',
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFFC00',
+  },
+  takeSelfieText: {
+    color: '#FFFC00',
+    fontSize: 12,
+    fontWeight: '800',
   },
   avatarPickerRow: {
     backgroundColor: '#1C1C1E',
