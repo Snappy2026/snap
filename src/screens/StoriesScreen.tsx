@@ -127,6 +127,7 @@ const FOR_YOU: DiscoverItem[] = [
 ];
 
 import { sessionStore } from '../lib/sessionStore';
+import StoryViewerModal, { StoryViewerItem } from '../components/StoryViewerModal';
 
 export const StoriesScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -134,6 +135,10 @@ export const StoriesScreen: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [dbStories, setDbStories] = useState<Story[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Story Viewer Modal State
+  const [showStoryModal, setShowStoryModal] = useState(false);
+  const [modalStories, setModalStories] = useState<StoryViewerItem[]>([]);
 
   useEffect(() => {
     if (!isFocused) return;
@@ -170,30 +175,40 @@ export const StoriesScreen: React.FC = () => {
 
   const openMyStory = () => {
     if (myStories.length > 0) {
-      navigation.navigate('StoryViewer', { stories: myStories });
+      setModalStories(myStories.map(s => ({
+        id: s.id,
+        media_url: s.media_url,
+        media_type: s.media_type,
+        user_profile: { display_name: s.user_profile?.display_name || 'My Story' },
+      })));
+      setShowStoryModal(true);
     } else {
       navigation.navigate('MainTabs', { screen: 'Camera' });
     }
   };
 
   const openStoryReel = (friend: FriendStoryItem) => {
-    navigation.navigate('StoryViewer', {
-      stories: [
-        {
-          id: friend.id,
-          user_id: friend.id,
-          media_url: friend.storyMedia,
-          media_type: 'image',
-          created_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 86400000).toISOString(),
-          user_profile: { display_name: friend.name },
-        },
-      ],
-    });
+    setModalStories([
+      {
+        id: friend.id,
+        media_url: friend.storyMedia,
+        media_type: 'image',
+        user_profile: { display_name: friend.name },
+      },
+    ]);
+    setShowStoryModal(true);
   };
 
   const openDbStoryReel = (story: Story) => {
-    navigation.navigate('StoryViewer', { stories: [story] });
+    setModalStories([
+      {
+        id: story.id,
+        media_url: story.media_url,
+        media_type: story.media_type,
+        user_profile: { display_name: story.user_profile?.display_name || 'My Story' },
+      },
+    ]);
+    setShowStoryModal(true);
   };
 
   // Filter Discover content dynamically based on selected category
@@ -283,21 +298,17 @@ export const StoriesScreen: React.FC = () => {
             <TouchableOpacity
               key={sub.id}
               style={styles.subCard}
-              onPress={() =>
-                navigation.navigate('StoryViewer', {
-                  stories: [
-                    {
-                      id: sub.id,
-                      user_id: sub.id,
-                      media_url: sub.image,
-                      media_type: 'image',
-                      created_at: new Date().toISOString(),
-                      expires_at: new Date(Date.now() + 86400000).toISOString(),
-                      user_profile: { display_name: sub.author },
-                    },
-                  ],
-                })
-              }
+              onPress={() => {
+                setModalStories([
+                  {
+                    id: sub.id,
+                    media_url: sub.image,
+                    media_type: 'image',
+                    user_profile: { display_name: sub.author },
+                  },
+                ]);
+                setShowStoryModal(true);
+              }}
               activeOpacity={0.85}
             >
               <Image source={{ uri: sub.image }} style={styles.subImage} />
@@ -327,21 +338,17 @@ export const StoriesScreen: React.FC = () => {
             <TouchableOpacity
               key={item.id}
               style={styles.discoverCard}
-              onPress={() =>
-                navigation.navigate('StoryViewer', {
-                  stories: [
-                    {
-                      id: item.id,
-                      user_id: item.id,
-                      media_url: item.image,
-                      media_type: 'image',
-                      created_at: new Date().toISOString(),
-                      expires_at: new Date(Date.now() + 86400000).toISOString(),
-                      user_profile: { display_name: item.publisher },
-                    },
-                  ],
-                })
-              }
+              onPress={() => {
+                setModalStories([
+                  {
+                    id: item.id,
+                    media_url: item.image,
+                    media_type: 'image',
+                    user_profile: { display_name: item.publisher },
+                  },
+                ]);
+                setShowStoryModal(true);
+              }}
               activeOpacity={0.85}
             >
               <Image source={{ uri: item.image }} style={styles.discoverImage} />
@@ -356,6 +363,13 @@ export const StoriesScreen: React.FC = () => {
           ))}
         </View>
       </ScrollView>
+
+      {/* INSTANT 100% FULL-SCREEN STORY PLAYER MODAL */}
+      <StoryViewerModal
+        visible={showStoryModal}
+        stories={modalStories}
+        onClose={() => setShowStoryModal(false)}
+      />
     </SafeAreaView>
   );
 };

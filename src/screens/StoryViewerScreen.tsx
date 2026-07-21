@@ -34,17 +34,23 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export const StoryViewerScreen: React.FC = () => {
   const route = useRoute<StoryViewerRouteProp>();
   const navigation = useNavigation<NavigationProp>();
-  const { stories, initialIndex = 0 } = route.params;
+  
+  const stories = route?.params?.stories || [];
+  const initialIndex = route?.params?.initialIndex || 0;
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const progress = useSharedValue(0);
 
-  const currentStory = stories[currentIndex] || {
+  const fallbackStory = {
     id: 'demo-story',
     media_url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800',
-    media_type: 'image',
-    user_profile: { display_name: 'Sarah Connor' },
+    media_type: 'image' as const,
+    user_profile: { display_name: 'Snapchat Story' },
   };
+
+  const currentStory = (stories && stories.length > 0 && stories[currentIndex])
+    ? stories[currentIndex]
+    : fallbackStory;
 
   const advanceStory = () => {
     if (currentIndex < stories.length - 1) {
