@@ -130,7 +130,7 @@ export const ContactInviteModal: React.FC<ContactInviteModalProps> = ({
 
     try {
       if (Platform.OS === "web" && typeof window !== "undefined") {
-        window.alert("SMS invite is only supported on mobile devices.");
+        window.location.href = smsUrl;
       } else {
         await Linking.openURL(smsUrl);
       }
@@ -154,16 +154,19 @@ export const ContactInviteModal: React.FC<ContactInviteModalProps> = ({
       .filter((c) => selectedIds.includes(c.id))
       .map((c) => c.phoneNumber);
 
+    const inviteMessage = encodeURIComponent(
+      "Hey! Join me on Snapchat 👻 Download the app here: https://snap.app/download/join",
+    );
+    const cleanPhones = selectedPhoneNumbers.map((p) =>
+      p.replace(/[^0-9]/g, ""),
+    );
+    const smsUrl = `sms:${cleanPhones.join(",")}?body=${inviteMessage}`;
+
     try {
       if (Platform.OS === "web" && typeof window !== "undefined") {
-        window.alert(
-          `🚀 Bulk SMS Invites Sent!\nInvited ${selectedPhoneNumbers.length} contacts:\n${selectedPhoneNumbers.join("\n")}`,
-        );
+        window.location.href = smsUrl;
       } else {
-        Alert.alert(
-          "Invites Sent! 📱",
-          `Sent SMS invites to ${selectedPhoneNumbers.length} contacts.`,
-        );
+        await Linking.openURL(smsUrl);
       }
       onClose();
     } catch (err: unknown) {
