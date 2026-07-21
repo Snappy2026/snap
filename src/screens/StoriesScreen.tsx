@@ -1136,24 +1136,6 @@ export const StoriesScreen: React.FC = () => {
             <View style={styles.addModalHeader}>
               <Text style={styles.addModalTitle}>👻 Add Content</Text>
 
-              <Pressable
-                style={({ pressed }) => [
-                  styles.addOptionBtnPrimary,
-                  pressed && { opacity: 0.8 },
-                  { marginBottom: 12, backgroundColor: "#FFD700" },
-                ]}
-                onPress={handleCameraCapture}
-              >
-                <Text style={styles.addOptionIcon}>📷</Text>
-                <View>
-                  <Text style={[styles.addOptionText, { color: "#000" }]}>
-                    Snap from Camera
-                  </Text>
-                  <Text style={[styles.addOptionSubtext, { color: "#333" }]}>
-                    Take a new photo or video
-                  </Text>
-                </View>
-              </Pressable>
 
               <Pressable
                 onPress={() => setShowAddStoryModal(false)}
