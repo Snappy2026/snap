@@ -67,6 +67,7 @@ export const CameraScreen: React.FC = () => {
 
   const [cameraPosition, setCameraPosition] = useState<'front' | 'back'>('back');
   const [flashMode, setFlashMode] = useState<'off' | 'on'>('off');
+  const [isFlashActive, setIsFlashActive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeLens, setActiveLens] = useState<ARLens | null>(null);
@@ -140,6 +141,19 @@ export const CameraScreen: React.FC = () => {
       shutterScale.value = withSpring(0.85, {}, () => {
         shutterScale.value = withSpring(1);
       });
+
+      // Trigger Screen Flash Glow & Hardware Torch if Flash is ON
+      if (flashMode === 'on') {
+        setIsFlashActive(true);
+        setTimeout(() => setIsFlashActive(false), 350);
+
+        if (Platform.OS === 'web' && webStreamRef.current) {
+          const track = webStreamRef.current.getVideoTracks()[0];
+          if (track && 'applyConstraints' in track) {
+            (track as any).applyConstraints({ advanced: [{ torch: true }] }).catch(() => {});
+          }
+        }
+      }
 
       if (Platform.OS === 'web') {
         if (webVideoRef.current) {
@@ -451,6 +465,16 @@ export const CameraScreen: React.FC = () => {
   return (
     <GestureDetector gesture={doubleTapGesture}>
       <View style={styles.container}>
+        {/* Real Screen Flash Burst Overlay */}
+        {isFlashActive && (
+          <View
+            style={[
+              StyleSheet.absoluteFillObject,
+              { backgroundColor: '#FFFFFF', zIndex: 999999, pointerEvents: 'none' },
+            ]}
+          />
+        )}
+
         {/* Top SnapBar Header */}
         <SnapBar
           title="Camera"
@@ -502,7 +526,7 @@ export const CameraScreen: React.FC = () => {
         {/* Side Camera Action Tools */}
         <View style={styles.sideControls}>
           <TouchableOpacity
-            style={styles.iconButton}
+            style={[styles.iconButton, flashMode === 'on' && styles.iconButtonFlashActive]}
             onPress={() => setFlashMode(flashMode === 'off' ? 'on' : 'off')}
           >
             <Text style={styles.iconText}>{flashMode === 'on' ? '⚡️' : '📸'}</Text>
@@ -656,6 +680,10 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 20,
+  },
+  iconButtonFlashActive: {
+    backgroundColor: 'rgba(255, 252, 0, 0.35)',
+    borderColor: '#FFFC00',
   },
   bottomControls: {
     position: 'absolute',
