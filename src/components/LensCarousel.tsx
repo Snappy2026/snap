@@ -55,11 +55,16 @@ export const LensCarousel: React.FC<LensCarouselProps> = ({ onSelectLens }) => {
           return (
             <TouchableOpacity
               key={lens.id}
-              style={[styles.lensItem, isSelected && styles.lensItemSelected]}
+              style={{ alignItems: 'center', width: 64 }}
               onPress={() => handleSelect(lens)}
               activeOpacity={0.8}
             >
-              <Text style={styles.lensIcon}>{lens.icon}</Text>
+              <View style={[styles.lensItem, isSelected && styles.lensItemSelected]}>
+                <Text style={styles.lensIcon}>{lens.icon}</Text>
+              </View>
+              <Text style={[styles.lensName, isSelected && styles.lensNameSelected]} numberOfLines={1}>
+                {lens.name}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -97,6 +102,17 @@ const styles = StyleSheet.create({
   },
   lensIcon: {
     fontSize: 24,
+  },
+  lensName: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  lensNameSelected: {
+    color: '#FFFC00',
+    fontWeight: '900',
   },
 });
 

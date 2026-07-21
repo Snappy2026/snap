@@ -443,22 +443,6 @@ export const CameraScreen: React.FC = () => {
                 </Text>
               </View>
             )}
-
-            {/* Simulated AR Lens Color Filter Overlay & Sticker Badges */}
-            {activeLens && activeLens.filterOverlay && (
-              <View
-                style={[
-                  StyleSheet.absoluteFillObject,
-                  { backgroundColor: activeLens.filterOverlay, pointerEvents: 'none', justifyContent: 'center', alignItems: 'center' },
-                ]}
-              >
-                {activeLens.topBadgeText && (
-                  <View style={styles.lensTopBadge}>
-                    <Text style={styles.lensTopBadgeText}>{activeLens.topBadgeText}</Text>
-                  </View>
-                )}
-              </View>
-            )}
           </View>
         ) : isFocused && VisionCamera && device ? (
           <VisionCamera
@@ -474,6 +458,22 @@ export const CameraScreen: React.FC = () => {
           <View style={styles.permissionContainer}>
             <Text style={styles.permissionText}>Initializing Camera Viewfinder...</Text>
             <ActivityIndicator size="large" color="#FFFC00" style={{ marginTop: 20 }} />
+          </View>
+        )}
+
+        {/* Global Live AR Lens Filter Overlay & Top Banner */}
+        {activeLens && activeLens.filterOverlay && (
+          <View
+            style={[
+              StyleSheet.absoluteFillObject,
+              { backgroundColor: activeLens.filterOverlay, pointerEvents: 'none', justifyContent: 'center', alignItems: 'center', zIndex: 90 },
+            ]}
+          >
+            {activeLens.topBadgeText && (
+              <View style={styles.lensTopBadge}>
+                <Text style={styles.lensTopBadgeText}>{activeLens.topBadgeText}</Text>
+              </View>
+            )}
           </View>
         )}
 
