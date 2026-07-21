@@ -3,7 +3,7 @@
 // 1-on-1 Real-time Text Chat with Supabase Realtime postgres_changes & Presence.
 // ============================================================================
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -15,15 +15,15 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-} from 'react-native';
-import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
-import { ChatMessage } from '../types/database';
-import { supabase } from '../lib/supabase';
-import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+} from "react-native";
+import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../types/navigation";
+import { ChatMessage } from "../types/database";
+import { supabase } from "../lib/supabase";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
-type DirectChatRouteProp = RouteProp<RootStackParamList, 'DirectChat'>;
+type DirectChatRouteProp = RouteProp<RootStackParamList, "DirectChat">;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const DirectChatScreen: React.FC = () => {
@@ -32,7 +32,7 @@ export const DirectChatScreen: React.FC = () => {
   const { friendId, friendName, friendAvatar } = route.params;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputText, setInputText] = useState('');
+  const [inputText, setInputText] = useState("");
   const [isFriendTyping, setIsFriendTyping] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
@@ -50,7 +50,7 @@ export const DirectChatScreen: React.FC = () => {
 
   const loadLocal24hMessages = (fId: string): ChatMessage[] => {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
+      if (typeof window !== "undefined" && window.localStorage) {
         const raw = window.localStorage.getItem(getStorageKey(fId));
         if (raw) {
           const parsed: ChatMessage[] = JSON.parse(raw);
@@ -58,19 +58,19 @@ export const DirectChatScreen: React.FC = () => {
         }
       }
     } catch (e) {
-      console.warn('[DirectChat] Storage load warning:', e);
+      console.warn("[DirectChat] Storage load warning:", e);
     }
     return [];
   };
 
   const saveLocal24hMessages = (fId: string, list: ChatMessage[]) => {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
+      if (typeof window !== "undefined" && window.localStorage) {
         const valid = filter24hMessages(list);
         window.localStorage.setItem(getStorageKey(fId), JSON.stringify(valid));
       }
     } catch (e) {
-      console.warn('[DirectChat] Storage save warning:', e);
+      console.warn("[DirectChat] Storage save warning:", e);
     }
   };
 
@@ -90,13 +90,15 @@ export const DirectChatScreen: React.FC = () => {
       }
 
       const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .or(`and(sender_id.eq.${userId},recipient_id.eq.${friendId}),and(sender_id.eq.${friendId},recipient_id.eq.${userId})`)
-        .order('created_at', { ascending: true });
+        .from("messages")
+        .select("*")
+        .or(
+          `and(sender_id.eq.${userId},recipient_id.eq.${friendId}),and(sender_id.eq.${friendId},recipient_id.eq.${userId})`,
+        )
+        .order("created_at", { ascending: true });
 
       if (error) {
-        console.error('[DirectChat Error]', error.message);
+        console.error("[DirectChat Error]", error.message);
       } else if (data && data.length > 0) {
         const validDb = filter24hMessages(data as ChatMessage[]);
         setMessages(validDb);
@@ -104,15 +106,29 @@ export const DirectChatScreen: React.FC = () => {
       } else if (cached.length === 0) {
         // Fallback default starter 24h messages
         const initialDemo: ChatMessage[] = [
-          { id: 'm1', sender_id: friendId, recipient_id: userId, text_content: 'Hey! Did you check out the new snap?', created_at: new Date(Date.now() - 3600000).toISOString(), read_at: null },
-          { id: 'm2', sender_id: userId, recipient_id: friendId, text_content: 'Yeah! Looks awesome 🔥', created_at: new Date(Date.now() - 1800000).toISOString(), read_at: null },
+          {
+            id: "m1",
+            sender_id: friendId,
+            recipient_id: userId,
+            text_content: "Hey! Did you check out the new snap?",
+            created_at: new Date(Date.now() - 3600000).toISOString(),
+            read_at: null,
+          },
+          {
+            id: "m2",
+            sender_id: userId,
+            recipient_id: friendId,
+            text_content: "Yeah! Looks awesome 🔥",
+            created_at: new Date(Date.now() - 1800000).toISOString(),
+            read_at: null,
+          },
         ];
         const validDemo = filter24hMessages(initialDemo);
         setMessages(validDemo);
         saveLocal24hMessages(friendId, validDemo);
       }
     } catch (err) {
-      console.error('[DirectChat Error]', err);
+      console.error("[DirectChat Error]", err);
     }
   };
 
@@ -128,31 +144,36 @@ export const DirectChatScreen: React.FC = () => {
       const channel = supabase
         .channel(`chat_${userId}_${friendId}`)
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'messages',
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
             filter: `recipient_id=eq.${userId}`,
           },
           (payload: RealtimePostgresChangesPayload<ChatMessage>) => {
-            if (payload.new && (payload.new as ChatMessage).sender_id === friendId) {
+            if (
+              payload.new &&
+              (payload.new as ChatMessage).sender_id === friendId
+            ) {
               setMessages((prev) => {
                 const updated = [...prev, payload.new as ChatMessage];
                 saveLocal24hMessages(friendId, updated);
                 return filter24hMessages(updated);
               });
             }
-          }
+          },
         )
         .subscribe();
 
       // Realtime Typing Indicator
       const presenceChannel = supabase.channel(`presence_${friendId}`);
       presenceChannel
-        .on('presence', { event: 'sync' }, () => {
+        .on("presence", { event: "sync" }, () => {
           const state = presenceChannel.presenceState();
-          const friendState = (Object.values(state).flat() as any[]).find((p: any) => p.userId === friendId);
+          const friendState = (Object.values(state).flat() as any[]).find(
+            (p: any) => p.userId === friendId,
+          );
           setIsFriendTyping(!!friendState?.isTyping);
         })
         .subscribe();
@@ -170,11 +191,11 @@ export const DirectChatScreen: React.FC = () => {
     if (!inputText.trim()) return;
 
     const messageText = inputText.trim();
-    setInputText('');
+    setInputText("");
 
     const tempMsg: ChatMessage = {
       id: Date.now().toString(),
-      sender_id: currentUserId || 'me',
+      sender_id: currentUserId || "me",
       recipient_id: friendId,
       text_content: messageText,
       created_at: new Date().toISOString(),
@@ -189,14 +210,14 @@ export const DirectChatScreen: React.FC = () => {
 
     try {
       if (currentUserId) {
-        await (supabase.from('messages') as any).insert({
+        await (supabase.from("messages") as any).insert({
           sender_id: currentUserId,
           recipient_id: friendId,
           text_content: messageText,
         });
       }
     } catch (err) {
-      console.error('[Send Message Error]', err);
+      console.error("[Send Message Error]", err);
     }
   };
 
@@ -204,7 +225,10 @@ export const DirectChatScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Top Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+        >
           <Text style={styles.backText}>‹ Back</Text>
         </TouchableOpacity>
 
@@ -219,14 +243,17 @@ export const DirectChatScreen: React.FC = () => {
           )}
         </View>
 
-        <TouchableOpacity style={styles.cameraQuickBtn} onPress={() => navigation.navigate('MainTabs', { screen: 'Camera' })}>
+        <TouchableOpacity
+          style={styles.cameraQuickBtn}
+          onPress={() => navigation.navigate("MainTabs", { screen: "Camera" })}
+        >
           <Text style={styles.cameraIcon}>📷</Text>
         </TouchableOpacity>
       </View>
 
       {/* Messages List */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.chatArea}
       >
         <FlatList
@@ -234,13 +261,31 @@ export const DirectChatScreen: React.FC = () => {
           data={messages}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.messagesContent}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: true })
+          }
           renderItem={({ item }) => {
-            const isMe = item.sender_id === currentUserId || item.sender_id === 'me';
+            const isMe =
+              item.sender_id === currentUserId || item.sender_id === "me";
             return (
-              <View style={[styles.bubbleWrapper, isMe ? styles.myBubbleWrapper : styles.theirBubbleWrapper]}>
-                <View style={[styles.bubble, isMe ? styles.myBubble : styles.theirBubble]}>
-                  <Text style={[styles.bubbleText, isMe ? styles.myBubbleText : styles.theirBubbleText]}>
+              <View
+                style={[
+                  styles.bubbleWrapper,
+                  isMe ? styles.myBubbleWrapper : styles.theirBubbleWrapper,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.bubble,
+                    isMe ? styles.myBubble : styles.theirBubble,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.bubbleText,
+                      isMe ? styles.myBubbleText : styles.theirBubbleText,
+                    ]}
+                  >
                     {item.text_content}
                   </Text>
                 </View>
@@ -271,23 +316,23 @@ export const DirectChatScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "transparent",
   },
   header: {
     height: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: "rgba(255, 255, 255, 0.1)",
   },
   backBtn: {
     paddingRight: 12,
   },
   backText: {
-    color: '#00F2FE',
+    color: "#00F2FE",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   headerAvatar: {
     width: 38,
@@ -299,17 +344,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 17,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   typingStatus: {
-    color: '#FFFC00',
+    color: "#D4AF37",
     fontSize: 12,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   onlineStatus: {
-    color: '#34C759',
+    color: "#34C759",
     fontSize: 12,
   },
   cameraQuickBtn: {
@@ -327,26 +372,26 @@ const styles = StyleSheet.create({
   },
   bubbleWrapper: {
     marginBottom: 10,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   myBubbleWrapper: {
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   theirBubbleWrapper: {
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
   },
   bubble: {
-    maxWidth: '78%',
+    maxWidth: "78%",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
   },
   myBubble: {
-    backgroundColor: '#00F2FE',
+    backgroundColor: "#00F2FE",
     borderBottomRightRadius: 4,
   },
   theirBubble: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderBottomLeftRadius: 4,
   },
   bubbleText: {
@@ -354,29 +399,29 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   myBubbleText: {
-    color: '#000',
-    fontWeight: '600',
+    color: "#000",
+    fontWeight: "600",
   },
   theirBubbleText: {
-    color: '#FFF',
-    fontWeight: '500',
+    color: "#FFF",
+    fontWeight: "500",
   },
   inputBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: '#000',
+    borderTopColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "transparent",
   },
   textInput: {
     flex: 1,
     height: 42,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 21,
     paddingHorizontal: 16,
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 16,
   },
   sendBtn: {
@@ -384,9 +429,9 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#00F2FE',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#00F2FE",
+    justifyContent: "center",
+    alignItems: "center",
   },
   sendBtnIcon: {
     fontSize: 18,

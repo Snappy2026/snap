@@ -2,7 +2,7 @@
 // Navigation Param List Type Declarations
 // ============================================================================
 
-import { Snap, Story } from './database';
+import { Snap, Story } from "./database";
 
 export type MainTabParamList = {
   Map: undefined;
@@ -20,7 +20,7 @@ export type RootStackParamList = {
   };
   SendToModal: {
     mediaUrl: string;
-    mediaType: 'image' | 'video';
+    mediaType: "image" | "video";
     duration: number;
   };
   DirectChat: {
@@ -33,7 +33,7 @@ export type RootStackParamList = {
     initialIndex?: number;
   };
   VipCheckout: {
-    tier: 'gold' | 'platinum';
+    tier: "gold" | "platinum";
     price: string;
   };
 };

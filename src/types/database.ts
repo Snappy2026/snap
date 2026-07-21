@@ -2,9 +2,9 @@
 // Database & Supabase Type Definitions
 // ============================================================================
 
-export type FriendshipStatus = 'pending' | 'accepted' | 'blocked';
-export type MediaType = 'image' | 'video';
-export type UserRole = 'admin' | 'creator' | 'customer';
+export type FriendshipStatus = "pending" | "accepted" | "blocked";
+export type MediaType = "image" | "video";
+export type UserRole = "admin" | "creator" | "customer";
 
 export interface Profile {
   id: string;
@@ -86,33 +86,33 @@ export interface Database {
     Tables: {
       profiles: {
         Row: Profile;
-        Insert: Omit<Profile, 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Profile, 'id'>>;
+        Insert: Omit<Profile, "created_at" | "updated_at">;
+        Update: Partial<Omit<Profile, "id">>;
       };
       friendships: {
         Row: Friendship;
-        Insert: Omit<Friendship, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Friendship, 'id'>>;
+        Insert: Omit<Friendship, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<Friendship, "id">>;
       };
       snaps: {
         Row: Snap;
-        Insert: Omit<Snap, 'id' | 'viewed_at' | 'created_at'>;
-        Update: Partial<Omit<Snap, 'id'>>;
+        Insert: Omit<Snap, "id" | "viewed_at" | "created_at">;
+        Update: Partial<Omit<Snap, "id">>;
       };
       messages: {
         Row: ChatMessage;
-        Insert: Omit<ChatMessage, 'id' | 'read_at' | 'created_at'>;
-        Update: Partial<Omit<ChatMessage, 'id'>>;
+        Insert: Omit<ChatMessage, "id" | "read_at" | "created_at">;
+        Update: Partial<Omit<ChatMessage, "id">>;
       };
       stories: {
         Row: Story;
-        Insert: Omit<Story, 'id' | 'created_at' | 'expires_at'>;
-        Update: Partial<Omit<Story, 'id'>>;
+        Insert: Omit<Story, "id" | "created_at" | "expires_at">;
+        Update: Partial<Omit<Story, "id">>;
       };
       vip_content: {
         Row: VipContentItem;
-        Insert: Omit<VipContentItem, 'id' | 'created_at'>;
-        Update: Partial<Omit<VipContentItem, 'id'>>;
+        Insert: Omit<VipContentItem, "id" | "created_at">;
+        Update: Partial<Omit<VipContentItem, "id">>;
       };
     };
     Views: Record<string, never>;

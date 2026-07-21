@@ -3,7 +3,7 @@
 // Ephemeral snap viewer with Reanimated countdown progress bar & auto-deletion Edge Function call.
 // ============================================================================
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -12,26 +12,26 @@ import {
   TouchableOpacity,
   Dimensions,
   SafeAreaView,
-} from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+} from "react-native";
+import { Video, ResizeMode } from "expo-av";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   runOnJS,
   Easing,
-} from 'react-native-reanimated';
-import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
-import { supabase } from '../lib/supabase';
+} from "react-native-reanimated";
+import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../types/navigation";
+import { supabase } from "../lib/supabase";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
-type SnapViewerRouteProp = RouteProp<RootStackParamList, 'SnapViewer'>;
+type SnapViewerRouteProp = RouteProp<RootStackParamList, "SnapViewer">;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-import { launchPpvCheckout } from '../lib/stripe';
+import { launchPpvCheckout } from "../lib/stripe";
 
 export const SnapViewerScreen: React.FC = () => {
   const route = useRoute<SnapViewerRouteProp>();
@@ -54,21 +54,27 @@ export const SnapViewerScreen: React.FC = () => {
       console.log(`[SnapViewer] Triggering deletion for snap_id: ${snap.id}`);
 
       // Call Supabase Edge Function to purge media file from storage & DB
-      const { data, error } = await supabase.functions.invoke('delete-viewed-snap', {
-        body: { snap_id: snap.id },
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "delete-viewed-snap",
+        {
+          body: { snap_id: snap.id },
+        },
+      );
 
       if (error) {
-        console.warn('[SnapViewer Warning] Edge function call error:', error.message);
-        await (supabase.from('snaps') as any)
+        console.warn(
+          "[SnapViewer Warning] Edge function call error:",
+          error.message,
+        );
+        await (supabase.from("snaps") as any)
           .update({ viewed_at: new Date().toISOString() })
-          .eq('id', snap.id);
+          .eq("id", snap.id);
       } else {
-        console.log('[SnapViewer] Edge Function response:', data);
+        console.log("[SnapViewer] Edge Function response:", data);
       }
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Cleanup error';
-      console.error('[SnapViewer Error] Cleanup failed:', errorMessage);
+      const errorMessage = err instanceof Error ? err.message : "Cleanup error";
+      console.error("[SnapViewer Error] Cleanup failed:", errorMessage);
     } finally {
       navigation.goBack();
     }
@@ -83,12 +89,12 @@ export const SnapViewerScreen: React.FC = () => {
       await launchPpvCheckout({
         snapId: snap.id,
         price: snap.price_amount || 1.99,
-        userId: currentUser?.id || 'demo-user',
+        userId: currentUser?.id || "demo-user",
       });
 
       setIsUnlocked(true);
     } catch (err) {
-      console.error('[PPV Unlock Error]', err);
+      console.error("[PPV Unlock Error]", err);
       setIsUnlocked(true);
     } finally {
       setUnlocking(false);
@@ -110,7 +116,7 @@ export const SnapViewerScreen: React.FC = () => {
         if (finished) {
           runOnJS(triggerAutoDeletion)();
         }
-      }
+      },
     );
   }, [snap.duration, isUnlocked]);
 
@@ -127,7 +133,7 @@ export const SnapViewerScreen: React.FC = () => {
     >
       {/* Media Content Stream */}
       {isUnlocked ? (
-        snap.media_type === 'image' ? (
+        snap.media_type === "image" ? (
           <Image
             source={{ uri: snap.media_url }}
             style={StyleSheet.absoluteFillObject}
@@ -149,7 +155,8 @@ export const SnapViewerScreen: React.FC = () => {
           <Text style={styles.ppvLockEmoji}>🔒</Text>
           <Text style={styles.ppvLockTitle}>Locked Premium Snap</Text>
           <Text style={styles.ppvLockDesc}>
-            Sent by {snap.sender_profile?.display_name || 'Creator'}. Unlock to view this exclusive photo/video clip.
+            Sent by {snap.sender_profile?.display_name || "Creator"}. Unlock to
+            view this exclusive photo/video clip.
           </Text>
 
           <TouchableOpacity
@@ -158,12 +165,19 @@ export const SnapViewerScreen: React.FC = () => {
             disabled={unlocking}
           >
             <Text style={styles.ppvUnlockText}>
-              {unlocking ? 'Opening Stripe...' : `Unlock for $${(snap.price_amount || 1.99).toFixed(2)} 🚀`}
+              {unlocking
+                ? "Opening Stripe..."
+                : `Unlock for $${(snap.price_amount || 1.99).toFixed(2)} 🚀`}
             </Text>
           </TouchableOpacity>
-          <Text style={styles.ppvFeeNotice}>5% Admin platform fee applies ($0.10 on $1.99)</Text>
-          
-          <TouchableOpacity style={styles.ppvBackBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.ppvFeeNotice}>
+            5% Admin platform fee applies ($0.10 on $1.99)
+          </Text>
+
+          <TouchableOpacity
+            style={styles.ppvBackBtn}
+            onPress={() => navigation.goBack()}
+          >
             <Text style={styles.ppvBackText}>✕ Close</Text>
           </TouchableOpacity>
         </View>
@@ -173,12 +187,16 @@ export const SnapViewerScreen: React.FC = () => {
       {isUnlocked && (
         <SafeAreaView style={styles.overlayContainer}>
           <View style={styles.progressBackground}>
-            <Animated.View style={[styles.progressBar, animatedProgressStyle]} />
+            <Animated.View
+              style={[styles.progressBar, animatedProgressStyle]}
+            />
           </View>
 
           <View style={styles.senderHeader}>
             <Text style={styles.senderName}>
-              {snap.sender_profile?.display_name || snap.sender_profile?.username || 'Snapchat Friend'}
+              {snap.sender_profile?.display_name ||
+                snap.sender_profile?.username ||
+                "Adult+ Friend"}
             </Text>
             <Text style={styles.timerText}>{snap.duration}s</Text>
           </View>
@@ -190,14 +208,14 @@ export const SnapViewerScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#000',
+    width: "100%",
+    height: "100%",
+    backgroundColor: "transparent",
     zIndex: 99999,
   },
   overlayContainer: {
@@ -207,43 +225,43 @@ const styles = StyleSheet.create({
   progressBackground: {
     height: 4,
     width: width - 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    backgroundColor: "rgba(255, 255, 255, 0.35)",
     borderRadius: 2,
-    overflow: 'hidden',
-    alignSelf: 'center',
+    overflow: "hidden",
+    alignSelf: "center",
   },
   progressBar: {
-    height: '100%',
-    backgroundColor: '#FFF',
+    height: "100%",
+    backgroundColor: "#FFF",
   },
   senderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 12,
   },
   senderName: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 18,
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    fontWeight: "bold",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
   timerText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 14,
-    fontWeight: '600',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    fontWeight: "600",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
   },
   ppvPaywallOverlay: {
     flex: 1,
-    backgroundColor: '#0A0A14',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#0A0A14",
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 30,
   },
   ppvLockEmoji: {
@@ -251,37 +269,37 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   ppvLockTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
   },
   ppvLockDesc: {
-    color: '#A0A0B0',
+    color: "#A0A0B0",
     fontSize: 15,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 24,
     maxWidth: 340,
     lineHeight: 22,
   },
   ppvUnlockBtn: {
-    backgroundColor: '#FFFC00',
+    backgroundColor: "#D4AF37",
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 30,
     marginBottom: 10,
-    shadowColor: '#FFFC00',
+    shadowColor: "#D4AF37",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
   },
   ppvUnlockText: {
-    color: '#000',
+    color: "#000",
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   ppvFeeNotice: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 12,
     marginBottom: 30,
   },
@@ -289,9 +307,9 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   ppvBackText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

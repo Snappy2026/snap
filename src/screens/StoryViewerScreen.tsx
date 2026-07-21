@@ -3,7 +3,7 @@
 // Full-screen 24-hour story reel viewer with top segmented progress bar & touch advance.
 // ============================================================================
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -13,28 +13,28 @@ import {
   Dimensions,
   SafeAreaView,
   Platform,
-} from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+} from "react-native";
+import { Video, ResizeMode } from "expo-av";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   runOnJS,
   Easing,
-} from 'react-native-reanimated';
-import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
+} from "react-native-reanimated";
+import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../types/navigation";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
-type StoryViewerRouteProp = RouteProp<RootStackParamList, 'StoryViewer'>;
+type StoryViewerRouteProp = RouteProp<RootStackParamList, "StoryViewer">;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const StoryViewerScreen: React.FC = () => {
   const route = useRoute<StoryViewerRouteProp>();
   const navigation = useNavigation<NavigationProp>();
-  
+
   const stories = route?.params?.stories || [];
   const initialIndex = route?.params?.initialIndex || 0;
 
@@ -42,15 +42,17 @@ export const StoryViewerScreen: React.FC = () => {
   const progress = useSharedValue(0);
 
   const fallbackStory = {
-    id: 'demo-story',
-    media_url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800',
-    media_type: 'image' as const,
-    user_profile: { display_name: 'Snapchat Story' },
+    id: "demo-story",
+    media_url:
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800",
+    media_type: "image" as const,
+    user_profile: { display_name: "Adult+ Story" },
   };
 
-  const currentStory = (stories && stories.length > 0 && stories[currentIndex])
-    ? stories[currentIndex]
-    : fallbackStory;
+  const currentStory =
+    stories && stories.length > 0 && stories[currentIndex]
+      ? stories[currentIndex]
+      : fallbackStory;
 
   const advanceStory = () => {
     if (currentIndex < stories.length - 1) {
@@ -79,7 +81,7 @@ export const StoryViewerScreen: React.FC = () => {
         if (finished) {
           runOnJS(advanceStory)();
         }
-      }
+      },
     );
   }, [currentIndex]);
 
@@ -90,19 +92,24 @@ export const StoryViewerScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Media View */}
-      {currentStory.media_type === 'image' ? (
+      {currentStory.media_type === "image" ? (
         <Image
           source={{ uri: currentStory.media_url }}
           style={StyleSheet.absoluteFillObject}
           resizeMode="cover"
         />
-      ) : Platform.OS === 'web' ? (
+      ) : Platform.OS === "web" ? (
         <video
           src={currentStory.media_url}
           autoPlay
           playsInline
           loop={false}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute' }}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            position: "absolute",
+          }}
         />
       ) : (
         <Video
@@ -130,7 +137,7 @@ export const StoryViewerScreen: React.FC = () => {
                 <View
                   style={[
                     styles.segmentFill,
-                    { width: idx < currentIndex ? '100%' : '0%' },
+                    { width: idx < currentIndex ? "100%" : "0%" },
                   ]}
                 />
               )}
@@ -140,7 +147,7 @@ export const StoryViewerScreen: React.FC = () => {
 
         <View style={styles.authorHeader}>
           <Text style={styles.authorName}>
-            {currentStory.user_profile?.display_name || 'Snapchat Story'}
+            {currentStory.user_profile?.display_name || "Adult+ Story"}
           </Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.closeIcon}>✕</Text>
@@ -153,28 +160,28 @@ export const StoryViewerScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#000',
+    width: "100%",
+    height: "100%",
+    backgroundColor: "transparent",
     zIndex: 99999,
   },
   touchOverlay: {
     ...StyleSheet.absoluteFillObject,
-    flexDirection: 'row',
+    flexDirection: "row",
     zIndex: 100000,
   },
   leftTouch: {
     flex: 1,
-    height: '100%',
+    height: "100%",
   },
   rightTouch: {
     flex: 2,
-    height: '100%',
+    height: "100%",
   },
   topOverlay: {
     paddingHorizontal: 12,
@@ -182,39 +189,39 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   segmentedProgressContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     height: 4,
     gap: 4,
   },
   segmentBackground: {
     flex: 1,
-    height: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    height: "100%",
+    backgroundColor: "rgba(255, 255, 255, 0.35)",
     borderRadius: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   segmentFill: {
-    height: '100%',
-    backgroundColor: '#FFF',
+    height: "100%",
+    backgroundColor: "#FFF",
   },
   authorHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 12,
   },
   authorName: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 17,
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    fontWeight: "bold",
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
   closeIcon: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     padding: 4,
   },
 });

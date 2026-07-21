@@ -1,10 +1,10 @@
 // ============================================================================
 // SnapBar Component
-// Universal Snapchat Header Bar featuring Profile Bitmoji avatar with yellow ring,
+// Universal Adult+ Header Bar featuring Profile Bitmoji avatar with yellow ring,
 // translucent search bar, and Add Friend / Phone Contact Sync trigger.
 // ============================================================================
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -14,12 +14,12 @@ import {
   SafeAreaView,
   Image,
   Modal,
-} from 'react-native';
-import ContactInviteModal from './ContactInviteModal';
-import CreatorSettingsModal from './CreatorSettingsModal';
-import AdminDashboardModal from './AdminDashboardModal';
-import CustomerSettingsModal from './CustomerSettingsModal';
-import { supabase } from '../lib/supabase';
+} from "react-native";
+import ContactInviteModal from "./ContactInviteModal";
+import CreatorSettingsModal from "./CreatorSettingsModal";
+import AdminDashboardModal from "./AdminDashboardModal";
+import CustomerSettingsModal from "./CustomerSettingsModal";
+import { supabase } from "../lib/supabase";
 
 interface SnapBarProps {
   title?: string;
@@ -29,7 +29,7 @@ interface SnapBarProps {
 }
 
 export const SnapBar: React.FC<SnapBarProps> = ({
-  title = 'Chat',
+  title = "Chat",
   onProfilePress,
   onAddFriendPress,
   onSearchChange,
@@ -38,7 +38,9 @@ export const SnapBar: React.FC<SnapBarProps> = ({
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
-  const [userRole, setUserRole] = useState<'admin' | 'creator' | 'customer'>('customer');
+  const [userRole, setUserRole] = useState<"admin" | "creator" | "customer">(
+    "customer",
+  );
 
   React.useEffect(() => {
     const fetchRole = async () => {
@@ -46,11 +48,13 @@ export const SnapBar: React.FC<SnapBarProps> = ({
         const { data: userData } = await supabase.auth.getUser();
         const user = userData?.user;
         if (user) {
-          const role = user.user_metadata?.role || (user.email?.includes('admin') ? 'admin' : 'customer');
+          const role =
+            user.user_metadata?.role ||
+            (user.email?.includes("admin") ? "admin" : "customer");
           setUserRole(role);
         }
       } catch (err) {
-        console.error('[SnapBar Role Fetch Error]', err);
+        console.error("[SnapBar Role Fetch Error]", err);
       }
     };
     fetchRole();
@@ -59,7 +63,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
   const handleProfileClick = () => {
     if (onProfilePress) {
       onProfilePress();
-    } else if (userRole === 'customer') {
+    } else if (userRole === "customer") {
       setShowCustomerModal(true);
     } else {
       // For Admin & Creator, open normal profile pic upload & account settings
@@ -86,7 +90,9 @@ export const SnapBar: React.FC<SnapBarProps> = ({
         >
           <View style={styles.yellowRing}>
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' }}
+              source={{
+                uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+              }}
               style={styles.avatar}
             />
           </View>
@@ -105,7 +111,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
 
         {/* Right Actions Group */}
         <View style={styles.rightActionsGroup}>
-          {userRole === 'admin' && (
+          {userRole === "admin" && (
             <TouchableOpacity
               style={styles.adminBarBtn}
               onPress={() => setShowAdminModal(true)}
@@ -115,7 +121,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
             </TouchableOpacity>
           )}
 
-          {userRole === 'creator' && (
+          {userRole === "creator" && (
             <TouchableOpacity
               style={styles.stripeBarBtn}
               onPress={() => setShowSettingsModal(true)}
@@ -125,7 +131,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
             </TouchableOpacity>
           )}
 
-          {userRole === 'customer' && (
+          {userRole === "customer" && (
             <TouchableOpacity
               style={styles.customerBarBtn}
               onPress={() => setShowCustomerModal(true)}
@@ -188,30 +194,30 @@ export const SnapBar: React.FC<SnapBarProps> = ({
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     zIndex: 100,
   },
   container: {
     height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 8,
     gap: 6,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   profileButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   yellowRing: {
     width: 38,
     height: 38,
     borderRadius: 19,
     borderWidth: 2,
-    borderColor: '#FFFC00',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#1C1C1E',
+    borderColor: "#D4AF37",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#1C1C1E",
   },
   avatar: {
     width: 30,
@@ -221,56 +227,56 @@ const styles = StyleSheet.create({
   searchBox: {
     flex: 1,
     height: 34,
-    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: "rgba(255, 255, 255, 0.22)",
     borderRadius: 17,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 8,
     marginHorizontal: 2,
   },
   rightActionsGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   adminBarBtn: {
-    backgroundColor: 'rgba(255, 252, 0, 0.25)',
+    backgroundColor: "rgba(255, 252, 0, 0.25)",
     paddingHorizontal: 6,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#FFFC00',
+    borderColor: "#D4AF37",
   },
   adminBarText: {
-    color: '#FFFC00',
+    color: "#D4AF37",
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   stripeBarBtn: {
-    backgroundColor: 'rgba(99, 91, 255, 0.25)',
+    backgroundColor: "rgba(99, 91, 255, 0.25)",
     paddingHorizontal: 6,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#635BFF',
+    borderColor: "#635BFF",
   },
   stripeBarText: {
-    color: '#635BFF',
+    color: "#635BFF",
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   customerBarBtn: {
-    backgroundColor: 'rgba(0, 242, 254, 0.22)',
+    backgroundColor: "rgba(0, 242, 254, 0.22)",
     paddingHorizontal: 6,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#00F2FE',
+    borderColor: "#00F2FE",
   },
   customerBarText: {
-    color: '#00F2FE',
+    color: "#00F2FE",
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   searchIcon: {
     fontSize: 14,
@@ -278,18 +284,18 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: "500",
     paddingVertical: 0,
   },
   iconButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   actionIcon: {
     fontSize: 16,

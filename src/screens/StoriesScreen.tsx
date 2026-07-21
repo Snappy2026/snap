@@ -182,6 +182,7 @@ export const StoriesScreen: React.FC = () => {
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
   const [isVipMember, setIsVipMember] = useState(false);
   const [userRole, setUserRole] = useState("customer");
+  const [followedCreatorIds, setFollowedCreatorIds] = useState<string[]>([]);
   const [galleryItems, setGalleryItems] = useState<any[]>([]);
   const [vipItems, setVipItems] = useState<any[]>([]);
   const [uploadDestination, setUploadDestination] = useState<
@@ -196,6 +197,18 @@ export const StoriesScreen: React.FC = () => {
     const fetchStories = async () => {
       try {
         const { data: userData } = await supabase.auth.getUser();
+
+        let localFollowedIds: string[] = [];
+        if (userData?.user) {
+          const { data: follows } = await (supabase.from("friendships") as any)
+            .select("addressee_id")
+            .eq("requester_id", userData.user.id)
+            .eq("status", "accepted");
+          if (follows) {
+            localFollowedIds = follows.map((f: any) => f.addressee_id);
+            setFollowedCreatorIds(localFollowedIds);
+          }
+        }
         const user = userData?.user;
         setCurrentUserId(user?.id || null);
 
@@ -270,6 +283,18 @@ export const StoriesScreen: React.FC = () => {
 
       try {
         const { data: userData } = await supabase.auth.getUser();
+
+        let localFollowedIds: string[] = [];
+        if (userData?.user) {
+          const { data: follows } = await (supabase.from("friendships") as any)
+            .select("addressee_id")
+            .eq("requester_id", userData.user.id)
+            .eq("status", "accepted");
+          if (follows) {
+            localFollowedIds = follows.map((f: any) => f.addressee_id);
+            setFollowedCreatorIds(localFollowedIds);
+          }
+        }
         const user = userData?.user;
 
         if (uploadDestination === "story") {
@@ -321,6 +346,20 @@ export const StoriesScreen: React.FC = () => {
         if (e.target?.result) {
           const mediaUrl = e.target.result as string;
           const { data: userData } = await supabase.auth.getUser();
+
+          let localFollowedIds: string[] = [];
+          if (userData?.user) {
+            const { data: follows } = await supabase(
+              supabase.from("friendships") as any,
+            )
+              .select("addressee_id")
+              .eq("requester_id", userData.user.id)
+              .eq("status", "accepted");
+            if (follows) {
+              localFollowedIds = follows.map((f: any) => f.addressee_id);
+              setFollowedCreatorIds(localFollowedIds);
+            }
+          }
           const user = userData?.user;
           const userDisplayName =
             user?.user_metadata?.display_name ||
@@ -1160,7 +1199,6 @@ export const StoriesScreen: React.FC = () => {
               )}
             </View>
 
-
             <Pressable
               style={({ pressed }) => [
                 styles.addOptionBtnPrimary,
@@ -1193,7 +1231,7 @@ export const StoriesScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "transparent",
   },
   scrollContent: {
     paddingBottom: 100,
@@ -1230,7 +1268,7 @@ const styles = StyleSheet.create({
     borderColor: "#9D4EDD",
   },
   activeMyStoryRing: {
-    borderColor: "#FFFC00",
+    borderColor: "#D4AF37",
   },
   addStoryRing: {
     borderColor: "rgba(255, 255, 255, 0.4)",
@@ -1267,7 +1305,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   myStoryName: {
-    color: "#FFFC00",
+    color: "#D4AF37",
     fontSize: 13,
     fontWeight: "800",
     marginTop: 6,
@@ -1297,7 +1335,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.65)",
   },
   subAuthor: {
-    color: "#FFFC00",
+    color: "#D4AF37",
     fontSize: 11,
     fontWeight: "bold",
     textTransform: "uppercase",
@@ -1365,7 +1403,7 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 12,
     borderTopWidth: 1,
-    borderTopColor: "#FFFC00",
+    borderTopColor: "#D4AF37",
   },
   addModalHeader: {
     flexDirection: "row",
@@ -1393,7 +1431,7 @@ const styles = StyleSheet.create({
   addOptionBtnPrimary: {
     backgroundColor: "rgba(255, 252, 0, 0.18)",
     borderWidth: 1.5,
-    borderColor: "#FFFC00",
+    borderColor: "#D4AF37",
     padding: 14,
     borderRadius: 16,
     flexDirection: "row",
@@ -1404,7 +1442,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   addOptionText: {
-    color: "#FFFC00",
+    color: "#D4AF37",
     fontSize: 15,
     fontWeight: "bold",
   },

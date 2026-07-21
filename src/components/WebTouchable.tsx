@@ -9,8 +9,8 @@
 // at the browser engine level, before any JavaScript event interception.
 // ============================================================================
 
-import React, { useRef, useEffect } from 'react';
-import { Pressable, Platform, ViewStyle } from 'react-native';
+import React, { useRef, useEffect } from "react";
+import { Pressable, Platform, ViewStyle } from "react-native";
 
 interface WebTouchableProps {
   onPress: () => void;
@@ -18,14 +18,18 @@ interface WebTouchableProps {
   children: React.ReactNode;
 }
 
-export const WebTouchable: React.FC<WebTouchableProps> = ({ onPress, style, children }) => {
+export const WebTouchable: React.FC<WebTouchableProps> = ({
+  onPress,
+  style,
+  children,
+}) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const onPressRef = useRef(onPress);
   onPressRef.current = onPress;
 
   // Attach click listener directly to DOM node (not through React delegation)
   useEffect(() => {
-    if (Platform.OS !== 'web') return;
+    if (Platform.OS !== "web") return;
     const btn = buttonRef.current;
     if (!btn) return;
 
@@ -34,17 +38,17 @@ export const WebTouchable: React.FC<WebTouchableProps> = ({ onPress, style, chil
     };
 
     // Direct DOM listener — bypasses React's event delegation completely
-    btn.addEventListener('click', handler);
+    btn.addEventListener("click", handler);
 
     return () => {
-      btn.removeEventListener('click', handler);
+      btn.removeEventListener("click", handler);
     };
   }, []);
 
-  if (Platform.OS === 'web') {
+  if (Platform.OS === "web") {
     const flatStyle = Array.isArray(style)
       ? Object.assign({}, ...style.filter(Boolean))
-      : (style || {});
+      : style || {};
 
     return (
       <button
@@ -52,33 +56,33 @@ export const WebTouchable: React.FC<WebTouchableProps> = ({ onPress, style, chil
         type="button"
         style={{
           // Reset all button defaults
-          border: 'none',
-          background: 'none',
+          border: "none",
+          background: "none",
           padding: 0,
           margin: 0,
-          font: 'inherit',
-          color: 'inherit',
-          textAlign: 'inherit' as any,
-          appearance: 'none',
-          WebkitAppearance: 'none',
-          outline: 'none',
+          font: "inherit",
+          color: "inherit",
+          textAlign: "inherit" as any,
+          appearance: "none",
+          WebkitAppearance: "none",
+          outline: "none",
           // Apply component styles
-          display: 'flex',
-          flexDirection: 'column' as any,
-          alignItems: flatStyle.alignItems || 'stretch',
-          justifyContent: flatStyle.justifyContent || 'flex-start',
+          display: "flex",
+          flexDirection: "column" as any,
+          alignItems: flatStyle.alignItems || "stretch",
+          justifyContent: flatStyle.justifyContent || "flex-start",
           width: flatStyle.width as any,
           height: flatStyle.height as any,
           borderRadius: flatStyle.borderRadius as any,
-          overflow: flatStyle.overflow as any || 'visible',
-          backgroundColor: flatStyle.backgroundColor || 'transparent',
+          overflow: (flatStyle.overflow as any) || "visible",
+          backgroundColor: flatStyle.backgroundColor || "transparent",
           marginRight: flatStyle.marginRight as any,
           marginBottom: flatStyle.marginBottom as any,
           position: flatStyle.position as any,
           // iOS Safari specific
-          cursor: 'pointer',
-          WebkitTapHighlightColor: 'transparent',
-          touchAction: 'manipulation',
+          cursor: "pointer",
+          WebkitTapHighlightColor: "transparent",
+          touchAction: "manipulation",
         }}
       >
         {children}

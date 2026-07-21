@@ -1,10 +1,10 @@
 // ============================================================================
 // AuthScreen Component
-// Snapchat Auth Screen with Login & Sign Up forms + Supabase Authentication
+// Adult+ Auth Screen with Login & Sign Up forms + Supabase Authentication
 // Handles Web browser alerts & offline dev fallback seamlessly.
 // ============================================================================
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -16,17 +16,17 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
-import { supabase } from '../lib/supabase';
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../types/navigation";
+import { supabase } from "../lib/supabase";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 // Universal Alert helper supporting both Native and Web browsers
 const showAlert = (title: string, message: string) => {
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
     window.alert(`${title}\n${message}`);
   } else {
     Alert.alert(title, message);
@@ -40,16 +40,18 @@ interface AuthScreenProps {
 export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
   const navigation = useNavigation<NavigationProp>();
   const [isLogin, setIsLogin] = useState(true);
-  const [selectedRole, setSelectedRole] = useState<'customer' | 'creator'>('customer');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [selectedRole, setSelectedRole] = useState<"customer" | "creator">(
+    "customer",
+  );
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleAuth = async () => {
     if (!email || !password) {
-      showAlert('Required Fields', 'Please enter your email and password.');
+      showAlert("Required Fields", "Please enter your email and password.");
       return;
     }
 
@@ -69,9 +71,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
             password: password.trim(),
             options: {
               data: {
-                username: email.split('@')[0],
-                display_name: email.split('@')[0],
-                role: email.includes('admin') ? 'admin' : selectedRole,
+                username: email.split("@")[0],
+                display_name: email.split("@")[0],
+                role: email.includes("admin") ? "admin" : selectedRole,
               },
             },
           });
@@ -79,7 +81,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
         }
 
         if (onEnableDemoMode) onEnableDemoMode();
-        navigation.replace('MainTabs', { screen: 'Camera' });
+        navigation.replace("MainTabs", { screen: "Camera" });
       } else {
         // Sign Up New Account
         const { data: signUpData, error } = await supabase.auth.signUp({
@@ -87,8 +89,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
           password: password.trim(),
           options: {
             data: {
-              username: username.trim() || email.split('@')[0],
-              display_name: displayName.trim() || username.trim() || email.split('@')[0],
+              username: username.trim() || email.split("@")[0],
+              display_name:
+                displayName.trim() || username.trim() || email.split("@")[0],
               role: selectedRole,
             },
           },
@@ -97,10 +100,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
 
         // Upsert into profiles table so new signup appears instantly in Master Admin Console
         if (signUpData?.user) {
-          await (supabase.from('profiles') as any).upsert({
+          await (supabase.from("profiles") as any).upsert({
             id: signUpData.user.id,
-            username: username.trim() || email.split('@')[0],
-            display_name: displayName.trim() || username.trim() || email.split('@')[0],
+            username: username.trim() || email.split("@")[0],
+            display_name:
+              displayName.trim() || username.trim() || email.split("@")[0],
             role: selectedRole,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -108,58 +112,60 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
         }
 
         if (onEnableDemoMode) onEnableDemoMode();
-        navigation.replace('MainTabs', { screen: 'Camera' });
+        navigation.replace("MainTabs", { screen: "Camera" });
       }
     } catch (err: unknown) {
-      console.error('[Auth Exception]', err);
+      console.error("[Auth Exception]", err);
       if (onEnableDemoMode) onEnableDemoMode();
-      navigation.replace('MainTabs', { screen: 'Camera' });
+      navigation.replace("MainTabs", { screen: "Camera" });
     } finally {
       setLoading(false);
     }
   };
 
   const handleAdminLogin = async () => {
-    setEmail('admin@snapchat.com');
-    setPassword('admin123');
+    setEmail("admin@adultplus.com");
+    setPassword("admin123");
     try {
       await supabase.auth.signUp({
-        email: 'admin@snapchat.com',
-        password: 'admin123',
+        email: "admin@adultplus.com",
+        password: "admin123",
         options: {
           data: {
-            username: 'master_admin',
-            display_name: 'Platform Master Admin',
+            username: "master_admin",
+            display_name: "Platform Master Admin",
           },
         },
       });
       await supabase.auth.signInWithPassword({
-        email: 'admin@snapchat.com',
-        password: 'admin123',
+        email: "admin@adultplus.com",
+        password: "admin123",
       });
     } catch (e) {
-      console.log('[Admin Register Notice]', e);
+      console.log("[Admin Register Notice]", e);
     }
     if (onEnableDemoMode) onEnableDemoMode();
-    navigation.replace('MainTabs', { screen: 'Camera' });
+    navigation.replace("MainTabs", { screen: "Camera" });
   };
 
   const handleSkipDemo = () => {
     if (onEnableDemoMode) onEnableDemoMode();
-    navigation.replace('MainTabs', { screen: 'Camera' });
+    navigation.replace("MainTabs", { screen: "Camera" });
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.content}
       >
-        {/* Snapchat Header Ghost */}
+        {/* Adult+ Header Ghost */}
         <View style={styles.header}>
           <Text style={styles.ghostLogo}>👻</Text>
-          <Text style={styles.title}>Snapchat</Text>
-          <Text style={styles.subtitle}>Real-time Ephemeral Mobile & Web App</Text>
+          <Text style={styles.title}>Adult+</Text>
+          <Text style={styles.subtitle}>
+            Real-time Ephemeral Mobile & Web App
+          </Text>
         </View>
 
         {/* Tab Selector */}
@@ -168,13 +174,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
             style={[styles.tab, isLogin && styles.activeTab]}
             onPress={() => setIsLogin(true)}
           >
-            <Text style={[styles.tabText, isLogin && styles.activeTabText]}>LOG IN</Text>
+            <Text style={[styles.tabText, isLogin && styles.activeTabText]}>
+              LOG IN
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, !isLogin && styles.activeTab]}
             onPress={() => setIsLogin(false)}
           >
-            <Text style={[styles.tabText, !isLogin && styles.activeTabText]}>SIGN UP</Text>
+            <Text style={[styles.tabText, !isLogin && styles.activeTabText]}>
+              SIGN UP
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -186,18 +196,36 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
                 <Text style={styles.label}>ACCOUNT TYPE / ROLE</Text>
                 <View style={styles.roleSelectorRow}>
                   <TouchableOpacity
-                    style={[styles.roleChip, selectedRole === 'customer' && styles.selectedRoleChip]}
-                    onPress={() => setSelectedRole('customer')}
+                    style={[
+                      styles.roleChip,
+                      selectedRole === "customer" && styles.selectedRoleChip,
+                    ]}
+                    onPress={() => setSelectedRole("customer")}
                   >
-                    <Text style={[styles.roleChipText, selectedRole === 'customer' && styles.selectedRoleText]}>
+                    <Text
+                      style={[
+                        styles.roleChipText,
+                        selectedRole === "customer" && styles.selectedRoleText,
+                      ]}
+                    >
                       👤 Customer / Follower
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.roleChip, selectedRole === 'creator' && styles.selectedRoleChipCreator]}
-                    onPress={() => setSelectedRole('creator')}
+                    style={[
+                      styles.roleChip,
+                      selectedRole === "creator" &&
+                        styles.selectedRoleChipCreator,
+                    ]}
+                    onPress={() => setSelectedRole("creator")}
                   >
-                    <Text style={[styles.roleChipText, selectedRole === 'creator' && styles.selectedRoleTextCreator]}>
+                    <Text
+                      style={[
+                        styles.roleChipText,
+                        selectedRole === "creator" &&
+                          styles.selectedRoleTextCreator,
+                      ]}
+                    >
                       🎨 Content Creator
                     </Text>
                   </TouchableOpacity>
@@ -263,7 +291,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
             {loading ? (
               <ActivityIndicator size="small" color="#000" />
             ) : (
-              <Text style={styles.submitBtnText}>{isLogin ? 'Log In' : 'Sign Up'}</Text>
+              <Text style={styles.submitBtnText}>
+                {isLogin ? "Log In" : "Sign Up"}
+              </Text>
             )}
           </TouchableOpacity>
 
@@ -273,13 +303,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
             onPress={handleAdminLogin}
             activeOpacity={0.85}
           >
-            <Text style={styles.adminLoginBtnText}>🛡️ Log In as Master Admin</Text>
+            <Text style={styles.adminLoginBtnText}>
+              🛡️ Log In as Master Admin
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.adminCredsBox}>
             <Text style={styles.adminCredsTitle}>🔑 Admin Login Details:</Text>
-            <Text style={styles.adminCredsText}>Email: <Text style={{ color: '#FFFC00' }}>admin@snapchat.com</Text></Text>
-            <Text style={styles.adminCredsText}>Password: <Text style={{ color: '#FFFC00' }}>admin123</Text></Text>
+            <Text style={styles.adminCredsText}>
+              Email:{" "}
+              <Text style={{ color: "#D4AF37" }}>admin@adultplus.com</Text>
+            </Text>
+            <Text style={styles.adminCredsText}>
+              Password: <Text style={{ color: "#D4AF37" }}>admin123</Text>
+            </Text>
           </View>
 
           <TouchableOpacity style={styles.skipBtn} onPress={handleSkipDemo}>
@@ -294,15 +331,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFC00', // Snapchat Yellow Accent
+    backgroundColor: "#D4AF37", // Adult+ Yellow Accent
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingHorizontal: 24,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
   },
   ghostLogo: {
@@ -310,20 +347,20 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   title: {
-    color: '#000',
+    color: "#000",
     fontSize: 32,
-    fontWeight: '900',
+    fontWeight: "900",
     letterSpacing: -1,
   },
   subtitle: {
-    color: '#333',
+    color: "#333",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 4,
   },
   tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+    flexDirection: "row",
+    backgroundColor: "rgba(0, 0, 0, 0.08)",
     borderRadius: 25,
     padding: 4,
     marginBottom: 20,
@@ -331,26 +368,26 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     paddingVertical: 10,
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 21,
   },
   activeTab: {
-    backgroundColor: '#000',
+    backgroundColor: "transparent",
   },
   tabText: {
-    color: '#000',
+    color: "#000",
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 1,
   },
   activeTabText: {
-    color: '#FFFC00',
+    color: "#D4AF37",
   },
   form: {
-    backgroundColor: '#000',
+    backgroundColor: "transparent",
     borderRadius: 24,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 15,
@@ -359,109 +396,109 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   roleSelectorRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   roleChip: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     paddingVertical: 10,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: "rgba(255, 255, 255, 0.15)",
   },
   selectedRoleChip: {
-    backgroundColor: 'rgba(0, 242, 254, 0.2)',
-    borderColor: '#00F2FE',
+    backgroundColor: "rgba(0, 242, 254, 0.2)",
+    borderColor: "#00F2FE",
   },
   selectedRoleChipCreator: {
-    backgroundColor: 'rgba(255, 252, 0, 0.2)',
-    borderColor: '#FFFC00',
+    backgroundColor: "rgba(255, 252, 0, 0.2)",
+    borderColor: "#D4AF37",
   },
   roleChipText: {
-    color: '#888',
+    color: "#888",
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   selectedRoleText: {
-    color: '#00F2FE',
-    fontWeight: '900',
+    color: "#00F2FE",
+    fontWeight: "900",
   },
   selectedRoleTextCreator: {
-    color: '#FFFC00',
-    fontWeight: '900',
+    color: "#D4AF37",
+    fontWeight: "900",
   },
   label: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 1,
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 12,
     height: 48,
     paddingHorizontal: 14,
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   submitBtn: {
-    backgroundColor: '#FFFC00',
+    backgroundColor: "#D4AF37",
     height: 50,
     borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 10,
   },
   submitBtnText: {
-    color: '#000',
+    color: "#000",
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   adminLoginBtn: {
-    backgroundColor: 'rgba(255, 252, 0, 0.15)',
+    backgroundColor: "rgba(255, 252, 0, 0.15)",
     height: 46,
     borderRadius: 23,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 10,
     borderWidth: 1,
-    borderColor: '#FFFC00',
+    borderColor: "#D4AF37",
   },
   adminLoginBtnText: {
-    color: '#FFFC00',
+    color: "#D4AF37",
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   adminCredsBox: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 12,
     padding: 10,
     marginTop: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   adminCredsTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: "800",
     marginBottom: 4,
   },
   adminCredsText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 12,
   },
   skipBtn: {
     marginTop: 14,
-    alignItems: 'center',
+    alignItems: "center",
   },
   skipBtnText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

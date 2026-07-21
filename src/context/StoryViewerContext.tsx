@@ -5,8 +5,10 @@
 // Any screen can call openStoryViewer() to trigger the overlay.
 // ============================================================================
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import StoryViewerModal, { StoryViewerItem } from '../components/StoryViewerModal';
+import React, { createContext, useContext, useState, useCallback } from "react";
+import StoryViewerModal, {
+  StoryViewerItem,
+} from "../components/StoryViewerModal";
 
 interface StoryViewerContextType {
   openStoryViewer: (stories: StoryViewerItem[], initialIndex?: number) => void;
@@ -20,16 +22,21 @@ const StoryViewerContext = createContext<StoryViewerContextType>({
 
 export const useStoryViewer = () => useContext(StoryViewerContext);
 
-export const StoryViewerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const StoryViewerProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [visible, setVisible] = useState(false);
   const [stories, setStories] = useState<StoryViewerItem[]>([]);
   const [initialIndex, setInitialIndex] = useState(0);
 
-  const openStoryViewer = useCallback((newStories: StoryViewerItem[], idx = 0) => {
-    setStories(newStories);
-    setInitialIndex(idx);
-    setVisible(true);
-  }, []);
+  const openStoryViewer = useCallback(
+    (newStories: StoryViewerItem[], idx = 0) => {
+      setStories(newStories);
+      setInitialIndex(idx);
+      setVisible(true);
+    },
+    [],
+  );
 
   const closeStoryViewer = useCallback(() => {
     setVisible(false);

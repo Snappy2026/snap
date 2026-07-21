@@ -35,10 +35,10 @@ serve(async (req: Request) => {
     const isPpv = type === "ppv";
     const priceAmount = isPpv ? Math.round((price || 1.99) * 100) : (plan === "platinum" ? 9900 : 999);
     const planName = isPpv
-      ? `Snapchat Pay-Per-View Locked Snap (#${snapId || "ppv"})`
+      ? `Adult+ Pay-Per-View Locked Snap (#${snapId || "ppv"})`
       : plan === "platinum"
-      ? "Snapchat VIP Annual Membership"
-      : "Snapchat VIP Gold Monthly";
+      ? "Adult+ VIP Annual Membership"
+      : "Adult+ VIP Gold Monthly";
 
     const lineItemPriceData: any = {
       currency: "usd",

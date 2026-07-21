@@ -88,7 +88,7 @@ export const ContactInviteModal: React.FC<ContactInviteModalProps> = ({
   // 1-Tap Invite via WhatsApp Deep Link
   const handleWhatsAppInvite = async (contact?: PhoneContact) => {
     const inviteMessage = encodeURIComponent(
-      "Hey! Join me on Snapchat 👻 Download the app here: https://snap.app/download/join",
+      "Hey! Join me on Adult+ 👻 Download the app here: https://snap.app/download/join",
     );
 
     let whatsappUrl = `https://wa.me/?text=${inviteMessage}`;
@@ -119,7 +119,7 @@ export const ContactInviteModal: React.FC<ContactInviteModalProps> = ({
   // 1-Tap Invite via SMS Deep Link
   const handleSmsInvite = async (contact?: PhoneContact) => {
     const inviteMessage = encodeURIComponent(
-      "Hey! Join me on Snapchat 👻 Download the app here: https://snap.app/download/join",
+      "Hey! Join me on Adult+ 👻 Download the app here: https://snap.app/download/join",
     );
 
     let smsUrl = `sms:?body=${inviteMessage}`;
@@ -155,7 +155,7 @@ export const ContactInviteModal: React.FC<ContactInviteModalProps> = ({
       .map((c) => c.phoneNumber);
 
     const inviteMessage = encodeURIComponent(
-      "Hey! Join me on Snapchat 👻 Download the app here: https://snap.app/download/join",
+      "Hey! Join me on Adult+ 👻 Download the app here: https://snap.app/download/join",
     );
     const cleanPhones = selectedPhoneNumbers.map((p) =>
       p.replace(/[^0-9]/g, ""),
@@ -269,7 +269,7 @@ export const ContactInviteModal: React.FC<ContactInviteModalProps> = ({
 
               {item.isRegistered ? (
                 <View style={styles.alreadyOnSnapBadge}>
-                  <Text style={styles.badgeText}>On Snapchat</Text>
+                  <Text style={styles.badgeText}>On Adult+</Text>
                 </View>
               ) : (
                 <View style={styles.actionGroup}>
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   selectAllText: {
-    color: "#FFFC00",
+    color: "#D4AF37",
     fontSize: 14,
     fontWeight: "700",
   },
@@ -481,10 +481,10 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#FFFC00",
+    borderColor: "#D4AF37",
   },
   badgeText: {
-    color: "#FFFC00",
+    color: "#D4AF37",
     fontSize: 11,
     fontWeight: "700",
   },
@@ -514,8 +514,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   checkboxActive: {
-    backgroundColor: "#FFFC00",
-    borderColor: "#FFFC00",
+    backgroundColor: "#D4AF37",
+    borderColor: "#D4AF37",
   },
   checkMark: {
     color: "#000",
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   bulkSendFab: {
-    backgroundColor: "#FFFC00",
+    backgroundColor: "#D4AF37",
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderRadius: 30,

@@ -4,7 +4,7 @@
 // privacy permissions, and active snap auto-purge management.
 // ============================================================================
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -19,10 +19,10 @@ import {
   Alert,
   Platform,
   Modal,
-} from 'react-native';
-import { supabase } from '../lib/supabase';
-import { launchCreatorLicenseCheckout } from '../lib/stripe';
-import AdminDashboardModal from './AdminDashboardModal';
+} from "react-native";
+import { supabase } from "../lib/supabase";
+import { launchCreatorLicenseCheckout } from "../lib/stripe";
+import AdminDashboardModal from "./AdminDashboardModal";
 
 interface CreatorSettingsModalProps {
   onClose: () => void;
@@ -33,28 +33,36 @@ interface ActiveSnapItem {
   id: string;
   media_url: string;
   created_at: string;
-  type: 'story' | 'snap';
+  type: "story" | "snap";
 }
 
-export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onClose, onSignOut }) => {
+export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
+  onClose,
+  onSignOut,
+}) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
 
   // User Profile State
-  const [username, setUsername] = useState('creator_alex');
-  const [displayName, setDisplayName] = useState('Alex Vance');
-  const [email, setEmail] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150');
+  const [username, setUsername] = useState("creator_alex");
+  const [displayName, setDisplayName] = useState("Alex Vance");
+  const [email, setEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState(
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+  );
 
   // File Upload & Camera Selfie Handlers
   const fileInputRef = React.useRef<any>(null);
 
   const handleDevicePhotoUpload = () => {
-    if (Platform.OS === 'web' && fileInputRef.current) {
+    if (Platform.OS === "web" && fileInputRef.current) {
       fileInputRef.current.click();
     } else {
-      Alert.alert('Upload Photo', 'Select a photo from your device camera roll.');
+      Alert.alert(
+        "Upload Photo",
+        "Select a photo from your device camera roll.",
+      );
     }
   };
 
@@ -65,7 +73,8 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
       reader.onload = (e) => {
         if (e.target?.result) {
           setAvatarUrl(e.target.result as string);
-          if (typeof window !== 'undefined') window.alert('📸 Profile picture updated from your device!');
+          if (typeof window !== "undefined")
+            window.alert("📸 Profile picture updated from your device!");
         }
       };
       reader.readAsDataURL(file);
@@ -74,57 +83,73 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
 
   const handleCameraSelfieCapture = async () => {
     try {
-      if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.mediaDevices) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-        const video = document.createElement('video');
+      if (
+        Platform.OS === "web" &&
+        typeof navigator !== "undefined" &&
+        navigator.mediaDevices
+      ) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+        });
+        const video = document.createElement("video");
         video.srcObject = stream;
         await video.play();
 
         setTimeout(() => {
-          const canvas = document.createElement('canvas');
+          const canvas = document.createElement("canvas");
           canvas.width = video.videoWidth || 640;
           canvas.height = video.videoHeight || 480;
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext("2d");
           if (ctx) {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL('image/jpeg');
+            const dataUrl = canvas.toDataURL("image/jpeg");
             setAvatarUrl(dataUrl);
-            if (typeof window !== 'undefined') window.alert('📸 Selfie captured & set as profile picture!');
+            if (typeof window !== "undefined")
+              window.alert("📸 Selfie captured & set as profile picture!");
           }
           stream.getTracks().forEach((track) => track.stop());
         }, 500);
       } else {
-        Alert.alert('Take Photo', 'Camera selfie captured!');
+        Alert.alert("Take Photo", "Camera selfie captured!");
       }
     } catch (err) {
-      console.error('[Selfie Error]', err);
-      Alert.alert('Camera Notice', 'Please allow camera permission to capture selfie.');
+      console.error("[Selfie Error]", err);
+      Alert.alert(
+        "Camera Notice",
+        "Please allow camera permission to capture selfie.",
+      );
     }
   };
 
   // Creator Membership Price & Stripe Connect Settings
-  const [goldMonthlyPrice, setGoldMonthlyPrice] = useState('9.99');
-  const [platinumYearlyPrice, setPlatinumYearlyPrice] = useState('99.00');
-  const [stripeAccountId, setStripeAccountId] = useState('acct_1N9X82F45B31K009');
+  const [goldMonthlyPrice, setGoldMonthlyPrice] = useState("9.99");
+  const [platinumYearlyPrice, setPlatinumYearlyPrice] = useState("99.00");
+  const [stripeAccountId, setStripeAccountId] = useState(
+    "acct_1N9X82F45B31K009",
+  );
 
   // Snap & Privacy Control Settings
   const [defaultSnapTimer, setDefaultSnapTimer] = useState<number>(5);
-  const [snapPrivacy, setSnapPrivacy] = useState<'public' | 'friends' | 'vip'>('friends');
+  const [snapPrivacy, setSnapPrivacy] = useState<"public" | "friends" | "vip">(
+    "friends",
+  );
   const [autoPurgeEnabled, setAutoPurgeEnabled] = useState(true);
 
   // Active Snaps posted by current user
   const [activeSnaps, setActiveSnaps] = useState<ActiveSnapItem[]>([
     {
-      id: 's1',
-      media_url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500',
-      created_at: '10 mins ago',
-      type: 'story',
+      id: "s1",
+      media_url:
+        "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500",
+      created_at: "10 mins ago",
+      type: "story",
     },
     {
-      id: 's2',
-      media_url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500',
-      created_at: '1 hour ago',
-      type: 'story',
+      id: "s2",
+      media_url:
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500",
+      created_at: "1 hour ago",
+      type: "story",
     },
   ]);
 
@@ -133,11 +158,11 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
       try {
         const { data: userData } = await supabase.auth.getUser();
         if (userData.user) {
-          setEmail(userData.user.email || '');
+          setEmail(userData.user.email || "");
           const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userData.user.id)
+            .from("profiles")
+            .select("*")
+            .eq("id", userData.user.id)
             .single();
 
           if (profile) {
@@ -146,12 +171,14 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
             if (p.display_name) setDisplayName(p.display_name);
             if (p.avatar_url) setAvatarUrl(p.avatar_url);
             if (p.stripe_account_id) setStripeAccountId(p.stripe_account_id);
-            if (p.custom_gold_price) setGoldMonthlyPrice(String(p.custom_gold_price));
-            if (p.custom_yearly_price) setPlatinumYearlyPrice(String(p.custom_yearly_price));
+            if (p.custom_gold_price)
+              setGoldMonthlyPrice(String(p.custom_gold_price));
+            if (p.custom_yearly_price)
+              setPlatinumYearlyPrice(String(p.custom_yearly_price));
           }
         }
       } catch (err) {
-        console.error('[Creator Settings Load Error]', err);
+        console.error("[Creator Settings Load Error]", err);
       } finally {
         setLoading(false);
       }
@@ -165,26 +192,27 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (userData.user) {
-        await (supabase.from('profiles') as any)
+        await (supabase.from("profiles") as any)
           .update({
             username: username.trim(),
             display_name: displayName.trim(),
             stripe_account_id: stripeAccountId.trim(),
             custom_gold_price: parseFloat(goldMonthlyPrice) || 9.99,
-            custom_yearly_price: parseFloat(platinumYearlyPrice) || 99.00,
+            custom_yearly_price: parseFloat(platinumYearlyPrice) || 99.0,
           })
-          .eq('id', userData.user.id);
+          .eq("id", userData.user.id);
       }
 
-      const msg = 'Stripe Connect Account ID, membership pricing, and snap privacy settings saved successfully!';
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const msg =
+        "Stripe Connect Account ID, membership pricing, and snap privacy settings saved successfully!";
+      if (Platform.OS === "web" && typeof window !== "undefined") {
         window.alert(`⚙️ Settings Saved!\n${msg}`);
       } else {
-        Alert.alert('⚙️ Settings Saved!', msg);
+        Alert.alert("⚙️ Settings Saved!", msg);
       }
     } catch (err: unknown) {
-      console.error('[Save Settings Error]', err);
-      Alert.alert('Saved!', 'Local settings updated.');
+      console.error("[Save Settings Error]", err);
+      Alert.alert("Saved!", "Local settings updated.");
     } finally {
       setSaving(false);
     }
@@ -193,15 +221,15 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
   const handleDeleteSnap = async (snapId: string) => {
     try {
       setActiveSnaps((prev) => prev.filter((s) => s.id !== snapId));
-      await (supabase.from('stories') as any).delete().eq('id', snapId);
+      await (supabase.from("stories") as any).delete().eq("id", snapId);
 
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert('🗑 Snap Purged! Media removed from server.');
+      if (Platform.OS === "web" && typeof window !== "undefined") {
+        window.alert("🗑 Snap Purged! Media removed from server.");
       } else {
-        Alert.alert('🗑 Purged!', 'Snap removed from story.');
+        Alert.alert("🗑 Purged!", "Snap removed from story.");
       }
     } catch (err) {
-      console.error('[Delete Snap Error]', err);
+      console.error("[Delete Snap Error]", err);
     }
   };
 
@@ -210,11 +238,11 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
       await supabase.auth.signOut();
       onClose();
       if (onSignOut) onSignOut();
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert('Logged out successfully.');
+      if (Platform.OS === "web" && typeof window !== "undefined") {
+        window.alert("Logged out successfully.");
       }
     } catch (err) {
-      console.error('[Sign Out Error]', err);
+      console.error("[Sign Out Error]", err);
     }
   };
 
@@ -226,9 +254,13 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
           <Text style={styles.closeText}>✕ Close</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Creator & Account Controls</Text>
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSaveSettings} disabled={saving}>
+        <TouchableOpacity
+          style={styles.saveBtn}
+          onPress={handleSaveSettings}
+          disabled={saving}
+        >
           {saving ? (
-            <ActivityIndicator size="small" color="#FFFC00" />
+            <ActivityIndicator size="small" color="#D4AF37" />
           ) : (
             <Text style={styles.saveText}>Save</Text>
           )}
@@ -237,25 +269,27 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
 
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#FFFC00" />
+          <ActivityIndicator size="large" color="#D4AF37" />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Hidden File Input for Web File Upload */}
-          {Platform.OS === 'web' && (
+          {Platform.OS === "web" && (
             <input
               type="file"
               ref={fileInputRef}
               accept="image/*"
-              style={{ display: 'none' }}
+              style={{ display: "none" }}
               onChange={handleFileChange}
             />
           )}
 
           {/* Profile Card & Avatar Editor */}
           <View style={styles.profileCard}>
-            <View style={{ alignItems: 'center' }}>
+            <View style={{ alignItems: "center" }}>
               <Image source={{ uri: avatarUrl }} style={styles.avatar} />
               <View style={styles.editAvatarBadge}>
                 <Text style={styles.editAvatarText}>ACTIVE</Text>
@@ -275,10 +309,16 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
             </View>
 
             <View style={{ gap: 6 }}>
-              <TouchableOpacity style={styles.adminConsoleBtn} onPress={() => setShowAdminModal(true)}>
+              <TouchableOpacity
+                style={styles.adminConsoleBtn}
+                onPress={() => setShowAdminModal(true)}
+              >
                 <Text style={styles.adminConsoleText}>🛡️ Admin Console</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOutUser}>
+              <TouchableOpacity
+                style={styles.signOutBtn}
+                onPress={handleSignOutUser}
+              >
                 <Text style={styles.signOutText}>Sign Out 🚪</Text>
               </TouchableOpacity>
             </View>
@@ -298,7 +338,9 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
                 onPress={handleDevicePhotoUpload}
                 activeOpacity={0.8}
               >
-                <Text style={styles.uploadPhotoTextInline}>📁 Upload Photo</Text>
+                <Text style={styles.uploadPhotoTextInline}>
+                  📁 Upload Photo
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -312,18 +354,24 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
               <View style={styles.avatarDivider} />
 
               {[
-                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-                'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
-                'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150',
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
+                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+                "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150",
+                "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150",
               ].map((uri, idx) => (
                 <TouchableOpacity
                   key={idx}
                   onPress={() => setAvatarUrl(uri)}
-                  style={[styles.presetAvatarBtnInline, avatarUrl === uri && styles.presetAvatarSelectedInline]}
+                  style={[
+                    styles.presetAvatarBtnInline,
+                    avatarUrl === uri && styles.presetAvatarSelectedInline,
+                  ]}
                 >
-                  <Image source={{ uri }} style={styles.presetAvatarImgInline} />
+                  <Image
+                    source={{ uri }}
+                    style={styles.presetAvatarImgInline}
+                  />
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -332,44 +380,83 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
           {/* 👑 Founder Creator Annual Pass Promo (£75 1-Off Fee) */}
           <View style={styles.founderPassCard}>
             <View style={styles.founderPassHeaderRow}>
-              <Text style={styles.founderPassBadge}>🔥 BEST VALUE CREATOR PLAN</Text>
-              <Text style={styles.founderPassPrice}>£75 <Text style={{ fontSize: 12, color: '#AAA' }}>/ year</Text></Text>
+              <Text style={styles.founderPassBadge}>
+                🔥 BEST VALUE CREATOR PLAN
+              </Text>
+              <Text style={styles.founderPassPrice}>
+                £75 <Text style={{ fontSize: 12, color: "#AAA" }}>/ year</Text>
+              </Text>
             </View>
-            <Text style={styles.founderPassTitle}>Founder Creator Annual License</Text>
+            <Text style={styles.founderPassTitle}>
+              Founder Creator Annual License
+            </Text>
             <Text style={styles.founderPassDesc}>
-              Pay <Text style={{ color: '#FFFC00', fontWeight: 'bold' }}>£75 one-time</Text> today and keep <Text style={{ color: '#00F2FE', fontWeight: 'bold' }}>100% of all subscriber & PPV earnings</Text> with <Text style={{ color: '#FFFC00', fontWeight: 'bold' }}>0% platform transaction fees</Text> for an entire year!
+              Pay{" "}
+              <Text style={{ color: "#D4AF37", fontWeight: "bold" }}>
+                £75 one-time
+              </Text>{" "}
+              today and keep{" "}
+              <Text style={{ color: "#00F2FE", fontWeight: "bold" }}>
+                100% of all subscriber & PPV earnings
+              </Text>{" "}
+              with{" "}
+              <Text style={{ color: "#D4AF37", fontWeight: "bold" }}>
+                0% platform transaction fees
+              </Text>{" "}
+              for an entire year!
             </Text>
 
             <View style={styles.founderPassPerksRow}>
-              <Text style={styles.founderPassPerk}>⚡ 0% Platform Transaction Fees</Text>
-              <Text style={styles.founderPassPerk}>💳 Direct 100% Stripe Bank Payouts</Text>
-              <Text style={styles.founderPassPerk}>⭐ Gold Verified Profile Badge</Text>
+              <Text style={styles.founderPassPerk}>
+                ⚡ 0% Platform Transaction Fees
+              </Text>
+              <Text style={styles.founderPassPerk}>
+                💳 Direct 100% Stripe Bank Payouts
+              </Text>
+              <Text style={styles.founderPassPerk}>
+                ⭐ Gold Verified Profile Badge
+              </Text>
             </View>
 
             <TouchableOpacity
               style={styles.buyFounderPassBtn}
               onPress={async () => {
                 const { data } = await supabase.auth.getUser();
-                await launchCreatorLicenseCheckout(data?.user?.id || 'demo-user');
+                await launchCreatorLicenseCheckout(
+                  data?.user?.id || "demo-user",
+                );
               }}
               activeOpacity={0.85}
             >
-              <Text style={styles.buyFounderPassText}>👑 Upgrade to Founder Pass (£75/yr)</Text>
+              <Text style={styles.buyFounderPassText}>
+                👑 Upgrade to Founder Pass (£75/yr)
+              </Text>
             </TouchableOpacity>
           </View>
 
           {/* SECTION 1: Stripe Connected Account & Payouts Setup */}
-          <View style={[styles.sectionCard, { borderColor: '#635BFF', borderWidth: 2 }]}>
+          <View
+            style={[
+              styles.sectionCard,
+              { borderColor: "#635BFF", borderWidth: 2 },
+            ]}
+          >
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionIcon}>💳</Text>
-              <Text style={[styles.sectionTitle, { color: '#635BFF' }]}>Stripe Account Payout Setup</Text>
+              <Text style={[styles.sectionTitle, { color: "#635BFF" }]}>
+                Stripe Account Payout Setup
+              </Text>
             </View>
             <Text style={styles.sectionDesc}>
-              Connect your Stripe account to receive direct payouts for your VIP Memberships and Pay-Per-View (PPV) Snaps. 95% of all earnings go directly to your bank account via Stripe Connect!
+              Connect your Stripe account to receive direct payouts for your VIP
+              Memberships and Pay-Per-View (PPV) Snaps. 95% of all earnings go
+              directly to your bank account via Stripe Connect!
             </Text>
 
             <View style={styles.inputGroupFull}>
-              <Text style={styles.inputLabelHighlight}>YOUR STRIPE CONNECTED ACCOUNT ID (`acct_...`)</Text>
+              <Text style={styles.inputLabelHighlight}>
+                YOUR STRIPE CONNECTED ACCOUNT ID (`acct_...`)
+              </Text>
               <View style={styles.stripeInputBox}>
                 <Text style={styles.currencySymbol}>💳</Text>
                 <TextInput
@@ -382,7 +469,9 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
                 />
               </View>
               <Text style={styles.stripeHelpText}>
-                🔑 Don't have a Stripe account ID yet? Log into your Stripe Dashboard at stripe.com ➔ Settings ➔ Account Details to copy your Account ID starting with `acct_`.
+                🔑 Don't have a Stripe account ID yet? Log into your Stripe
+                Dashboard at stripe.com ➔ Settings ➔ Account Details to copy
+                your Account ID starting with `acct_`.
               </Text>
             </View>
           </View>
@@ -391,10 +480,13 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionIcon}>👑</Text>
-              <Text style={styles.sectionTitle}>Membership Subscription Prices</Text>
+              <Text style={styles.sectionTitle}>
+                Membership Subscription Prices
+              </Text>
             </View>
             <Text style={styles.sectionDesc}>
-              Set how much followers pay to access your VIP exclusive stories and direct messages.
+              Set how much followers pay to access your VIP exclusive stories
+              and direct messages.
             </Text>
 
             <View style={styles.inputRow}>
@@ -429,36 +521,71 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
                 <Text style={styles.feeTitle}>Platform Fee & Payout Split</Text>
               </View>
               <Text style={styles.feeText}>
-                A <Text style={{ color: '#FFFC00', fontWeight: 'bold' }}>5% Admin Fee</Text> is automatically deducted on each subscriber purchase and routed to platform administration. You receive <Text style={{ color: '#00F2FE', fontWeight: 'bold' }}>95% net payout</Text> directly to your Stripe account.
+                A{" "}
+                <Text style={{ color: "#D4AF37", fontWeight: "bold" }}>
+                  5% Admin Fee
+                </Text>{" "}
+                is automatically deducted on each subscriber purchase and routed
+                to platform administration. You receive{" "}
+                <Text style={{ color: "#00F2FE", fontWeight: "bold" }}>
+                  95% net payout
+                </Text>{" "}
+                directly to your Stripe account.
               </Text>
 
               <View style={styles.payoutTable}>
                 <View style={styles.payoutRow}>
-                  <Text style={styles.payoutPlan}>VIP Gold (${goldMonthlyPrice}/mo):</Text>
+                  <Text style={styles.payoutPlan}>
+                    VIP Gold (${goldMonthlyPrice}/mo):
+                  </Text>
                   <Text style={styles.payoutCalc}>
-                    Fee: -${(parseFloat(goldMonthlyPrice || '0') * 0.05).toFixed(2)} | <Text style={{ color: '#00F2FE', fontWeight: 'bold' }}>Net: ${(parseFloat(goldMonthlyPrice || '0') * 0.95).toFixed(2)}/mo</Text>
+                    Fee: -$
+                    {(parseFloat(goldMonthlyPrice || "0") * 0.05).toFixed(2)} |{" "}
+                    <Text style={{ color: "#00F2FE", fontWeight: "bold" }}>
+                      Net: $
+                      {(parseFloat(goldMonthlyPrice || "0") * 0.95).toFixed(2)}
+                      /mo
+                    </Text>
                   </Text>
                 </View>
                 <View style={styles.payoutRow}>
-                  <Text style={styles.payoutPlan}>VIP Annual (${platinumYearlyPrice}/yr):</Text>
+                  <Text style={styles.payoutPlan}>
+                    VIP Annual (${platinumYearlyPrice}/yr):
+                  </Text>
                   <Text style={styles.payoutCalc}>
-                    Fee: -${(parseFloat(platinumYearlyPrice || '0') * 0.05).toFixed(2)} | <Text style={{ color: '#00F2FE', fontWeight: 'bold' }}>Net: ${(parseFloat(platinumYearlyPrice || '0') * 0.95).toFixed(2)}/yr</Text>
+                    Fee: -$
+                    {(parseFloat(platinumYearlyPrice || "0") * 0.05).toFixed(2)}{" "}
+                    |{" "}
+                    <Text style={{ color: "#00F2FE", fontWeight: "bold" }}>
+                      Net: $
+                      {(parseFloat(platinumYearlyPrice || "0") * 0.95).toFixed(
+                        2,
+                      )}
+                      /yr
+                    </Text>
                   </Text>
                 </View>
               </View>
             </View>
             <View style={styles.stripeStatusRow}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.stripeStatusTitle}>Stripe Connect Status</Text>
+                <Text style={styles.stripeStatusTitle}>
+                  Stripe Connect Status
+                </Text>
                 <Text style={styles.stripeStatusSub}>
-                  {stripeAccountId ? `🟢 Active (${stripeAccountId})` : '🔴 Setup Required'}
+                  {stripeAccountId
+                    ? `🟢 Active (${stripeAccountId})`
+                    : "🔴 Setup Required"}
                 </Text>
               </View>
               <TouchableOpacity
                 style={styles.stripeConnectBtn}
                 onPress={() => {
-                  if (typeof window !== 'undefined') {
-                    window.open('https://connect.stripe.com/express/oauth/authorize', '_blank');
+                  if (typeof window !== "undefined") {
+                    window.open(
+                      "https://connect.stripe.com/express/oauth/authorize",
+                      "_blank",
+                    );
                   }
                 }}
               >
@@ -474,7 +601,8 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
               <Text style={styles.sectionTitle}>Snap & Privacy Controls</Text>
             </View>
             <Text style={styles.sectionDesc}>
-              Configure default timer countdowns and visibility rules for snaps you post.
+              Configure default timer countdowns and visibility rules for snaps
+              you post.
             </Text>
 
             <Text style={styles.settingSubTitle}>Default View Duration</Text>
@@ -491,21 +619,24 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
                   <Text
                     style={[
                       styles.timerChipText,
-                      defaultSnapTimer === seconds && styles.timerChipTextActive,
+                      defaultSnapTimer === seconds &&
+                        styles.timerChipTextActive,
                     ]}
                   >
-                    {seconds === 0 ? '∞ Loop' : `${seconds}s`}
+                    {seconds === 0 ? "∞ Loop" : `${seconds}s`}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <Text style={[styles.settingSubTitle, { marginTop: 16 }]}>Who Can View My Snaps?</Text>
+            <Text style={[styles.settingSubTitle, { marginTop: 16 }]}>
+              Who Can View My Snaps?
+            </Text>
             <View style={styles.privacySelectorRow}>
               {[
-                { key: 'friends', label: '👥 Friends Only' },
-                { key: 'public', label: '🌍 Everyone' },
-                { key: 'vip', label: '👑 VIP Paid Members' },
+                { key: "friends", label: "👥 Friends Only" },
+                { key: "public", label: "🌍 Everyone" },
+                { key: "vip", label: "👑 VIP Paid Members" },
               ].map((item) => (
                 <TouchableOpacity
                   key={item.key}
@@ -530,13 +661,15 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
             <View style={styles.switchRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.switchTitle}>Auto-Purge Media on View</Text>
-                <Text style={styles.switchSub}>Automatically delete media from Supabase storage once viewed</Text>
+                <Text style={styles.switchSub}>
+                  Automatically delete media from Supabase storage once viewed
+                </Text>
               </View>
               <Switch
                 value={autoPurgeEnabled}
                 onValueChange={setAutoPurgeEnabled}
-                trackColor={{ false: '#3A3A3C', true: '#FFFC00' }}
-                thumbColor={autoPurgeEnabled ? '#000' : '#8E8E93'}
+                trackColor={{ false: "#3A3A3C", true: "#D4AF37" }}
+                thumbColor={autoPurgeEnabled ? "#000" : "#8E8E93"}
               />
             </View>
           </View>
@@ -545,15 +678,21 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionIcon}>🔥</Text>
-              <Text style={styles.sectionTitle}>Manage Posted Snaps ({activeSnaps.length})</Text>
+              <Text style={styles.sectionTitle}>
+                Manage Posted Snaps ({activeSnaps.length})
+              </Text>
             </View>
             <Text style={styles.sectionDesc}>
-              View or instantly purge your active story posts before the 24-hour expiration.
+              View or instantly purge your active story posts before the 24-hour
+              expiration.
             </Text>
 
             {activeSnaps.map((snap) => (
               <View key={snap.id} style={styles.activeSnapRow}>
-                <Image source={{ uri: snap.media_url }} style={styles.snapThumb} />
+                <Image
+                  source={{ uri: snap.media_url }}
+                  style={styles.snapThumb}
+                />
                 <View style={styles.snapDetails}>
                   <Text style={styles.snapTitle}>My Story Snap</Text>
                   <Text style={styles.snapTime}>Posted {snap.created_at}</Text>
@@ -586,45 +725,45 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   header: {
     height: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: "rgba(255, 255, 255, 0.1)",
   },
   closeBtn: {
     padding: 6,
   },
   closeText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   headerTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 17,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   saveBtn: {
-    backgroundColor: '#FFFC00',
+    backgroundColor: "#D4AF37",
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 16,
   },
   saveText: {
-    color: '#000',
+    color: "#000",
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   scrollContent: {
     padding: 16,
@@ -632,9 +771,9 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1C1C1E',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1C1C1E",
     borderRadius: 20,
     padding: 16,
   },
@@ -643,11 +782,11 @@ const styles = StyleSheet.create({
     height: 54,
     borderRadius: 27,
     borderWidth: 2,
-    borderColor: '#FFFC00',
+    borderColor: "#D4AF37",
     marginRight: 14,
   },
   editAvatarBadge: {
-    backgroundColor: '#FFFC00',
+    backgroundColor: "#D4AF37",
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -655,68 +794,68 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   editAvatarText: {
-    color: '#000',
+    color: "#000",
     fontSize: 9,
-    fontWeight: '900',
+    fontWeight: "900",
   },
   profileDetails: {
     flex: 1,
   },
   profileNameInput: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 17,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     padding: 0,
   },
   unifiedAvatarCard: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 18,
     padding: 14,
     marginTop: -6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
   unifiedAvatarTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 13,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   unifiedAvatarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
   uploadPhotoBtnInline: {
-    backgroundColor: 'rgba(0, 242, 254, 0.12)',
+    backgroundColor: "rgba(0, 242, 254, 0.12)",
     paddingHorizontal: 12,
     paddingVertical: 9,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#00F2FE',
+    borderColor: "#00F2FE",
   },
   uploadPhotoTextInline: {
-    color: '#00F2FE',
+    color: "#00F2FE",
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   takeSelfieBtnInline: {
-    backgroundColor: 'rgba(255, 252, 0, 0.12)',
+    backgroundColor: "rgba(255, 252, 0, 0.12)",
     paddingHorizontal: 12,
     paddingVertical: 9,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#FFFC00',
+    borderColor: "#D4AF37",
   },
   takeSelfieTextInline: {
-    color: '#FFFC00',
+    color: "#D4AF37",
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   avatarDivider: {
     width: 1,
     height: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     marginHorizontal: 4,
   },
   presetAvatarBtnInline: {
@@ -724,57 +863,57 @@ const styles = StyleSheet.create({
     height: 42,
     borderRadius: 21,
     borderWidth: 2,
-    borderColor: 'transparent',
-    overflow: 'hidden',
+    borderColor: "transparent",
+    overflow: "hidden",
   },
   presetAvatarSelectedInline: {
-    borderColor: '#FFFC00',
+    borderColor: "#D4AF37",
     transform: [{ scale: 1.1 }],
   },
   presetAvatarImgInline: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   founderPassCard: {
-    backgroundColor: '#161622',
+    backgroundColor: "#161622",
     borderRadius: 22,
     padding: 18,
     borderWidth: 2,
-    borderColor: '#FFFC00',
-    shadowColor: '#FFFC00',
+    borderColor: "#D4AF37",
+    shadowColor: "#D4AF37",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
     marginTop: -2,
   },
   founderPassHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   founderPassBadge: {
-    backgroundColor: '#FFFC00',
-    color: '#000',
+    backgroundColor: "#D4AF37",
+    color: "#000",
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: "900",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
   },
   founderPassPrice: {
-    color: '#FFFC00',
+    color: "#D4AF37",
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: "900",
   },
   founderPassTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: "800",
     marginBottom: 6,
   },
   founderPassDesc: {
-    color: '#CCC',
+    color: "#CCC",
     fontSize: 13,
     lineHeight: 18,
     marginBottom: 12,
@@ -782,75 +921,75 @@ const styles = StyleSheet.create({
   founderPassPerksRow: {
     gap: 6,
     marginBottom: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
     padding: 10,
     borderRadius: 14,
   },
   founderPassPerk: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   buyFounderPassBtn: {
-    backgroundColor: '#FFFC00',
+    backgroundColor: "#D4AF37",
     paddingVertical: 14,
     borderRadius: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buyFounderPassText: {
-    color: '#000',
+    color: "#000",
     fontSize: 15,
-    fontWeight: '900',
+    fontWeight: "900",
   },
   profileName: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   profileHandle: {
-    color: '#FFFC00',
+    color: "#D4AF37",
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   profileEmail: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 12,
     marginTop: 2,
   },
   adminConsoleBtn: {
-    backgroundColor: 'rgba(255, 252, 0, 0.15)',
+    backgroundColor: "rgba(255, 252, 0, 0.15)",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#FFFC00',
+    borderColor: "#D4AF37",
   },
   adminConsoleText: {
-    color: '#FFFC00',
+    color: "#D4AF37",
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   signOutBtn: {
-    backgroundColor: 'rgba(255, 59, 48, 0.15)',
+    backgroundColor: "rgba(255, 59, 48, 0.15)",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#FF3B30',
+    borderColor: "#FF3B30",
   },
   signOutText: {
-    color: '#FF3B30',
+    color: "#FF3B30",
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   sectionCard: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderRadius: 20,
     padding: 18,
   },
   sectionHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 6,
   },
   sectionIcon: {
@@ -858,12 +997,12 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   sectionTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 17,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   sectionDesc: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 13,
     marginBottom: 16,
     lineHeight: 18,
@@ -872,46 +1011,46 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   inputLabelHighlight: {
-    color: '#635BFF',
+    color: "#635BFF",
     fontSize: 11,
-    fontWeight: '900',
+    fontWeight: "900",
     letterSpacing: 0.5,
     marginBottom: 8,
   },
   stripeInputBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#000',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#000",
     borderRadius: 14,
     height: 50,
     paddingHorizontal: 14,
     borderWidth: 1.5,
-    borderColor: '#635BFF',
+    borderColor: "#635BFF",
   },
   stripeInputText: {
     flex: 1,
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
     marginLeft: 8,
   },
   stripeHelpText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 11,
     lineHeight: 16,
     marginTop: 8,
   },
   feeInfoBox: {
-    backgroundColor: 'rgba(255, 252, 0, 0.08)',
+    backgroundColor: "rgba(255, 252, 0, 0.08)",
     borderWidth: 1,
-    borderColor: '#FFFC00',
+    borderColor: "#D4AF37",
     borderRadius: 14,
     padding: 14,
     marginBottom: 16,
   },
   feeHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 6,
   },
   feeIcon: {
@@ -919,172 +1058,172 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   feeTitle: {
-    color: '#FFFC00',
+    color: "#D4AF37",
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   feeText: {
-    color: '#D0D0E0',
+    color: "#D0D0E0",
     fontSize: 12,
     lineHeight: 17,
     marginBottom: 10,
   },
   payoutTable: {
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     borderRadius: 10,
     padding: 10,
     gap: 6,
   },
   payoutRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   payoutPlan: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   payoutCalc: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 12,
   },
   inputRow: {
     marginBottom: 14,
   },
   inputLabel: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 6,
   },
   priceInputBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2C2C2E',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2C2C2E",
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 46,
   },
   currencySymbol: {
-    color: '#FFFC00',
+    color: "#D4AF37",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginRight: 8,
   },
   priceInput: {
     flex: 1,
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   stripeStatusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#2C2C2E',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#2C2C2E",
     padding: 12,
     borderRadius: 14,
     marginTop: 10,
   },
   stripeStatusTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   stripeStatusSub: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 12,
     marginTop: 2,
   },
   stripeConnectBtn: {
-    backgroundColor: '#635BFF',
+    backgroundColor: "#635BFF",
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 10,
   },
   stripeConnectText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: "800",
   },
   settingSubTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
   },
   timerSelectorRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
   },
   timerChip: {
     flex: 1,
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     height: 40,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   timerChipActive: {
-    backgroundColor: '#FFFC00',
+    backgroundColor: "#D4AF37",
   },
   timerChipText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   timerChipTextActive: {
-    color: '#000',
+    color: "#000",
   },
   privacySelectorRow: {
-    flexDirection: 'column',
+    flexDirection: "column",
     gap: 8,
   },
   privacyChip: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 12,
   },
   privacyChipActive: {
-    backgroundColor: 'rgba(255, 252, 0, 0.15)',
+    backgroundColor: "rgba(255, 252, 0, 0.15)",
     borderWidth: 1,
-    borderColor: '#FFFC00',
+    borderColor: "#D4AF37",
   },
   privacyChipText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   privacyChipTextActive: {
-    color: '#FFFC00',
-    fontWeight: '800',
+    color: "#D4AF37",
+    fontWeight: "800",
   },
   switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginTop: 18,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: "rgba(255, 255, 255, 0.08)",
   },
   switchTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   switchSub: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 12,
     marginTop: 2,
     marginRight: 10,
   },
   activeSnapRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2C2C2E',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2C2C2E",
     padding: 10,
     borderRadius: 14,
     marginBottom: 10,
@@ -1099,24 +1238,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   snapTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   snapTime: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 12,
   },
   deleteSnapBtn: {
-    backgroundColor: 'rgba(255, 59, 48, 0.15)',
+    backgroundColor: "rgba(255, 59, 48, 0.15)",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 10,
   },
   deleteSnapText: {
-    color: '#FF3B30',
+    color: "#FF3B30",
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });
 
