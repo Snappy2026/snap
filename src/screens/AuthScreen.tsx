@@ -105,6 +105,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
     }
   };
 
+  const handleAdminLogin = () => {
+    setEmail('admin@snapchat.com');
+    setPassword('admin123');
+    showAlert('🛡️ Master Admin Credentials Set', 'Email: admin@snapchat.com | Password: admin123\nTapped to log in as Platform Admin.');
+    if (onEnableDemoMode) onEnableDemoMode();
+  };
+
   const handleSkipDemo = () => {
     if (onEnableDemoMode) {
       onEnableDemoMode();
@@ -209,8 +216,23 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
             )}
           </TouchableOpacity>
 
+          {/* Master Admin Direct Login Button */}
+          <TouchableOpacity
+            style={styles.adminLoginBtn}
+            onPress={handleAdminLogin}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.adminLoginBtnText}>🛡️ Log In as Master Admin</Text>
+          </TouchableOpacity>
+
+          <View style={styles.adminCredsBox}>
+            <Text style={styles.adminCredsTitle}>🔑 Admin Login Details:</Text>
+            <Text style={styles.adminCredsText}>Email: <Text style={{ color: '#FFFC00' }}>admin@snapchat.com</Text></Text>
+            <Text style={styles.adminCredsText}>Password: <Text style={{ color: '#FFFC00' }}>admin123</Text></Text>
+          </View>
+
           <TouchableOpacity style={styles.skipBtn} onPress={handleSkipDemo}>
-            <Text style={styles.skipBtnText}>Continue to Demo Mode ⚡️</Text>
+            <Text style={styles.skipBtnText}>Continue as Guest ⚡️</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -313,6 +335,39 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 17,
     fontWeight: '800',
+  },
+  adminLoginBtn: {
+    backgroundColor: 'rgba(255, 252, 0, 0.15)',
+    height: 46,
+    borderRadius: 23,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#FFFC00',
+  },
+  adminLoginBtnText: {
+    color: '#FFFC00',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  adminCredsBox: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    padding: 10,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  adminCredsTitle: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  adminCredsText: {
+    color: '#8E8E93',
+    fontSize: 12,
   },
   skipBtn: {
     marginTop: 14,
