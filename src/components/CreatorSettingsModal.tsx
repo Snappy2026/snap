@@ -204,11 +204,40 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
             </View>
           </View>
 
-          {/* SECTION 1: Membership Price Controls */}
+          {/* SECTION 1: Stripe Connected Account & Payouts Setup */}
+          <View style={[styles.sectionCard, { borderColor: '#635BFF', borderWidth: 2 }]}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionIcon}>💳</Text>
+              <Text style={[styles.sectionTitle, { color: '#635BFF' }]}>Stripe Account Payout Setup</Text>
+            </View>
+            <Text style={styles.sectionDesc}>
+              Connect your Stripe account to receive direct payouts for your VIP Memberships and Pay-Per-View (PPV) Snaps. 95% of all earnings go directly to your bank account via Stripe Connect!
+            </Text>
+
+            <View style={styles.inputGroupFull}>
+              <Text style={styles.inputLabelHighlight}>YOUR STRIPE CONNECTED ACCOUNT ID (`acct_...`)</Text>
+              <View style={styles.stripeInputBox}>
+                <Text style={styles.currencySymbol}>💳</Text>
+                <TextInput
+                  value={stripeAccountId}
+                  onChangeText={setStripeAccountId}
+                  placeholder="e.g. acct_1N9X82F45B31K009"
+                  placeholderTextColor="#888"
+                  style={styles.stripeInputText}
+                  autoCapitalize="none"
+                />
+              </View>
+              <Text style={styles.stripeHelpText}>
+                🔑 Don't have a Stripe account ID yet? Log into your Stripe Dashboard at stripe.com ➔ Settings ➔ Account Details to copy your Account ID starting with `acct_`.
+              </Text>
+            </View>
+          </View>
+
+          {/* SECTION 2: Membership Price Controls */}
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionIcon}>👑</Text>
-              <Text style={styles.sectionTitle}>Membership Price Controls</Text>
+              <Text style={styles.sectionTitle}>Membership Subscription Prices</Text>
             </View>
             <Text style={styles.sectionDesc}>
               Set how much followers pay to access your VIP exclusive stories and direct messages.
@@ -264,25 +293,6 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
                 </View>
               </View>
             </View>
-
-            <View style={styles.inputRow}>
-              <Text style={styles.inputLabel}>Stripe Connected Account ID (Direct Bank Payouts)</Text>
-              <View style={styles.priceInputBox}>
-                <Text style={styles.currencySymbol}>💳</Text>
-                <TextInput
-                  value={stripeAccountId}
-                  onChangeText={setStripeAccountId}
-                  placeholder="e.g. acct_1N..."
-                  placeholderTextColor="#666"
-                  style={styles.priceInput}
-                  autoCapitalize="none"
-                />
-              </View>
-              <Text style={{ color: '#8E8E93', fontSize: 11, marginTop: 4 }}>
-                Net funds (95%) will be transferred automatically to this Stripe account.
-              </Text>
-            </View>
-
             <View style={styles.stripeStatusRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.stripeStatusTitle}>Stripe Connect Status</Text>
@@ -550,6 +560,39 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 16,
     lineHeight: 18,
+  },
+  inputGroupFull: {
+    marginTop: 6,
+  },
+  inputLabelHighlight: {
+    color: '#635BFF',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  stripeInputBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#000',
+    borderRadius: 14,
+    height: 50,
+    paddingHorizontal: 14,
+    borderWidth: 1.5,
+    borderColor: '#635BFF',
+  },
+  stripeInputText: {
+    flex: 1,
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+  stripeHelpText: {
+    color: '#8E8E93',
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 8,
   },
   feeInfoBox: {
     backgroundColor: 'rgba(255, 252, 0, 0.08)',

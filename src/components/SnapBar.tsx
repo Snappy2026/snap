@@ -78,6 +78,15 @@ export const SnapBar: React.FC<SnapBarProps> = ({
           <Text style={styles.adminBarText}>🛡️ Admin</Text>
         </TouchableOpacity>
 
+        {/* 1-Tap Creator Stripe Payouts Button */}
+        <TouchableOpacity
+          style={styles.stripeBarBtn}
+          onPress={() => setShowSettingsModal(true)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.stripeBarText}>💳 Payouts</Text>
+        </TouchableOpacity>
+
         {/* Center: Search Bar */}
         <View style={styles.searchBox}>
           <Text style={styles.searchIcon}>🔍</Text>
@@ -174,6 +183,20 @@ const styles = StyleSheet.create({
   },
   adminBarText: {
     color: '#FFFC00',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  stripeBarBtn: {
+    backgroundColor: 'rgba(99, 91, 255, 0.25)',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#635BFF',
+    marginRight: 8,
+  },
+  stripeBarText: {
+    color: '#635BFF',
     fontSize: 11,
     fontWeight: '800',
   },
