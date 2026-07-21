@@ -140,7 +140,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
             onPress={handleAddFriendClick}
             activeOpacity={0.8}
           >
-            <Text style={styles.actionIcon}>👤➕</Text>
+            <Text style={styles.actionIcon}>👥</Text>
           </TouchableOpacity>
         </View>
       </View>
