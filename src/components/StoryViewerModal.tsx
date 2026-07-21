@@ -100,19 +100,17 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   useEffect(() => {
     if (!visible) return;
     progress.value = 0;
-    progress.value = withTiming(
-      1,
-      { duration: 5000, easing: Easing.linear },
-      (finished?: boolean) => {
-        if (finished) {
-          runOnJS(advanceStory)();
-        }
-      }
-    );
+    progress.value = withTiming(1, { duration: 5000, easing: Easing.linear });
+
+    const timer = setTimeout(() => {
+      advanceStory();
+    }, 5000);
+
     return () => {
+      clearTimeout(timer);
       cancelAnimation(progress);
     };
-  }, [currentIndex, visible]);
+  }, [currentIndex, visible, advanceStory, progress]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     width: `${progress.value * 100}%`,
