@@ -1,4 +1,8 @@
-// ============================================================================
+import os
+
+filepath = "src/screens/AuthScreen.tsx"
+
+new_code = """// ============================================================================
 // AuthScreen Component
 // Adult+ Auth Screen with Login & Sign Up forms + Supabase Authentication
 // Handles Web browser alerts & offline dev fallback seamlessly.
@@ -28,7 +32,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 // Universal Alert helper supporting both Native and Web browsers
 const showAlert = (title: string, message: string) => {
   if (Platform.OS === "web" && typeof window !== "undefined") {
-    window.alert(`${title}\n${message}`);
+    window.alert(`${title}\\n${message}`);
   } else {
     Alert.alert(title, message);
   }
@@ -157,9 +161,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
         style={styles.content}
       >
         <View style={styles.header}>
-          <Image
-            source={require("../assets/logo.png")}
-            style={styles.logoImage}
+          <Image 
+            source={require('../assets/logo.png')} 
+            style={styles.logoImage} 
             resizeMode="contain"
           />
         </View>
@@ -327,7 +331,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: "transparent", 
   },
   content: {
     flex: 1,
@@ -500,4 +504,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
-export default AuthScreen;
+"""
+
+with open(filepath, 'w') as f:
+    f.write(new_code)
+print("AuthScreen UI completely redesigned!")
