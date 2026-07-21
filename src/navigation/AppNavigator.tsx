@@ -21,6 +21,7 @@ import AuthScreen from '../screens/AuthScreen';
 import SendToModal from '../screens/SendToModal';
 import DirectChatScreen from '../screens/DirectChatScreen';
 import StoryViewerScreen from '../screens/StoryViewerScreen';
+import { StoryViewerProvider } from '../context/StoryViewerContext';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -126,44 +127,46 @@ export const AppNavigator: React.FC = () => {
   const initialRoute = !session && !demoMode ? 'Auth' : 'MainTabs';
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName={initialRoute}
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name="Auth">
-          {(props) => <AuthScreen {...props} onEnableDemoMode={() => setDemoMode(true)} />}
-        </Stack.Screen>
-        <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-        <Stack.Screen name="DirectChat" component={DirectChatScreen} />
-        <Stack.Screen
-          name="SendToModal"
-          component={SendToModal}
-          options={{
-            presentation: 'modal',
-            animation: 'slide_from_bottom',
+    <StoryViewerProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName={initialRoute}
+          screenOptions={{
+            headerShown: false,
           }}
-        />
-        <Stack.Screen
-          name="SnapViewer"
-          component={SnapViewerScreen}
-          options={{
-            presentation: 'fullScreenModal',
-            animation: 'fade',
-          }}
-        />
-        <Stack.Screen
-          name="StoryViewer"
-          component={StoryViewerScreen}
-          options={{
-            presentation: 'fullScreenModal',
-            animation: 'fade',
-          }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+        >
+          <Stack.Screen name="Auth">
+            {(props) => <AuthScreen {...props} onEnableDemoMode={() => setDemoMode(true)} />}
+          </Stack.Screen>
+          <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+          <Stack.Screen name="DirectChat" component={DirectChatScreen} />
+          <Stack.Screen
+            name="SendToModal"
+            component={SendToModal}
+            options={{
+              presentation: 'modal',
+              animation: 'slide_from_bottom',
+            }}
+          />
+          <Stack.Screen
+            name="SnapViewer"
+            component={SnapViewerScreen}
+            options={{
+              presentation: 'fullScreenModal',
+              animation: 'fade',
+            }}
+          />
+          <Stack.Screen
+            name="StoryViewer"
+            component={StoryViewerScreen}
+            options={{
+              presentation: 'fullScreenModal',
+              animation: 'fade',
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </StoryViewerProvider>
   );
 };
 

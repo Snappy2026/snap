@@ -129,18 +129,16 @@ const FOR_YOU: DiscoverItem[] = [
 ];
 
 import { sessionStore } from '../lib/sessionStore';
-import StoryViewerModal, { StoryViewerItem } from '../components/StoryViewerModal';
+import { StoryViewerItem } from '../components/StoryViewerModal';
+import { useStoryViewer } from '../context/StoryViewerContext';
 
 export const StoriesScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const isFocused = useIsFocused();
+  const { openStoryViewer } = useStoryViewer();
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [dbStories, setDbStories] = useState<Story[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  // Story Viewer Modal & Add Story Modal State
-  const [showStoryModal, setShowStoryModal] = useState(false);
-  const [modalStories, setModalStories] = useState<StoryViewerItem[]>([]);
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
 
   const fileInputRef = useRef<any>(null);
@@ -232,7 +230,7 @@ export const StoriesScreen: React.FC = () => {
 
   const openMyStory = () => {
     if (myStories.length > 0) {
-      setModalStories(
+      openStoryViewer(
         myStories.map((s) => ({
           id: s.id,
           media_url: s.media_url,
@@ -240,14 +238,13 @@ export const StoriesScreen: React.FC = () => {
           user_profile: { display_name: s.user_profile?.display_name || 'My Story' },
         }))
       );
-      setShowStoryModal(true);
     } else {
       setShowAddStoryModal(true);
     }
   };
 
   const openStoryReel = (friend: FriendStoryItem) => {
-    setModalStories([
+    openStoryViewer([
       {
         id: friend.id,
         media_url: friend.storyMedia,
@@ -255,11 +252,10 @@ export const StoriesScreen: React.FC = () => {
         user_profile: { display_name: friend.name },
       },
     ]);
-    setShowStoryModal(true);
   };
 
   const openDbStoryReel = (story: Story) => {
-    setModalStories([
+    openStoryViewer([
       {
         id: story.id,
         media_url: story.media_url,
@@ -267,7 +263,6 @@ export const StoriesScreen: React.FC = () => {
         user_profile: { display_name: story.user_profile?.display_name || story.user_profile?.username || 'Snap Creator' },
       },
     ]);
-    setShowStoryModal(true);
   };
 
   // Filter Discover content dynamically based on selected category
@@ -361,7 +356,7 @@ export const StoriesScreen: React.FC = () => {
               key={sub.id}
               style={styles.subCard}
               onPress={() => {
-                setModalStories([
+                openStoryViewer([
                   {
                     id: sub.id,
                     media_url: sub.image,
@@ -369,7 +364,6 @@ export const StoriesScreen: React.FC = () => {
                     user_profile: { display_name: sub.author },
                   },
                 ]);
-                setShowStoryModal(true);
               }}
               activeOpacity={0.85}
             >
@@ -401,7 +395,7 @@ export const StoriesScreen: React.FC = () => {
               key={item.id}
               style={styles.discoverCard}
               onPress={() => {
-                setModalStories([
+                openStoryViewer([
                   {
                     id: item.id,
                     media_url: item.image,
@@ -409,7 +403,6 @@ export const StoriesScreen: React.FC = () => {
                     user_profile: { display_name: item.publisher },
                   },
                 ]);
-                setShowStoryModal(true);
               }}
               activeOpacity={0.85}
             >
@@ -437,12 +430,7 @@ export const StoriesScreen: React.FC = () => {
         />
       )}
 
-      {/* INSTANT 100% FULL-SCREEN STORY PLAYER MODAL */}
-      <StoryViewerModal
-        visible={showStoryModal}
-        stories={modalStories}
-        onClose={() => setShowStoryModal(false)}
-      />
+      {/* Story viewer is now rendered at the app root level via StoryViewerProvider */}
 
       {/* ADD NEW SNAP STORY SELECTION MODAL */}
       <Modal
