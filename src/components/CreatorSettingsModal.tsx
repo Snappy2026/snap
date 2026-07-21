@@ -18,8 +18,10 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Modal,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
+import AdminDashboardModal from './AdminDashboardModal';
 
 interface CreatorSettingsModalProps {
   onClose: () => void;
@@ -36,6 +38,7 @@ interface ActiveSnapItem {
 export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onClose, onSignOut }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
 
   // User Profile State
   const [username, setUsername] = useState('creator_alex');
@@ -182,6 +185,7 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
           {/* Profile Card */}
           <View style={styles.profileCard}>
             <Image source={{ uri: avatarUrl }} style={styles.avatar} />
@@ -190,9 +194,14 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
               <Text style={styles.profileHandle}>@{username}</Text>
               {email ? <Text style={styles.profileEmail}>{email}</Text> : null}
             </View>
-            <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOutUser}>
-              <Text style={styles.signOutText}>Sign Out 🚪</Text>
-            </TouchableOpacity>
+            <View style={{ gap: 6 }}>
+              <TouchableOpacity style={styles.adminConsoleBtn} onPress={() => setShowAdminModal(true)}>
+                <Text style={styles.adminConsoleText}>🛡️ Admin Console</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOutUser}>
+                <Text style={styles.signOutText}>Sign Out 🚪</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* SECTION 1: Membership Price Controls */}
@@ -396,6 +405,16 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
           </View>
         </ScrollView>
       )}
+
+      {/* Admin Dashboard Modal */}
+      <Modal
+        visible={showAdminModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowAdminModal(false)}
+      >
+        <AdminDashboardModal onClose={() => setShowAdminModal(false)} />
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -481,11 +500,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
+  adminConsoleBtn: {
+    backgroundColor: 'rgba(255, 252, 0, 0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FFFC00',
+  },
+  adminConsoleText: {
+    color: '#FFFC00',
+    fontSize: 11,
+    fontWeight: '800',
+  },
   signOutBtn: {
     backgroundColor: 'rgba(255, 59, 48, 0.15)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#FF3B30',
   },
