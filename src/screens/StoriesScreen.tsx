@@ -275,44 +275,7 @@ export const StoriesScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <SnapBar title="Discover" />
 
-      {/* DEBUG: iOS diagnostic - tap to verify clicks work */}
-      {Platform.OS === 'web' && (
-        <div
-          style={{
-            backgroundColor: '#FF3B30',
-            padding: '8px 16px',
-            display: 'flex',
-            flexDirection: 'row' as any,
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ color: '#FFF', fontSize: '11px', fontFamily: 'monospace' }}>
-            BUILD v7 · iOS debug
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              window.alert('✅ TAP WORKS! Click handling is functional.');
-            }}
-            style={{
-              backgroundColor: '#FFFC00',
-              color: '#000',
-              border: 'none',
-              borderRadius: '12px',
-              padding: '6px 14px',
-              fontSize: '13px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              WebkitAppearance: 'none' as any,
-              appearance: 'none' as any,
-              touchAction: 'manipulation',
-            }}
-          >
-            TAP TEST
-          </button>
-        </div>
-      )}
+
 
       {/* On web: use native HTML scroll containers to fix iOS Safari touch blocking */}
       {/* On native: use React Native ScrollView */}
