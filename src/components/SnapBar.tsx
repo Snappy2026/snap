@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import ContactInviteModal from './ContactInviteModal';
 import CreatorSettingsModal from './CreatorSettingsModal';
+import AdminDashboardModal from './AdminDashboardModal';
 
 interface SnapBarProps {
   title?: string;
@@ -33,6 +34,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
 }) => {
   const [showContactModal, setShowContactModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
 
   const handleProfileClick = () => {
     if (onProfilePress) {
@@ -65,6 +67,15 @@ export const SnapBar: React.FC<SnapBarProps> = ({
               style={styles.avatar}
             />
           </View>
+        </TouchableOpacity>
+
+        {/* 1-Tap Master Admin Console Button */}
+        <TouchableOpacity
+          style={styles.adminBarBtn}
+          onPress={() => setShowAdminModal(true)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.adminBarText}>🛡️ Admin</Text>
         </TouchableOpacity>
 
         {/* Center: Search Bar */}
@@ -107,6 +118,16 @@ export const SnapBar: React.FC<SnapBarProps> = ({
       >
         <CreatorSettingsModal onClose={() => setShowSettingsModal(false)} />
       </Modal>
+
+      {/* Master Admin Console Modal */}
+      <Modal
+        visible={showAdminModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowAdminModal(false)}
+      >
+        <AdminDashboardModal onClose={() => setShowAdminModal(false)} />
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -141,6 +162,20 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
+  },
+  adminBarBtn: {
+    backgroundColor: 'rgba(255, 252, 0, 0.25)',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#FFFC00',
+    marginRight: 8,
+  },
+  adminBarText: {
+    color: '#FFFC00',
+    fontSize: 11,
+    fontWeight: '800',
   },
   searchBox: {
     flex: 1,

@@ -4,7 +4,7 @@
 // and dynamic category filtering for the Discover Grid.
 // ============================================================================
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -14,10 +14,13 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
+import { supabase } from '../lib/supabase';
+import { Story } from '../types/database';
 import SnapBar from '../components/SnapBar';
 import CategoryFilterBar from '../components/CategoryFilterBar';
 
@@ -125,7 +128,47 @@ const FOR_YOU: DiscoverItem[] = [
 
 export const StoriesScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const isFocused = useIsFocused();
   const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [dbStories, setDbStories] = useState<Story[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isFocused) return;
+
+    const fetchStories = async () => {
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const user = userData?.user;
+        setCurrentUserId(user?.id || null);
+
+        const { data, error } = await supabase
+          .from('stories')
+          .select('*, user_profile:profiles(*)')
+          .order('created_at', { ascending: false });
+
+        if (data && data.length > 0) {
+          setDbStories(data as Story[]);
+        }
+      } catch (err) {
+        console.error('[Fetch Stories Error]', err);
+      }
+    };
+
+    fetchStories();
+  }, [isFocused]);
+
+  // My Story filter
+  const myStories = dbStories.filter((s) => s.user_id === currentUserId || currentUserId === null);
+  const otherStories = dbStories.filter((s) => s.user_id !== currentUserId);
+
+  const openMyStory = () => {
+    if (myStories.length > 0) {
+      navigation.navigate('StoryViewer', { stories: myStories });
+    } else {
+      navigation.navigate('MainTabs', { screen: 'Camera' });
+    }
+  };
 
   const openStoryReel = (friend: FriendStoryItem) => {
     navigation.navigate('StoryViewer', {
@@ -143,6 +186,10 @@ export const StoriesScreen: React.FC = () => {
     });
   };
 
+  const openDbStoryReel = (story: Story) => {
+    navigation.navigate('StoryViewer', { stories: [story] });
+  };
+
   // Filter Discover content dynamically based on selected category
   const filteredDiscover = FOR_YOU.filter(
     (item) => selectedCategory === 'ALL' || item.category === selectedCategory
@@ -155,9 +202,55 @@ export const StoriesScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* 1. Friends Stories Row */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Friends</Text>
+          <Text style={styles.sectionTitle}>Stories</Text>
         </View>
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.friendsScroll}>
+          {/* MY STORY CARD */}
+          <TouchableOpacity
+            style={styles.friendItem}
+            onPress={openMyStory}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.avatarRing, myStories.length > 0 ? styles.activeMyStoryRing : styles.addStoryRing]}>
+              <Image
+                source={{
+                  uri: myStories.length > 0 ? myStories[0].media_url : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+                }}
+                style={styles.friendAvatar}
+              />
+              {myStories.length === 0 && (
+                <View style={styles.plusBadge}>
+                  <Text style={styles.plusBadgeText}>＋</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.myStoryName} numberOfLines={1}>
+              {myStories.length > 0 ? `My Story (${myStories.length})` : 'Add Story'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* LIVE DB POSTED STORIES */}
+          {dbStories.map((story) => (
+            <TouchableOpacity
+              key={story.id}
+              style={styles.friendItem}
+              onPress={() => openDbStoryReel(story)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.avatarRing, styles.activeStoryRing]}>
+                <Image
+                  source={{ uri: story.media_url }}
+                  style={styles.friendAvatar}
+                />
+              </View>
+              <Text style={styles.friendName} numberOfLines={1}>
+                {story.user_profile?.display_name || 'Snap User'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+
+          {/* DEMO FRIEND STORIES */}
           {FRIEND_STORIES.map((friend) => (
             <TouchableOpacity
               key={friend.id}
@@ -300,6 +393,31 @@ const styles = StyleSheet.create({
   activeStoryRing: {
     borderColor: '#9D4EDD',
   },
+  activeMyStoryRing: {
+    borderColor: '#FFFC00',
+  },
+  addStoryRing: {
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    borderStyle: 'dashed',
+  },
+  plusBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#00F2FE',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#000',
+  },
+  plusBadgeText: {
+    color: '#000',
+    fontSize: 14,
+    fontWeight: '900',
+  },
   friendAvatar: {
     width: 64,
     height: 64,
@@ -309,6 +427,13 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 13,
     fontWeight: '600',
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  myStoryName: {
+    color: '#FFFC00',
+    fontSize: 13,
+    fontWeight: '800',
     marginTop: 6,
     textAlign: 'center',
   },
