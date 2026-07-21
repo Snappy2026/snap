@@ -109,6 +109,108 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
 
   if (!visible) return null;
 
+  const content = (
+    <View style={styles.modalContainer}>
+      {/* Media Background Display */}
+      {currentStory.media_type === 'video' ? (
+        Platform.OS === 'web' ? (
+          <video
+            src={currentStory.media_url}
+            autoPlay
+            playsInline
+            loop={false}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+            }}
+          />
+        ) : (
+          <Video
+            source={{ uri: currentStory.media_url }}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode={ResizeMode.COVER}
+            shouldPlay
+          />
+        )
+      ) : (
+        <Image
+          source={{ uri: currentStory.media_url }}
+          style={StyleSheet.absoluteFillObject}
+          resizeMode="cover"
+        />
+      )}
+
+      {/* Left & Right Touch Advance Overlay */}
+      <View style={styles.touchOverlay}>
+        <TouchableOpacity style={styles.leftTouch} onPress={previousStory} activeOpacity={1} />
+        <TouchableOpacity style={styles.rightTouch} onPress={advanceStory} activeOpacity={1} />
+      </View>
+
+      {/* Top Segmented Progress Bar & Author Header */}
+      <SafeAreaView style={styles.topOverlay}>
+        <View style={styles.segmentedProgressContainer}>
+          {activeStories.map((s, idx) => (
+            <View key={s.id || idx} style={styles.segmentBackground}>
+              {idx === currentIndex ? (
+                <Animated.View style={[styles.segmentFill, animatedStyle]} />
+              ) : (
+                <View
+                  style={[
+                    styles.segmentFill,
+                    { width: idx < currentIndex ? '100%' : '0%' },
+                  ]}
+                />
+              )}
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.authorHeader}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {currentStory.user_profile?.avatar_url && (
+              <Image
+                source={{ uri: currentStory.user_profile.avatar_url }}
+                style={styles.authorAvatar}
+              />
+            )}
+            <Text style={styles.authorName}>
+              {currentStory.user_profile?.display_name || 'Snapchat Story'}
+            </Text>
+          </View>
+
+          <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+            <Text style={styles.closeIcon}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </View>
+  );
+
+  if (Platform.OS === 'web') {
+    return (
+      <View
+        style={{
+          position: 'fixed' as any,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100vw' as any,
+          height: '100vh' as any,
+          backgroundColor: '#000000',
+          zIndex: 9999999,
+          display: 'flex',
+        }}
+      >
+        {content}
+      </View>
+    );
+  }
+
   return (
     <Modal
       visible={visible}
@@ -116,84 +218,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
       transparent={false}
       onRequestClose={onClose}
     >
-      <View style={styles.modalContainer}>
-        {/* Media Background Display */}
-        {currentStory.media_type === 'video' ? (
-          Platform.OS === 'web' ? (
-            <video
-              src={currentStory.media_url}
-              autoPlay
-              playsInline
-              loop={false}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-              }}
-            />
-          ) : (
-            <Video
-              source={{ uri: currentStory.media_url }}
-              style={StyleSheet.absoluteFillObject}
-              resizeMode={ResizeMode.COVER}
-              shouldPlay
-            />
-          )
-        ) : (
-          <Image
-            source={{ uri: currentStory.media_url }}
-            style={StyleSheet.absoluteFillObject}
-            resizeMode="cover"
-          />
-        )}
-
-        {/* Left & Right Touch Advance Overlay */}
-        <View style={styles.touchOverlay}>
-          <TouchableOpacity style={styles.leftTouch} onPress={previousStory} activeOpacity={1} />
-          <TouchableOpacity style={styles.rightTouch} onPress={advanceStory} activeOpacity={1} />
-        </View>
-
-        {/* Top Segmented Progress Bar & Author Header */}
-        <SafeAreaView style={styles.topOverlay}>
-          <View style={styles.segmentedProgressContainer}>
-            {activeStories.map((s, idx) => (
-              <View key={s.id || idx} style={styles.segmentBackground}>
-                {idx === currentIndex ? (
-                  <Animated.View style={[styles.segmentFill, animatedStyle]} />
-                ) : (
-                  <View
-                    style={[
-                      styles.segmentFill,
-                      { width: idx < currentIndex ? '100%' : '0%' },
-                    ]}
-                  />
-                )}
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.authorHeader}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              {currentStory.user_profile?.avatar_url && (
-                <Image
-                  source={{ uri: currentStory.user_profile.avatar_url }}
-                  style={styles.authorAvatar}
-                />
-              )}
-              <Text style={styles.authorName}>
-                {currentStory.user_profile?.display_name || 'Snapchat Story'}
-              </Text>
-            </View>
-
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Text style={styles.closeIcon}>✕</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </View>
+      {content}
     </Modal>
   );
 };
