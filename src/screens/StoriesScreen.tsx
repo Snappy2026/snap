@@ -314,145 +314,316 @@ export const StoriesScreen: React.FC = () => {
         </div>
       )}
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* 1. Friends Stories Row */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Stories</Text>
-        </View>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.friendsScroll}>
-          {/* MY STORY CARD (Card 1 Only) */}
-          <WebTouchable
-            style={styles.friendItem}
-            onPress={openMyStory}
+      {/* On web: use native HTML scroll containers to fix iOS Safari touch blocking */}
+      {/* On native: use React Native ScrollView */}
+      {Platform.OS === 'web' ? (
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto' as any,
+            overflowX: 'hidden' as any,
+            WebkitOverflowScrolling: 'touch' as any,
+            paddingBottom: '100px',
+          }}
+        >
+          {/* 1. Friends Stories Row */}
+          <div style={{ paddingLeft: '16px', paddingTop: '12px', paddingBottom: '4px' }}>
+            <span style={{ color: '#FFF', fontSize: '17px', fontWeight: 'bold' }}>Stories</span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row' as any,
+              overflowX: 'auto' as any,
+              WebkitOverflowScrolling: 'touch' as any,
+              paddingLeft: '16px',
+              paddingBottom: '8px',
+              gap: '16px',
+            }}
           >
-            <View style={[styles.avatarRing, myStories.length > 0 ? styles.activeMyStoryRing : styles.addStoryRing]}>
-              <Image
-                source={{
-                  uri: myStories.length > 0 ? myStories[0].media_url : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-                }}
-                style={styles.friendAvatar}
-              />
-              {myStories.length === 0 && (
-                <View style={styles.plusBadge}>
-                  <Text style={styles.plusBadgeText}>＋</Text>
-                </View>
-              )}
-            </View>
-            <Text style={styles.myStoryName} numberOfLines={1}>
-              {myStories.length > 0 ? `My Story (${myStories.length})` : 'Add Story'}
-            </Text>
-          </WebTouchable>
-
-          {/* OTHER CREATORS' POSTED STORIES */}
-          {otherStories.map((story) => {
-            const displayName = story.user_profile?.display_name || story.user_profile?.username || 'Creator';
-            return (
-              <WebTouchable
-                key={story.id}
-                style={styles.friendItem}
-                onPress={() => openDbStoryReel(story)}
-              >
-                <View style={[styles.avatarRing, styles.activeStoryRing]}>
-                  <Image
-                    source={{ uri: story.media_url }}
-                    style={styles.friendAvatar}
-                  />
-                </View>
-                <Text style={styles.friendName} numberOfLines={1}>
-                  {displayName}
-                </Text>
-              </WebTouchable>
-            );
-          })}
-
-          {/* DEMO FRIEND STORIES */}
-          {FRIEND_STORIES.map((friend) => (
-            <WebTouchable
-              key={friend.id}
-              style={styles.friendItem}
-              onPress={() => openStoryReel(friend)}
+            {/* MY STORY */}
+            <button
+              type="button"
+              onClick={() => openMyStory()}
+              style={{
+                border: 'none', background: 'none', padding: 0, margin: 0,
+                display: 'flex', flexDirection: 'column' as any, alignItems: 'center',
+                cursor: 'pointer', WebkitAppearance: 'none' as any,
+                appearance: 'none' as any, touchAction: 'manipulation',
+                minWidth: '80px', flexShrink: 0,
+              }}
             >
-              <View style={[styles.avatarRing, friend.hasUnseen && styles.activeStoryRing]}>
-                <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
+              <View style={[styles.avatarRing, myStories.length > 0 ? styles.activeMyStoryRing : styles.addStoryRing]}>
+                <Image
+                  source={{
+                    uri: myStories.length > 0 ? myStories[0].media_url : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+                  }}
+                  style={styles.friendAvatar}
+                />
+                {myStories.length === 0 && (
+                  <View style={styles.plusBadge}>
+                    <Text style={styles.plusBadgeText}>＋</Text>
+                  </View>
+                )}
               </View>
-              <Text style={styles.friendName} numberOfLines={1}>
-                {friend.name}
+              <Text style={styles.myStoryName} numberOfLines={1}>
+                {myStories.length > 0 ? `My Story (${myStories.length})` : 'Add Story'}
+              </Text>
+            </button>
+
+            {/* OTHER CREATORS' POSTED STORIES */}
+            {otherStories.map((story) => {
+              const displayName = story.user_profile?.display_name || story.user_profile?.username || 'Creator';
+              return (
+                <button
+                  key={story.id}
+                  type="button"
+                  onClick={() => openDbStoryReel(story)}
+                  style={{
+                    border: 'none', background: 'none', padding: 0, margin: 0,
+                    display: 'flex', flexDirection: 'column' as any, alignItems: 'center',
+                    cursor: 'pointer', WebkitAppearance: 'none' as any,
+                    appearance: 'none' as any, touchAction: 'manipulation',
+                    minWidth: '80px', flexShrink: 0,
+                  }}
+                >
+                  <View style={[styles.avatarRing, styles.activeStoryRing]}>
+                    <Image source={{ uri: story.media_url }} style={styles.friendAvatar} />
+                  </View>
+                  <Text style={styles.friendName} numberOfLines={1}>{displayName}</Text>
+                </button>
+              );
+            })}
+
+            {/* DEMO FRIEND STORIES */}
+            {FRIEND_STORIES.map((friend) => (
+              <button
+                key={friend.id}
+                type="button"
+                onClick={() => openStoryReel(friend)}
+                style={{
+                  border: 'none', background: 'none', padding: 0, margin: 0,
+                  display: 'flex', flexDirection: 'column' as any, alignItems: 'center',
+                  cursor: 'pointer', WebkitAppearance: 'none' as any,
+                  appearance: 'none' as any, touchAction: 'manipulation',
+                  minWidth: '80px', flexShrink: 0,
+                }}
+              >
+                <View style={[styles.avatarRing, friend.hasUnseen && styles.activeStoryRing]}>
+                  <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
+                </View>
+                <Text style={styles.friendName} numberOfLines={1}>{friend.name}</Text>
+              </button>
+            ))}
+          </div>
+
+          {/* 2. Subscriptions Section */}
+          <div style={{ paddingLeft: '16px', paddingTop: '12px', paddingBottom: '4px' }}>
+            <span style={{ color: '#FFF', fontSize: '17px', fontWeight: 'bold' }}>Subscriptions</span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row' as any,
+              overflowX: 'auto' as any,
+              WebkitOverflowScrolling: 'touch' as any,
+              paddingLeft: '16px',
+              paddingBottom: '8px',
+              gap: '12px',
+            }}
+          >
+            {SUBSCRIPTIONS.map((sub) => (
+              <button
+                key={sub.id}
+                type="button"
+                onClick={() => {
+                  openStoryViewer([
+                    {
+                      id: sub.id,
+                      media_url: sub.image,
+                      media_type: 'image',
+                      user_profile: { display_name: sub.author },
+                    },
+                  ]);
+                }}
+                style={{
+                  border: 'none', background: 'none', padding: 0, margin: 0,
+                  cursor: 'pointer', WebkitAppearance: 'none' as any,
+                  appearance: 'none' as any, touchAction: 'manipulation',
+                  width: '140px', height: '200px', borderRadius: '14px',
+                  overflow: 'hidden', backgroundColor: '#1C1C1E', flexShrink: 0,
+                  position: 'relative' as any,
+                }}
+              >
+                <Image source={{ uri: sub.image }} style={styles.subImage} />
+                <View style={styles.subGradientOverlay}>
+                  <Text style={styles.subAuthor}>{sub.author}</Text>
+                  <Text style={styles.subTitle} numberOfLines={2}>{sub.title}</Text>
+                </View>
+              </button>
+            ))}
+          </div>
+
+          {/* 3. Category Filter Pill Bar */}
+          <div style={{ paddingLeft: '16px', paddingTop: '12px', paddingBottom: '4px' }}>
+            <span style={{ color: '#FFF', fontSize: '17px', fontWeight: 'bold' }}>For You</span>
+          </div>
+
+          <CategoryFilterBar
+            selectedCategoryId={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
+
+          {/* 4. Filtered "For You" Discover Grid */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row' as any,
+              flexWrap: 'wrap' as any,
+              paddingLeft: '12px',
+              paddingRight: '12px',
+              justifyContent: 'space-between',
+              marginTop: '4px',
+            }}
+          >
+            {filteredDiscover.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  openStoryViewer([
+                    {
+                      id: item.id,
+                      media_url: item.image,
+                      media_type: 'image',
+                      user_profile: { display_name: item.publisher },
+                    },
+                  ]);
+                }}
+                style={{
+                  border: 'none', background: 'none', padding: 0, margin: 0,
+                  cursor: 'pointer', WebkitAppearance: 'none' as any,
+                  appearance: 'none' as any, touchAction: 'manipulation',
+                  width: `${cardWidth}px`, height: `${cardWidth * 1.5}px`,
+                  borderRadius: '14px', overflow: 'hidden',
+                  backgroundColor: '#1C1C1E', marginBottom: '12px',
+                  position: 'relative' as any,
+                }}
+              >
+                <Image source={{ uri: item.image }} style={styles.discoverImage} />
+                <View style={styles.discoverGradientOverlay}>
+                  <Text style={styles.categoryBadge}>{item.category}</Text>
+                  <Text style={styles.discoverTitle} numberOfLines={3}>{item.title}</Text>
+                  <Text style={styles.publisherName}>{item.publisher}</Text>
+                </View>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* 1. Friends Stories Row */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Stories</Text>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.friendsScroll}>
+            <WebTouchable style={styles.friendItem} onPress={openMyStory}>
+              <View style={[styles.avatarRing, myStories.length > 0 ? styles.activeMyStoryRing : styles.addStoryRing]}>
+                <Image
+                  source={{
+                    uri: myStories.length > 0 ? myStories[0].media_url : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+                  }}
+                  style={styles.friendAvatar}
+                />
+                {myStories.length === 0 && (
+                  <View style={styles.plusBadge}>
+                    <Text style={styles.plusBadgeText}>＋</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.myStoryName} numberOfLines={1}>
+                {myStories.length > 0 ? `My Story (${myStories.length})` : 'Add Story'}
               </Text>
             </WebTouchable>
-          ))}
-        </ScrollView>
 
-        {/* 2. Subscriptions Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Subscriptions</Text>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.subsScroll}>
-          {SUBSCRIPTIONS.map((sub) => (
-            <WebTouchable
-              key={sub.id}
-              style={styles.subCard}
-              onPress={() => {
-                openStoryViewer([
-                  {
-                    id: sub.id,
-                    media_url: sub.image,
-                    media_type: 'image',
+            {otherStories.map((story) => {
+              const displayName = story.user_profile?.display_name || story.user_profile?.username || 'Creator';
+              return (
+                <WebTouchable key={story.id} style={styles.friendItem} onPress={() => openDbStoryReel(story)}>
+                  <View style={[styles.avatarRing, styles.activeStoryRing]}>
+                    <Image source={{ uri: story.media_url }} style={styles.friendAvatar} />
+                  </View>
+                  <Text style={styles.friendName} numberOfLines={1}>{displayName}</Text>
+                </WebTouchable>
+              );
+            })}
+
+            {FRIEND_STORIES.map((friend) => (
+              <WebTouchable key={friend.id} style={styles.friendItem} onPress={() => openStoryReel(friend)}>
+                <View style={[styles.avatarRing, friend.hasUnseen && styles.activeStoryRing]}>
+                  <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
+                </View>
+                <Text style={styles.friendName} numberOfLines={1}>{friend.name}</Text>
+              </WebTouchable>
+            ))}
+          </ScrollView>
+
+          {/* 2. Subscriptions Section */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Subscriptions</Text>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.subsScroll}>
+            {SUBSCRIPTIONS.map((sub) => (
+              <WebTouchable
+                key={sub.id}
+                style={styles.subCard}
+                onPress={() => {
+                  openStoryViewer([{
+                    id: sub.id, media_url: sub.image, media_type: 'image',
                     user_profile: { display_name: sub.author },
-                  },
-                ]);
-              }}
-            >
-              <Image source={{ uri: sub.image }} style={styles.subImage} />
-              <View style={styles.subGradientOverlay}>
-                <Text style={styles.subAuthor}>{sub.author}</Text>
-                <Text style={styles.subTitle} numberOfLines={2}>
-                  {sub.title}
-                </Text>
-              </View>
-            </WebTouchable>
-          ))}
-        </ScrollView>
+                  }]);
+                }}
+              >
+                <Image source={{ uri: sub.image }} style={styles.subImage} />
+                <View style={styles.subGradientOverlay}>
+                  <Text style={styles.subAuthor}>{sub.author}</Text>
+                  <Text style={styles.subTitle} numberOfLines={2}>{sub.title}</Text>
+                </View>
+              </WebTouchable>
+            ))}
+          </ScrollView>
 
-        {/* 3. Category Filter Pill Bar */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>For You</Text>
-        </View>
+          {/* 3. Category Filter Pill Bar */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>For You</Text>
+          </View>
+          <CategoryFilterBar selectedCategoryId={selectedCategory} onSelectCategory={setSelectedCategory} />
 
-        <CategoryFilterBar
-          selectedCategoryId={selectedCategory}
-          onSelectCategory={setSelectedCategory}
-        />
-
-        {/* 4. Filtered "For You" Discover Grid */}
-        <View style={styles.discoverGrid}>
-          {filteredDiscover.map((item) => (
-            <WebTouchable
-              key={item.id}
-              style={styles.discoverCard}
-              onPress={() => {
-                openStoryViewer([
-                  {
-                    id: item.id,
-                    media_url: item.image,
-                    media_type: 'image',
+          {/* 4. Filtered "For You" Discover Grid */}
+          <View style={styles.discoverGrid}>
+            {filteredDiscover.map((item) => (
+              <WebTouchable
+                key={item.id}
+                style={styles.discoverCard}
+                onPress={() => {
+                  openStoryViewer([{
+                    id: item.id, media_url: item.image, media_type: 'image',
                     user_profile: { display_name: item.publisher },
-                  },
-                ]);
-              }}
-            >
-              <Image source={{ uri: item.image }} style={styles.discoverImage} />
-              <View style={styles.discoverGradientOverlay}>
-                <Text style={styles.categoryBadge}>{item.category}</Text>
-                <Text style={styles.discoverTitle} numberOfLines={3}>
-                  {item.title}
-                </Text>
-                <Text style={styles.publisherName}>{item.publisher}</Text>
-              </View>
-            </WebTouchable>
-          ))}
-        </View>
-      </ScrollView>
+                  }]);
+                }}
+              >
+                <Image source={{ uri: item.image }} style={styles.discoverImage} />
+                <View style={styles.discoverGradientOverlay}>
+                  <Text style={styles.categoryBadge}>{item.category}</Text>
+                  <Text style={styles.discoverTitle} numberOfLines={3}>{item.title}</Text>
+                  <Text style={styles.publisherName}>{item.publisher}</Text>
+                </View>
+              </WebTouchable>
+            ))}
+          </View>
+        </ScrollView>
+      )}
 
       {/* Hidden File Picker Input for Device Photo/Video Upload */}
       {Platform.OS === 'web' && (
