@@ -56,6 +56,7 @@ serve(async (req: Request) => {
       client_reference_id: userId,
       subscription_data: creatorStripeAccountId
         ? {
+            application_fee_percent: 5, // 5% Admin fee retained by platform owner
             transfer_data: {
               destination: creatorStripeAccountId,
             },

@@ -230,12 +230,31 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
                 />
               </View>
             </View>
+            {/* 5% Admin Fee Deduction & Net Payout Calculator Box */}
+            <View style={styles.feeInfoBox}>
+              <View style={styles.feeHeaderRow}>
+                <Text style={styles.feeIcon}>⚡</Text>
+                <Text style={styles.feeTitle}>Platform Fee & Payout Split</Text>
+              </View>
+              <Text style={styles.feeText}>
+                A <Text style={{ color: '#FFFC00', fontWeight: 'bold' }}>5% Admin Fee</Text> is automatically deducted on each subscriber purchase and routed to platform administration. You receive <Text style={{ color: '#00F2FE', fontWeight: 'bold' }}>95% net payout</Text> directly to your Stripe account.
+              </Text>
 
-  // Creator Membership Price & Stripe Connect Settings
-  const [goldMonthlyPrice, setGoldMonthlyPrice] = useState('9.99');
-  const [platinumYearlyPrice, setPlatinumYearlyPrice] = useState('99.00');
-  const [stripeAccountId, setStripeAccountId] = useState('acct_1N9X82F45B31K009');
-  const [isStripeConnected, setIsStripeConnected] = useState(true);
+              <View style={styles.payoutTable}>
+                <View style={styles.payoutRow}>
+                  <Text style={styles.payoutPlan}>VIP Gold (${goldMonthlyPrice}/mo):</Text>
+                  <Text style={styles.payoutCalc}>
+                    Fee: -${(parseFloat(goldMonthlyPrice || '0') * 0.05).toFixed(2)} | <Text style={{ color: '#00F2FE', fontWeight: 'bold' }}>Net: ${(parseFloat(goldMonthlyPrice || '0') * 0.95).toFixed(2)}/mo</Text>
+                  </Text>
+                </View>
+                <View style={styles.payoutRow}>
+                  <Text style={styles.payoutPlan}>VIP Annual (${platinumYearlyPrice}/yr):</Text>
+                  <Text style={styles.payoutCalc}>
+                    Fee: -${(parseFloat(platinumYearlyPrice || '0') * 0.05).toFixed(2)} | <Text style={{ color: '#00F2FE', fontWeight: 'bold' }}>Net: ${(parseFloat(platinumYearlyPrice || '0') * 0.95).toFixed(2)}/yr</Text>
+                  </Text>
+                </View>
+              </View>
+            </View>
 
             <View style={styles.inputRow}>
               <Text style={styles.inputLabel}>Stripe Connected Account ID (Direct Bank Payouts)</Text>
@@ -251,7 +270,7 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
                 />
               </View>
               <Text style={{ color: '#8E8E93', fontSize: 11, marginTop: 4 }}>
-                100% of subscriber funds from your VIP channel will be deposited directly to this Stripe account.
+                Net funds (95%) will be transferred automatically to this Stripe account.
               </Text>
             </View>
 
@@ -499,6 +518,54 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 16,
     lineHeight: 18,
+  },
+  feeInfoBox: {
+    backgroundColor: 'rgba(255, 252, 0, 0.08)',
+    borderWidth: 1,
+    borderColor: '#FFFC00',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 16,
+  },
+  feeHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  feeIcon: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  feeTitle: {
+    color: '#FFFC00',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  feeText: {
+    color: '#D0D0E0',
+    fontSize: 12,
+    lineHeight: 17,
+    marginBottom: 10,
+  },
+  payoutTable: {
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: 10,
+    padding: 10,
+    gap: 6,
+  },
+  payoutRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  payoutPlan: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  payoutCalc: {
+    color: '#8E8E93',
+    fontSize: 12,
   },
   inputRow: {
     marginBottom: 14,
