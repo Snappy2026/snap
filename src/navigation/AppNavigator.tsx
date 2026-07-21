@@ -16,6 +16,7 @@ import {
   Text,
   Pressable,
   ActivityIndicator,
+  ImageBackground,
 } from "react-native";
 import { RootStackParamList, MainTabParamList } from "../types/navigation";
 import { supabase } from "../lib/supabase";

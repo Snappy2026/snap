@@ -349,9 +349,7 @@ export const StoriesScreen: React.FC = () => {
 
           let localFollowedIds: string[] = [];
           if (userData?.user) {
-            const { data: follows } = await supabase(
-              supabase.from("friendships") as any,
-            )
+            const { data: follows } = await (supabase.from("friendships") as any)
               .select("addressee_id")
               .eq("requester_id", userData.user.id)
               .eq("status", "accepted");
