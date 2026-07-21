@@ -62,11 +62,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
         });
 
         if (error) {
-          console.warn('[Supabase Auth Warning] Sign in notice:', error.message);
-          showAlert('Welcome Back!', `Logged in as ${email.trim()}`);
-          if (onEnableDemoMode) onEnableDemoMode();
+          console.warn('[Supabase Auth Error]', error.message);
+          showAlert('Login Failed', error.message || 'Invalid email or password. Please check your credentials.');
+          setLoading(false);
+          return;
         } else {
           showAlert('Welcome Back! 🎉', 'Successfully logged in.');
+          if (onEnableDemoMode) onEnableDemoMode();
         }
       } else {
         // Sign Up New User
@@ -88,18 +90,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
         });
 
         if (error) {
-          console.warn('[Supabase Auth Notice]', error.message);
-          showAlert('Account Created! 🎉', `Welcome @${username.trim()}! Demo session active.`);
-          if (onEnableDemoMode) onEnableDemoMode();
+          console.warn('[Supabase Sign Up Error]', error.message);
+          showAlert('Sign Up Error', error.message || 'Could not create account.');
+          setLoading(false);
+          return;
         } else {
-          showAlert('Account Created! 🎉', 'Welcome to Snapchat.');
+          showAlert('Account Created! 🎉', 'Welcome to Snapchat. Logged in successfully.');
+          if (onEnableDemoMode) onEnableDemoMode();
         }
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
       console.error('[Auth Exception]', errorMessage);
-      showAlert('Account Created! 🎉', `Welcome to Snapchat demo mode.`);
-      if (onEnableDemoMode) onEnableDemoMode();
+      showAlert('Auth Error', errorMessage);
     } finally {
       setLoading(false);
     }
