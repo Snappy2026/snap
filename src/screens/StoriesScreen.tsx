@@ -558,10 +558,10 @@ export const StoriesScreen: React.FC = () => {
               gap: "16px",
             }}
           >
-            {/* MY STORY */}
+            {/* ADD STORY BUTTON */}
             <button
               type="button"
-              onClick={() => openMyStory()}
+              onClick={() => setShowAddStoryModal(true)}
               style={{
                 border: "none",
                 background: "none",
@@ -578,35 +578,54 @@ export const StoriesScreen: React.FC = () => {
                 flexShrink: 0,
               }}
             >
-              <View
-                style={[
-                  styles.avatarRing,
-                  myStories.length > 0
-                    ? styles.activeMyStoryRing
-                    : styles.addStoryRing,
-                ]}
-              >
+              <View style={[styles.avatarRing, styles.addStoryRing]}>
                 <Image
                   source={{
-                    uri:
-                      myStories.length > 0
-                        ? myStories[0].media_url
-                        : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+                    uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
                   }}
                   style={styles.friendAvatar}
                 />
-                {myStories.length === 0 && (
-                  <View style={styles.plusBadge}>
-                    <Text style={styles.plusBadgeText}>＋</Text>
-                  </View>
-                )}
+                <View style={styles.plusBadge}>
+                  <Text style={styles.plusBadgeText}>＋</Text>
+                </View>
               </View>
               <Text style={styles.myStoryName} numberOfLines={1}>
-                {myStories.length > 0
-                  ? `My Story (${myStories.length})`
-                  : "Add Story"}
+                Add Story
               </Text>
             </button>
+
+            {/* MY STORY (IF EXISTS) */}
+            {myStories.length > 0 && (
+              <button
+                type="button"
+                onClick={() => openMyStory()}
+                style={{
+                  border: "none",
+                  background: "none",
+                  padding: 0,
+                  margin: 0,
+                  display: "flex",
+                  flexDirection: "column" as any,
+                  alignItems: "center",
+                  cursor: "pointer",
+                  WebkitAppearance: "none" as any,
+                  appearance: "none" as any,
+                  touchAction: "manipulation",
+                  minWidth: "80px",
+                  flexShrink: 0,
+                }}
+              >
+                <View style={[styles.avatarRing, styles.activeMyStoryRing]}>
+                  <Image
+                    source={{ uri: myStories[0].media_url }}
+                    style={styles.friendAvatar}
+                  />
+                </View>
+                <Text style={styles.myStoryName} numberOfLines={1}>
+                  {`My Story (${myStories.length})`}
+                </Text>
+              </button>
+            )}
 
             {/* OTHER CREATORS' POSTED STORIES */}
             {otherStories.map((story) => {
@@ -895,36 +914,41 @@ export const StoriesScreen: React.FC = () => {
             showsHorizontalScrollIndicator={false}
             style={styles.friendsScroll}
           >
-            <WebTouchable style={styles.friendItem} onPress={openMyStory}>
-              <View
-                style={[
-                  styles.avatarRing,
-                  myStories.length > 0
-                    ? styles.activeMyStoryRing
-                    : styles.addStoryRing,
-                ]}
-              >
+            {/* ADD STORY BUTTON */}
+            <WebTouchable
+              style={styles.friendItem}
+              onPress={() => setShowAddStoryModal(true)}
+            >
+              <View style={[styles.avatarRing, styles.addStoryRing]}>
                 <Image
                   source={{
-                    uri:
-                      myStories.length > 0
-                        ? myStories[0].media_url
-                        : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+                    uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
                   }}
                   style={styles.friendAvatar}
                 />
-                {myStories.length === 0 && (
-                  <View style={styles.plusBadge}>
-                    <Text style={styles.plusBadgeText}>＋</Text>
-                  </View>
-                )}
+                <View style={styles.plusBadge}>
+                  <Text style={styles.plusBadgeText}>＋</Text>
+                </View>
               </View>
               <Text style={styles.myStoryName} numberOfLines={1}>
-                {myStories.length > 0
-                  ? `My Story (${myStories.length})`
-                  : "Add Story"}
+                Add Story
               </Text>
             </WebTouchable>
+
+            {/* MY STORY (IF EXISTS) */}
+            {myStories.length > 0 && (
+              <WebTouchable style={styles.friendItem} onPress={openMyStory}>
+                <View style={[styles.avatarRing, styles.activeMyStoryRing]}>
+                  <Image
+                    source={{ uri: myStories[0].media_url }}
+                    style={styles.friendAvatar}
+                  />
+                </View>
+                <Text style={styles.myStoryName} numberOfLines={1}>
+                  {`My Story (${myStories.length})`}
+                </Text>
+              </WebTouchable>
+            )}
 
             {otherStories.map((story) => {
               const displayName =
