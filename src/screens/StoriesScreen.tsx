@@ -26,7 +26,6 @@ import { supabase } from "../lib/supabase";
 import * as ImagePicker from "expo-image-picker";
 import { Story } from "../types/database";
 import SnapBar from "../components/SnapBar";
-import CategoryFilterBar from "../components/CategoryFilterBar";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 36) / 2;
@@ -178,7 +177,6 @@ export const StoriesScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const isFocused = useIsFocused();
   const { openStoryViewer } = useStoryViewer();
-  const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [dbStories, setDbStories] = useState<Story[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
@@ -189,7 +187,6 @@ export const StoriesScreen: React.FC = () => {
   const [uploadDestination, setUploadDestination] = useState<
     "story" | "gallery" | "vip"
   >("story");
-  const [uploadCategory, setUploadCategory] = useState("ALL");
 
   const fileInputRef = useRef<any>(null);
 
@@ -296,7 +293,6 @@ export const StoriesScreen: React.FC = () => {
             media_url: mediaUrl,
             media_type: isVideo ? "video" : "image",
             required_tier: uploadDestination === "vip" ? "vip" : "public",
-            category: uploadCategory,
             is_public_gallery: uploadDestination === "gallery",
             created_at: new Date().toISOString(),
             creator_profile: {
@@ -354,7 +350,6 @@ export const StoriesScreen: React.FC = () => {
               media_url: mediaUrl,
               media_type: isVideo ? "video" : "image",
               required_tier: uploadDestination === "vip" ? "vip" : "public",
-              category: uploadCategory,
               is_public_gallery: uploadDestination === "gallery",
               created_at: new Date().toISOString(),
               creator_profile: {
@@ -384,7 +379,6 @@ export const StoriesScreen: React.FC = () => {
                 title: `My ${uploadDestination} post`,
                 description: "",
                 required_tier: uploadDestination === "vip" ? "vip" : "public",
-                category: uploadCategory,
                 is_public_gallery: uploadDestination === "gallery",
               });
             }
@@ -462,12 +456,7 @@ export const StoriesScreen: React.FC = () => {
 
   // Filter Discover content dynamically based on selected category
   const displayVipItems = vipItems.length > 0 ? vipItems : FOR_YOU;
-  const filteredDiscover = displayVipItems.filter(
-    (item) =>
-      selectedCategory === "ALL" ||
-      (item.category &&
-        item.category.toUpperCase() === selectedCategory.toUpperCase()),
-  );
+  const filteredDiscover = displayVipItems;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -796,11 +785,6 @@ export const StoriesScreen: React.FC = () => {
             </span>
           </div>
 
-          <CategoryFilterBar
-            selectedCategoryId={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-          />
-
           {/* 4. Filtered "For You" Discover Grid */}
           <div
             style={{
@@ -1024,10 +1008,6 @@ export const StoriesScreen: React.FC = () => {
               👑 VIP Section
             </Text>
           </View>
-          <CategoryFilterBar
-            selectedCategoryId={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-          />
 
           {/* 4. Filtered "For You" Discover Grid */}
           <View style={styles.discoverGrid}>
@@ -1180,47 +1160,6 @@ export const StoriesScreen: React.FC = () => {
               )}
             </View>
 
-            {(uploadDestination === "gallery" ||
-              uploadDestination === "vip") && (
-              <View style={{ marginBottom: 16 }}>
-                <Text style={{ color: "#FFF", marginBottom: 8 }}>
-                  Select Category:
-                </Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {[
-                    "ALL",
-                    "SCIENCE",
-                    "AUTO",
-                    "GAMING",
-                    "LIFESTYLE",
-                    "TECH",
-                    "FOOD",
-                  ].map((cat) => (
-                    <Pressable
-                      key={cat}
-                      onPress={() => setUploadCategory(cat)}
-                      style={{
-                        paddingHorizontal: 12,
-                        paddingVertical: 6,
-                        backgroundColor:
-                          uploadCategory === cat ? "#FFFC00" : "#333",
-                        borderRadius: 12,
-                        marginRight: 8,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: uploadCategory === cat ? "#000" : "#FFF",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {cat}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
 
             <Pressable
               style={({ pressed }) => [
