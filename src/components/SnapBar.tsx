@@ -16,6 +16,7 @@ import {
   Modal,
 } from 'react-native';
 import ContactInviteModal from './ContactInviteModal';
+import CreatorSettingsModal from './CreatorSettingsModal';
 
 interface SnapBarProps {
   title?: string;
@@ -31,6 +32,15 @@ export const SnapBar: React.FC<SnapBarProps> = ({
   onSearchChange,
 }) => {
   const [showContactModal, setShowContactModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+  const handleProfileClick = () => {
+    if (onProfilePress) {
+      onProfilePress();
+    } else {
+      setShowSettingsModal(true);
+    }
+  };
 
   const handleAddFriendClick = () => {
     if (onAddFriendPress) {
@@ -46,7 +56,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
         {/* Left: Profile Bitmoji Avatar with Snapchat Yellow Ring */}
         <TouchableOpacity
           style={styles.profileButton}
-          onPress={onProfilePress}
+          onPress={handleProfileClick}
           activeOpacity={0.8}
         >
           <View style={styles.yellowRing}>
@@ -86,6 +96,16 @@ export const SnapBar: React.FC<SnapBarProps> = ({
         onRequestClose={() => setShowContactModal(false)}
       >
         <ContactInviteModal onClose={() => setShowContactModal(false)} />
+      </Modal>
+
+      {/* Creator & Account Settings Control Panel Modal */}
+      <Modal
+        visible={showSettingsModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowSettingsModal(false)}
+      >
+        <CreatorSettingsModal onClose={() => setShowSettingsModal(false)} />
       </Modal>
     </SafeAreaView>
   );

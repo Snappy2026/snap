@@ -7,8 +7,9 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator, BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { RootStackParamList, MainTabParamList } from '../types/navigation';
+import { supabase } from '../lib/supabase';
 
 import CameraScreen from '../screens/CameraScreen';
 import ChatFeedScreen from '../screens/ChatFeedScreen';
@@ -78,16 +79,57 @@ const MainTabNavigator: React.FC = () => {
 };
 
 export const AppNavigator: React.FC = () => {
+  const [session, setSession] = React.useState<any>(null);
+  const [authLoading, setAuthLoading] = React.useState(true);
+  const [demoMode, setDemoMode] = React.useState(false);
+
+  React.useEffect(() => {
+    // Check initial auth session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (authLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ fontSize: 50, marginBottom: 16 }}>👻</Text>
+        <ActivityIndicator size="large" color="#FFFC00" />
+      </View>
+    );
+  }
+
+  const showAuthScreen = !session && !demoMode;
+
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="MainTabs"
+        initialRouteName={showAuthScreen ? 'Auth' : 'MainTabs'}
         screenOptions={{
           headerShown: false,
         }}
       >
-        <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-        <Stack.Screen name="Auth" component={AuthScreen} />
+        {showAuthScreen ? (
+          <Stack.Screen name="Auth">
+            {(props) => <AuthScreen {...props} onEnableDemoMode={() => setDemoMode(true)} />}
+          </Stack.Screen>
+        ) : (
+          <>
+            <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+            <Stack.Screen name="Auth" component={AuthScreen} />
+          </>
+        )}
         <Stack.Screen name="DirectChat" component={DirectChatScreen} />
         <Stack.Screen
           name="SendToModal"

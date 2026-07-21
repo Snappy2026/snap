@@ -22,6 +22,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { supabase } from '../lib/supabase';
+import { launchStripeCheckout } from '../lib/stripe';
 import { VipContentItem } from '../types/database';
 
 const { width } = Dimensions.get('window');
@@ -83,50 +84,31 @@ export const VipMembersScreen: React.FC = () => {
     checkVipStatus();
   }, []);
 
-  // Handle VIP Membership Purchase via Stripe Checkout & Edge Function
+  // Handle VIP Membership Purchase via Stripe Connect Checkout
   const handleUnlockVip = async (plan: 'gold' | 'platinum', price: string) => {
     setPurchasing(true);
     try {
       const { data: userData } = await supabase.auth.getUser();
       const currentUser = userData.user;
+      let creatorStripeAccountId: string | undefined = undefined;
 
-      // Invoke Supabase Stripe Checkout Edge Function
-      const { data, error } = await supabase.functions.invoke('stripe-checkout', {
-        body: {
-          plan,
-          userId: currentUser?.id || 'demo-user',
-          returnUrl: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8098',
-        },
-      });
-
-      if (data && data.url) {
-        // Redirect browser to Stripe Checkout Session
-        if (Platform.OS === 'web' && typeof window !== 'undefined') {
-          window.location.href = data.url;
-          return;
+      if (currentUser) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('stripe_account_id')
+          .eq('id', currentUser.id)
+          .single();
+        if (profile && (profile as any).stripe_account_id) {
+          creatorStripeAccountId = (profile as any).stripe_account_id;
         }
       }
 
-      // Local Dev Mode Fallback: Activate VIP membership directly
-      if (currentUser) {
-        await (supabase.from('profiles') as any)
-          .update({ is_vip_member: true, vip_tier: plan })
-          .eq('id', currentUser.id);
-      }
-
-      setIsVipMember(true);
-
-      const msg = `Congratulations! You unlocked VIP ${plan.toUpperCase()} status (${price}). Exclusive stories unlocked.`;
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert(`👑 Welcome to VIP Gold!\n${msg}`);
-      } else {
-        Alert.alert('👑 VIP Unlocked!', msg);
-      }
+      // Redirect directly to Stripe Connect Checkout Session
+      await launchStripeCheckout(plan, currentUser?.id || 'demo-user', creatorStripeAccountId);
     } catch (err: unknown) {
-      console.error('[Stripe Checkout Error]', err);
-      setIsVipMember(true);
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert('👑 VIP Unlocked!\nWelcome to VIP Gold demo mode.');
+      console.error('[Stripe Checkout Exception]', err);
+      if (typeof window !== 'undefined') {
+        window.open('https://checkout.stripe.com', '_blank');
       }
     } finally {
       setPurchasing(false);

@@ -30,12 +30,12 @@ serve(async (req: Request) => {
       httpClient: Stripe.createFetchHttpClient(),
     });
 
-    const { plan, userId, returnUrl } = await req.json();
+    const { plan, userId, returnUrl, creatorStripeAccountId } = await req.json();
 
     const priceAmount = plan === "platinum" ? 9900 : 999; // $99.00 or $9.99 in cents
     const planName = plan === "platinum" ? "Snapchat VIP Annual Membership" : "Snapchat VIP Gold Monthly";
 
-    // Create Stripe Checkout Session
+    // Create Stripe Checkout Session with Direct Payout to Creator's Connected Account
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -54,6 +54,13 @@ serve(async (req: Request) => {
       ],
       mode: "subscription",
       client_reference_id: userId,
+      subscription_data: creatorStripeAccountId
+        ? {
+            transfer_data: {
+              destination: creatorStripeAccountId,
+            },
+          }
+        : undefined,
       success_url: returnUrl ? `${returnUrl}?vip_success=true` : "http://localhost:8098/?vip_success=true",
       cancel_url: returnUrl ? `${returnUrl}?vip_cancel=true` : "http://localhost:8098/?vip_cancel=true",
     });

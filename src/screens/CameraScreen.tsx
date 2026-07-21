@@ -68,8 +68,11 @@ export const CameraScreen: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeLens, setActiveLens] = useState<ARLens | null>(null);
 
-  // Web camera state
+  // Web camera state & MediaRecorder
   const webVideoRef = useRef<HTMLVideoElement | null>(null);
+  const mediaRecorderRef = useRef<any>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const webStreamRef = useRef<MediaStream | null>(null);
   const [webStreamActive, setWebStreamActive] = useState(false);
 
   const device = useCameraDeviceHook(cameraPosition);
@@ -79,12 +82,22 @@ export const CameraScreen: React.FC = () => {
   const shutterScale = useSharedValue(1);
   const recordingProgress = useSharedValue(0);
 
-  // Initialize Web Webcam stream when running in browser
+  // Initialize & Update Web Webcam stream when cameraPosition changes
   useEffect(() => {
     if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.mediaDevices) {
+      // Stop existing tracks before starting new stream
+      if (webStreamRef.current) {
+        webStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+
+      const facingMode = cameraPosition === 'back' ? 'environment' : 'user';
       navigator.mediaDevices
-        .getUserMedia({ video: true, audio: true })
+        .getUserMedia({
+          video: { facingMode: { ideal: facingMode } },
+          audio: true,
+        })
         .then((stream) => {
+          webStreamRef.current = stream;
           if (webVideoRef.current) {
             webVideoRef.current.srcObject = stream;
             webVideoRef.current.play();
@@ -92,10 +105,22 @@ export const CameraScreen: React.FC = () => {
           }
         })
         .catch((err) => {
-          console.warn('[Web Camera Warning] Webcam permission denied or device absent:', err.message);
+          console.warn('[Web Camera Warning] Webcam permission or device notice:', err.message);
+          // Fallback to basic video stream without facingMode constraint
+          navigator.mediaDevices
+            .getUserMedia({ video: true, audio: true })
+            .then((stream) => {
+              webStreamRef.current = stream;
+              if (webVideoRef.current) {
+                webVideoRef.current.srcObject = stream;
+                webVideoRef.current.play();
+                setWebStreamActive(true);
+              }
+            })
+            .catch((e) => console.warn('[Web Camera Fallback Error]', e));
         });
     }
-  }, []);
+  }, [cameraPosition]);
 
   useEffect(() => {
     if (Platform.OS !== 'web') {
@@ -126,7 +151,7 @@ export const CameraScreen: React.FC = () => {
             processAndNavigateToSendTo(dataUrl, 'image');
           }
         } else {
-          const dummySvg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800"><rect width="100%" height="100%" fill="%231a1a2e"/><text x="50%" y="50%" fill="%23FFFC00" font-size="30" font-family="sans-serif" text-anchor="middle">Snapchat Web Preview Snap</text></svg>';
+          const dummySvg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800"><rect width="100%" height="100%" fill="%231a1a2e"/><text x="50%" y="50%" fill="%23FFFC00" font-size="30" font-family="sans-serif" text-anchor="middle">Snapchat Web Snap</text></svg>';
           processAndNavigateToSendTo(dummySvg, 'image');
         }
       } else {
@@ -144,7 +169,7 @@ export const CameraScreen: React.FC = () => {
     }
   };
 
-  // Handle Video Recording
+  // Handle Video Recording with Web MediaRecorder & Native VisionCamera
   const startRecording = async () => {
     if (isRecording) return;
     try {
@@ -152,7 +177,19 @@ export const CameraScreen: React.FC = () => {
       shutterScale.value = withSpring(1.3);
       recordingProgress.value = withTiming(1, { duration: 5000, easing: Easing.linear });
 
-      if (Platform.OS !== 'web' && cameraRef.current) {
+      if (Platform.OS === 'web') {
+        recordedChunksRef.current = [];
+        if (webStreamRef.current && typeof MediaRecorder !== 'undefined') {
+          const recorder = new MediaRecorder(webStreamRef.current);
+          mediaRecorderRef.current = recorder;
+          recorder.ondataavailable = (event) => {
+            if (event.data && event.data.size > 0) {
+              recordedChunksRef.current.push(event.data);
+            }
+          };
+          recorder.start();
+        }
+      } else if (cameraRef.current) {
         cameraRef.current.startRecording({
           flash: flashMode,
           onRecordingFinished: async (video: any) => {
@@ -182,8 +219,18 @@ export const CameraScreen: React.FC = () => {
       setIsRecording(false);
       shutterScale.value = withSpring(1);
       recordingProgress.value = 0;
-      const dummySvg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800"><rect width="100%" height="100%" fill="%2316213e"/><text x="50%" y="50%" fill="%23FF3B30" font-size="30" font-family="sans-serif" text-anchor="middle">Snapchat Web Video Snap</text></svg>';
-      processAndNavigateToSendTo(dummySvg, 'video');
+
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.onstop = () => {
+          const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+          const videoUrl = URL.createObjectURL(blob);
+          processAndNavigateToSendTo(videoUrl, 'video');
+        };
+        mediaRecorderRef.current.stop();
+      } else {
+        const dummySvg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800"><rect width="100%" height="100%" fill="%2316213e"/><text x="50%" y="50%" fill="%23FF3B30" font-size="30" font-family="sans-serif" text-anchor="middle">Snapchat Web Video Snap</text></svg>';
+        processAndNavigateToSendTo(dummySvg, 'video');
+      }
     } else if (cameraRef.current) {
       await cameraRef.current.stopRecording();
     }

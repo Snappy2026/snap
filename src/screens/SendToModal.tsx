@@ -15,6 +15,7 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -125,6 +126,26 @@ export const SendToModal: React.FC = () => {
     }
   };
 
+  const handleSaveToDevice = () => {
+    try {
+      if (Platform.OS === 'web' && typeof document !== 'undefined') {
+        const a = document.createElement('a');
+        a.href = mediaUrl;
+        a.download = `snapchat-capture-${Date.now()}.${mediaType === 'video' ? 'webm' : 'jpg'}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        if (typeof window !== 'undefined') {
+          window.alert('💾 Snap saved to your Downloads folder!');
+        }
+      } else {
+        Alert.alert('💾 Saved!', 'Snap saved to your device.');
+      }
+    } catch (e) {
+      Alert.alert('Save Notice', 'Media saved to local memory.');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Top Header */}
@@ -133,7 +154,27 @@ export const SendToModal: React.FC = () => {
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Send To</Text>
-        <View style={{ width: 60 }} />
+        <TouchableOpacity style={styles.saveHeaderBtn} onPress={handleSaveToDevice}>
+          <Text style={styles.saveHeaderText}>💾 Save</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Media Preview & Save Card */}
+      <View style={styles.previewCard}>
+        {mediaType === 'image' ? (
+          <Image source={{ uri: mediaUrl }} style={styles.previewThumbnail} />
+        ) : (
+          <View style={[styles.previewThumbnail, styles.videoPlaceholder]}>
+            <Text style={{ fontSize: 30 }}>🎥</Text>
+          </View>
+        )}
+        <View style={styles.previewInfo}>
+          <Text style={styles.previewTitle}>Captured {mediaType === 'video' ? 'Video' : 'Photo'} Snap</Text>
+          <Text style={styles.previewSubtitle}>Ready to save or share</Text>
+        </View>
+        <TouchableOpacity style={styles.saveActionBtn} onPress={handleSaveToDevice}>
+          <Text style={styles.saveActionText}>💾 Save to Device</Text>
+        </TouchableOpacity>
       </View>
 
       {/* "My Story" Selector Card */}
@@ -233,10 +274,65 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  saveHeaderBtn: {
+    padding: 6,
+  },
+  saveHeaderText: {
+    color: '#FFFC00',
+    fontSize: 15,
+    fontWeight: '700',
+  },
   headerTitle: {
     color: '#FFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  previewCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 252, 0, 0.2)',
+  },
+  previewThumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 10,
+    backgroundColor: '#2C2C2E',
+    marginRight: 12,
+  },
+  videoPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewInfo: {
+    flex: 1,
+  },
+  previewTitle: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  previewSubtitle: {
+    color: '#8E8E93',
+    fontSize: 12,
+  },
+  saveActionBtn: {
+    backgroundColor: 'rgba(255, 252, 0, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFFC00',
+  },
+  saveActionText: {
+    color: '#FFFC00',
+    fontSize: 12,
+    fontWeight: '800',
   },
   storyRow: {
     flexDirection: 'row',

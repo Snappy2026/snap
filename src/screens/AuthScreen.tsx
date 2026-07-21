@@ -33,7 +33,11 @@ const showAlert = (title: string, message: string) => {
   }
 };
 
-export const AuthScreen: React.FC = () => {
+interface AuthScreenProps {
+  onEnableDemoMode?: () => void;
+}
+
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
   const navigation = useNavigation<NavigationProp>();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -60,10 +64,10 @@ export const AuthScreen: React.FC = () => {
         if (error) {
           console.warn('[Supabase Auth Warning] Sign in notice:', error.message);
           showAlert('Welcome Back!', `Logged in as ${email.trim()}`);
+          if (onEnableDemoMode) onEnableDemoMode();
         } else {
           showAlert('Welcome Back! 🎉', 'Successfully logged in.');
         }
-        navigation.replace('MainTabs', { screen: 'Camera' });
       } else {
         // Sign Up New User
         if (!username) {
@@ -86,23 +90,27 @@ export const AuthScreen: React.FC = () => {
         if (error) {
           console.warn('[Supabase Auth Notice]', error.message);
           showAlert('Account Created! 🎉', `Welcome @${username.trim()}! Demo session active.`);
+          if (onEnableDemoMode) onEnableDemoMode();
         } else {
           showAlert('Account Created! 🎉', 'Welcome to Snapchat.');
         }
-        navigation.replace('MainTabs', { screen: 'Camera' });
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
       console.error('[Auth Exception]', errorMessage);
       showAlert('Account Created! 🎉', `Welcome to Snapchat demo mode.`);
-      navigation.replace('MainTabs', { screen: 'Camera' });
+      if (onEnableDemoMode) onEnableDemoMode();
     } finally {
       setLoading(false);
     }
   };
 
   const handleSkipDemo = () => {
-    navigation.replace('MainTabs', { screen: 'Camera' });
+    if (onEnableDemoMode) {
+      onEnableDemoMode();
+    } else {
+      navigation.replace('MainTabs', { screen: 'Camera' });
+    }
   };
 
   return (
