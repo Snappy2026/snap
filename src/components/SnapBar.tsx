@@ -18,6 +18,8 @@ import {
 import ContactInviteModal from './ContactInviteModal';
 import CreatorSettingsModal from './CreatorSettingsModal';
 import AdminDashboardModal from './AdminDashboardModal';
+import CustomerSettingsModal from './CustomerSettingsModal';
+import { supabase } from '../lib/supabase';
 
 interface SnapBarProps {
   title?: string;
@@ -35,12 +37,34 @@ export const SnapBar: React.FC<SnapBarProps> = ({
   const [showContactModal, setShowContactModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [userRole, setUserRole] = useState<'admin' | 'creator' | 'customer'>('customer');
+
+  React.useEffect(() => {
+    const fetchRole = async () => {
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const user = userData?.user;
+        if (user) {
+          const role = user.user_metadata?.role || (user.email?.includes('admin') ? 'admin' : 'customer');
+          setUserRole(role);
+        }
+      } catch (err) {
+        console.error('[SnapBar Role Fetch Error]', err);
+      }
+    };
+    fetchRole();
+  }, []);
 
   const handleProfileClick = () => {
     if (onProfilePress) {
       onProfilePress();
-    } else {
+    } else if (userRole === 'admin') {
+      setShowAdminModal(true);
+    } else if (userRole === 'creator') {
       setShowSettingsModal(true);
+    } else {
+      setShowCustomerModal(true);
     }
   };
 
@@ -82,21 +106,35 @@ export const SnapBar: React.FC<SnapBarProps> = ({
 
         {/* Right Actions Group */}
         <View style={styles.rightActionsGroup}>
-          <TouchableOpacity
-            style={styles.adminBarBtn}
-            onPress={() => setShowAdminModal(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.adminBarText}>🛡️ Admin</Text>
-          </TouchableOpacity>
+          {userRole === 'admin' && (
+            <TouchableOpacity
+              style={styles.adminBarBtn}
+              onPress={() => setShowAdminModal(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.adminBarText}>🛡️ Admin</Text>
+            </TouchableOpacity>
+          )}
 
-          <TouchableOpacity
-            style={styles.stripeBarBtn}
-            onPress={() => setShowSettingsModal(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.stripeBarText}>💳 Payouts</Text>
-          </TouchableOpacity>
+          {userRole === 'creator' && (
+            <TouchableOpacity
+              style={styles.stripeBarBtn}
+              onPress={() => setShowSettingsModal(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.stripeBarText}>💳 Payouts</Text>
+            </TouchableOpacity>
+          )}
+
+          {userRole === 'customer' && (
+            <TouchableOpacity
+              style={styles.customerBarBtn}
+              onPress={() => setShowCustomerModal(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.customerBarText}>💰 Spending</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={styles.iconButton}
@@ -117,6 +155,14 @@ export const SnapBar: React.FC<SnapBarProps> = ({
       >
         <ContactInviteModal onClose={() => setShowContactModal(false)} />
       </Modal>
+
+      {/* Customer Account Dashboard Modal */}
+      {showCustomerModal && (
+        <CustomerSettingsModal
+          onClose={() => setShowCustomerModal(false)}
+          onUpgradeToCreator={() => setShowSettingsModal(true)}
+        />
+      )}
 
       {/* Creator & Account Settings Control Panel Modal */}
       <Modal
@@ -211,6 +257,19 @@ const styles = StyleSheet.create({
   },
   stripeBarText: {
     color: '#635BFF',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  customerBarBtn: {
+    backgroundColor: 'rgba(0, 242, 254, 0.22)',
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#00F2FE',
+  },
+  customerBarText: {
+    color: '#00F2FE',
     fontSize: 10,
     fontWeight: '800',
   },
