@@ -461,22 +461,6 @@ export const CameraScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Global Live AR Lens Filter Overlay & Top Banner */}
-        {activeLens && activeLens.filterOverlay && (
-          <View
-            style={[
-              StyleSheet.absoluteFillObject,
-              { backgroundColor: activeLens.filterOverlay, pointerEvents: 'none', justifyContent: 'center', alignItems: 'center', zIndex: 90 },
-            ]}
-          >
-            {activeLens.topBadgeText && (
-              <View style={styles.lensTopBadge}>
-                <Text style={styles.lensTopBadgeText}>{activeLens.topBadgeText}</Text>
-              </View>
-            )}
-          </View>
-        )}
-
         {/* Side Camera Action Tools */}
         <View style={styles.sideControls}>
           <TouchableOpacity
@@ -499,10 +483,8 @@ export const CameraScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Bottom Carousel & Shutter Controls */}
+        {/* Bottom Shutter Controls */}
         <View style={styles.bottomControls}>
-          <LensCarousel onSelectLens={(lens) => setActiveLens(lens)} />
-
           {!isProcessing && (
             <View style={styles.shutterRow}>
               <GestureDetector gesture={Gesture.Race(singleTapGesture, longPressGesture)}>
