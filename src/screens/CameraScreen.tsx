@@ -444,14 +444,20 @@ export const CameraScreen: React.FC = () => {
               </View>
             )}
 
-            {/* Simulated AR Lens Color Filter Overlay */}
+            {/* Simulated AR Lens Color Filter Overlay & Sticker Badges */}
             {activeLens && activeLens.filterOverlay && (
               <View
                 style={[
                   StyleSheet.absoluteFillObject,
-                  { backgroundColor: activeLens.filterOverlay, pointerEvents: 'none' },
+                  { backgroundColor: activeLens.filterOverlay, pointerEvents: 'none', justifyContent: 'center', alignItems: 'center' },
                 ]}
-              />
+              >
+                {activeLens.topBadgeText && (
+                  <View style={styles.lensTopBadge}>
+                    <Text style={styles.lensTopBadgeText}>{activeLens.topBadgeText}</Text>
+                  </View>
+                )}
+              </View>
             )}
           </View>
         ) : isFocused && VisionCamera && device ? (
@@ -673,6 +679,26 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 10,
+  },
+  lensTopBadge: {
+    position: 'absolute',
+    top: 70,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    borderWidth: 1.5,
+    borderColor: '#FFFC00',
+    shadowColor: '#FFFC00',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 10,
+  },
+  lensTopBadgeText: {
+    color: '#FFFC00',
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 1,
   },
   capturedOverlay: {
     ...StyleSheet.absoluteFillObject,
