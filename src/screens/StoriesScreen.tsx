@@ -175,16 +175,26 @@ export const StoriesScreen: React.FC = () => {
 
   const openMyStory = () => {
     if (myStories.length > 0) {
-      setModalStories(myStories.map(s => ({
-        id: s.id,
-        media_url: s.media_url,
-        media_type: s.media_type,
-        user_profile: { display_name: s.user_profile?.display_name || 'My Story' },
-      })));
-      setShowStoryModal(true);
+      setModalStories(
+        myStories.map((s) => ({
+          id: s.id,
+          media_url: s.media_url,
+          media_type: s.media_type,
+          user_profile: { display_name: s.user_profile?.display_name || 'My Story' },
+        }))
+      );
     } else {
-      navigation.navigate('MainTabs', { screen: 'Camera' });
+      // Fallback default My Story reel
+      setModalStories([
+        {
+          id: 'my-default-story',
+          media_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800',
+          media_type: 'image',
+          user_profile: { display_name: 'My Story' },
+        },
+      ]);
     }
+    setShowStoryModal(true);
   };
 
   const openStoryReel = (friend: FriendStoryItem) => {
