@@ -9,7 +9,7 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 
 export interface DiscoverCategory {
@@ -47,17 +47,16 @@ export const CategoryFilterBar: React.FC<CategoryFilterBarProps> = ({
         {DISCOVER_CATEGORIES.map((cat) => {
           const isSelected = cat.id === selectedCategoryId;
           return (
-            <TouchableOpacity
+            <Pressable
               key={cat.id}
-              style={[styles.pill, isSelected && styles.pillActive]}
+              style={({ pressed }) => [styles.pill, isSelected && styles.pillActive, pressed && { opacity: 0.8 }]}
               onPress={() => onSelectCategory(cat.id)}
-              activeOpacity={0.8}
             >
               <Text style={styles.badgeText}>{cat.badge}</Text>
               <Text style={[styles.pillText, isSelected && styles.pillTextActive]}>
                 {cat.name}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </ScrollView>

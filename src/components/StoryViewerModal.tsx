@@ -12,7 +12,7 @@ import {
   View,
   Image,
   Text,
-  TouchableOpacity,
+  Pressable,
   Dimensions,
   SafeAreaView,
   Modal,
@@ -171,8 +171,8 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
 
       {/* Touch zones: left = previous, right = next */}
       <View style={nativeStyles.touchOverlay}>
-        <TouchableOpacity style={nativeStyles.leftTouch} onPress={previousStory} activeOpacity={1} />
-        <TouchableOpacity style={nativeStyles.rightTouch} onPress={advanceStory} activeOpacity={1} />
+        <Pressable style={nativeStyles.leftTouch} onPress={previousStory} />
+        <Pressable style={nativeStyles.rightTouch} onPress={advanceStory} />
       </View>
 
       {/* Top bar: progress segments + author + close */}
@@ -207,9 +207,9 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
             </Text>
           </View>
 
-          <TouchableOpacity onPress={handleClose} style={nativeStyles.closeBtn}>
+          <Pressable onPress={handleClose} style={nativeStyles.closeBtn}>
             <Text style={nativeStyles.closeIcon}>✕</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </SafeAreaView>
     </View>

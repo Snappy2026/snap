@@ -7,7 +7,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator, BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text, Pressable, ActivityIndicator } from 'react-native';
 import { RootStackParamList, MainTabParamList } from '../types/navigation';
 import { supabase } from '../lib/supabase';
 
@@ -62,15 +62,14 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
         };
 
         return (
-          <TouchableOpacity
+          <Pressable
             key={route.key}
             onPress={onPress}
-            style={[styles.tabItem, isFocused && styles.tabItemFocused]}
-            activeOpacity={0.7}
+            style={({ pressed }) => [styles.tabItem, isFocused && styles.tabItemFocused, pressed && { opacity: 0.7 }]}
           >
             <Text style={[styles.tabIcon, isFocused && styles.tabIconFocused]}>{icon}</Text>
             <Text style={[styles.tabLabel, isFocused && styles.tabLabelFocused]}>{title}</Text>
-          </TouchableOpacity>
+          </Pressable>
         );
       })}
     </View>
