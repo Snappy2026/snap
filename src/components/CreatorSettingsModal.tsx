@@ -186,14 +186,34 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-          {/* Profile Card */}
+          {/* Profile Card & Avatar Editor */}
           <View style={styles.profileCard}>
-            <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                const url = prompt ? prompt('Enter Profile Avatar Image URL:', avatarUrl) : null;
+                if (url && url.trim()) setAvatarUrl(url.trim());
+              }}
+              style={{ alignItems: 'center' }}
+            >
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+              <View style={styles.editAvatarBadge}>
+                <Text style={styles.editAvatarText}>📸 Change</Text>
+              </View>
+            </TouchableOpacity>
+
             <View style={styles.profileDetails}>
-              <Text style={styles.profileName}>{displayName}</Text>
+              <TextInput
+                value={displayName}
+                onChangeText={setDisplayName}
+                style={styles.profileNameInput}
+                placeholder="Display Name"
+                placeholderTextColor="#888"
+              />
               <Text style={styles.profileHandle}>@{username}</Text>
               {email ? <Text style={styles.profileEmail}>{email}</Text> : null}
             </View>
+
             <View style={{ gap: 6 }}>
               <TouchableOpacity style={styles.adminConsoleBtn} onPress={() => setShowAdminModal(true)}>
                 <Text style={styles.adminConsoleText}>🛡️ Admin Console</Text>
@@ -202,6 +222,28 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
                 <Text style={styles.signOutText}>Sign Out 🚪</Text>
               </TouchableOpacity>
             </View>
+          </View>
+
+          {/* Quick Preset Avatars Picker */}
+          <View style={styles.avatarPickerRow}>
+            <Text style={styles.avatarPickerTitle}>Choose Preset Bitmoji Avatar:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 6 }}>
+              {[
+                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+                'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
+                'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150',
+              ].map((uri, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => setAvatarUrl(uri)}
+                  style={[styles.presetAvatarBtn, avatarUrl === uri && styles.presetAvatarSelected]}
+                >
+                  <Image source={{ uri }} style={styles.presetAvatarImg} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
 
           {/* SECTION 1: Stripe Connected Account & Payouts Setup */}
@@ -492,8 +534,55 @@ const styles = StyleSheet.create({
     borderColor: '#FFFC00',
     marginRight: 14,
   },
+  editAvatarBadge: {
+    backgroundColor: '#FFFC00',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginTop: -10,
+    marginRight: 14,
+  },
+  editAvatarText: {
+    color: '#000',
+    fontSize: 9,
+    fontWeight: '900',
+  },
   profileDetails: {
     flex: 1,
+  },
+  profileNameInput: {
+    color: '#FFF',
+    fontSize: 17,
+    fontWeight: 'bold',
+    padding: 0,
+  },
+  avatarPickerRow: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 12,
+    marginTop: -6,
+  },
+  avatarPickerTitle: {
+    color: '#8E8E93',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  presetAvatarBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    marginRight: 10,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    overflow: 'hidden',
+  },
+  presetAvatarSelected: {
+    borderColor: '#FFFC00',
+    transform: [{ scale: 1.1 }],
+  },
+  presetAvatarImg: {
+    width: '100%',
+    height: '100%',
   },
   profileName: {
     color: '#FFF',

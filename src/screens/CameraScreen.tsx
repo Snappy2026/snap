@@ -29,6 +29,7 @@ import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { supabase } from '../lib/supabase';
+import { sessionStore } from '../lib/sessionStore';
 import SnapBar from '../components/SnapBar';
 import LensCarousel, { ARLens } from '../components/LensCarousel';
 
@@ -274,7 +275,24 @@ export const CameraScreen: React.FC = () => {
     if (!capturedMedia) return;
     try {
       const { data: userData } = await supabase.auth.getUser();
-      const currentUser = userData.user;
+      const currentUser = userData?.user;
+
+      const newStoryItem = {
+        id: `story-${Date.now()}`,
+        user_id: currentUser?.id || 'demo-user-id',
+        media_url: capturedMedia.url,
+        media_type: capturedMedia.type,
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+        user_profile: {
+          display_name: currentUser?.user_metadata?.display_name || 'My Story',
+          username: currentUser?.user_metadata?.username || 'you',
+          avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+        },
+      };
+
+      // Add to instant in-memory session store
+      sessionStore.addStory(newStoryItem);
 
       if (currentUser) {
         await (supabase.from('stories') as any).insert({
@@ -284,7 +302,7 @@ export const CameraScreen: React.FC = () => {
         });
       }
 
-      const msg = 'Posted to My Story! 🔥 Visible to friends for 24 hours.';
+      const msg = 'Posted to My Story! 🔥 View it in the Stories tab.';
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert(`👻 My Story Updated!\n${msg}`);
       } else {
@@ -294,7 +312,7 @@ export const CameraScreen: React.FC = () => {
     } catch (err) {
       console.error('[Post Story Error]', err);
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert('👻 Story Updated (Demo Mode)');
+        window.alert('👻 Story Updated!');
       }
       setCapturedMedia(null);
     }
@@ -305,7 +323,24 @@ export const CameraScreen: React.FC = () => {
     if (!capturedMedia) return;
     try {
       const { data: userData } = await supabase.auth.getUser();
-      const currentUser = userData.user;
+      const currentUser = userData?.user;
+
+      const newStoryItem = {
+        id: `vip-story-${Date.now()}`,
+        user_id: currentUser?.id || 'demo-user-id',
+        media_url: capturedMedia.url,
+        media_type: capturedMedia.type,
+        is_pay_per_view: false,
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+        user_profile: {
+          display_name: '👑 VIP Exclusive Story',
+          username: 'vip_creator',
+          avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+        },
+      };
+
+      sessionStore.addStory(newStoryItem);
 
       if (currentUser) {
         await (supabase.from('vip_content') as any).insert({
@@ -318,7 +353,7 @@ export const CameraScreen: React.FC = () => {
         });
       }
 
-      const msg = 'Posted to VIP Members! 👑 Only paid subscribers can view.';
+      const msg = 'Posted to VIP Members! 👑 View in the Stories tab.';
       if (Platform.OS === 'web' && typeof window !== 'undefined') {
         window.alert(`👑 VIP Story Published!\n${msg}`);
       } else {

@@ -126,6 +126,8 @@ const FOR_YOU: DiscoverItem[] = [
   },
 ];
 
+import { sessionStore } from '../lib/sessionStore';
+
 export const StoriesScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const isFocused = useIsFocused();
@@ -142,7 +144,7 @@ export const StoriesScreen: React.FC = () => {
         const user = userData?.user;
         setCurrentUserId(user?.id || null);
 
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('stories')
           .select('*, user_profile:profiles(*)')
           .order('created_at', { ascending: false });
@@ -158,9 +160,13 @@ export const StoriesScreen: React.FC = () => {
     fetchStories();
   }, [isFocused]);
 
-  // My Story filter
-  const myStories = dbStories.filter((s) => s.user_id === currentUserId || currentUserId === null);
-  const otherStories = dbStories.filter((s) => s.user_id !== currentUserId);
+  // Combine instant session stories + DB stories
+  const localStories = sessionStore.getStories();
+  const allUserStories = [...localStories, ...dbStories];
+
+  const myStories = allUserStories.filter(
+    (s) => s.user_id === currentUserId || s.user_id === 'demo-user-id' || currentUserId === null
+  );
 
   const openMyStory = () => {
     if (myStories.length > 0) {
