@@ -11,7 +11,7 @@ import {
   Text,
   ScrollView,
   Image,
-  TouchableOpacity,
+  Pressable,
   SafeAreaView,
   Dimensions,
   ActivityIndicator,
@@ -282,10 +282,9 @@ export const StoriesScreen: React.FC = () => {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.friendsScroll}>
           {/* MY STORY CARD (Card 1 Only) */}
-          <TouchableOpacity
-            style={styles.friendItem}
+          <Pressable
+            style={({ pressed }) => [styles.friendItem, pressed && { opacity: 0.7 }]}
             onPress={openMyStory}
-            activeOpacity={0.8}
           >
             <View style={[styles.avatarRing, myStories.length > 0 ? styles.activeMyStoryRing : styles.addStoryRing]}>
               <Image
@@ -303,17 +302,16 @@ export const StoriesScreen: React.FC = () => {
             <Text style={styles.myStoryName} numberOfLines={1}>
               {myStories.length > 0 ? `My Story (${myStories.length})` : 'Add Story'}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
           {/* OTHER CREATORS' POSTED STORIES */}
           {otherStories.map((story) => {
             const displayName = story.user_profile?.display_name || story.user_profile?.username || 'Creator';
             return (
-              <TouchableOpacity
+              <Pressable
                 key={story.id}
-                style={styles.friendItem}
+                style={({ pressed }) => [styles.friendItem, pressed && { opacity: 0.7 }]}
                 onPress={() => openDbStoryReel(story)}
-                activeOpacity={0.8}
               >
                 <View style={[styles.avatarRing, styles.activeStoryRing]}>
                   <Image
@@ -324,17 +322,16 @@ export const StoriesScreen: React.FC = () => {
                 <Text style={styles.friendName} numberOfLines={1}>
                   {displayName}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             );
           })}
 
           {/* DEMO FRIEND STORIES */}
           {FRIEND_STORIES.map((friend) => (
-            <TouchableOpacity
+            <Pressable
               key={friend.id}
-              style={styles.friendItem}
+              style={({ pressed }) => [styles.friendItem, pressed && { opacity: 0.7 }]}
               onPress={() => openStoryReel(friend)}
-              activeOpacity={0.8}
             >
               <View style={[styles.avatarRing, friend.hasUnseen && styles.activeStoryRing]}>
                 <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
@@ -342,7 +339,7 @@ export const StoriesScreen: React.FC = () => {
               <Text style={styles.friendName} numberOfLines={1}>
                 {friend.name}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </ScrollView>
 
@@ -352,9 +349,9 @@ export const StoriesScreen: React.FC = () => {
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.subsScroll}>
           {SUBSCRIPTIONS.map((sub) => (
-            <TouchableOpacity
+            <Pressable
               key={sub.id}
-              style={styles.subCard}
+              style={({ pressed }) => [styles.subCard, pressed && { opacity: 0.85 }]}
               onPress={() => {
                 openStoryViewer([
                   {
@@ -365,7 +362,6 @@ export const StoriesScreen: React.FC = () => {
                   },
                 ]);
               }}
-              activeOpacity={0.85}
             >
               <Image source={{ uri: sub.image }} style={styles.subImage} />
               <View style={styles.subGradientOverlay}>
@@ -374,7 +370,7 @@ export const StoriesScreen: React.FC = () => {
                   {sub.title}
                 </Text>
               </View>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </ScrollView>
 
@@ -391,9 +387,9 @@ export const StoriesScreen: React.FC = () => {
         {/* 4. Filtered "For You" Discover Grid */}
         <View style={styles.discoverGrid}>
           {filteredDiscover.map((item) => (
-            <TouchableOpacity
+            <Pressable
               key={item.id}
-              style={styles.discoverCard}
+              style={({ pressed }) => [styles.discoverCard, pressed && { opacity: 0.85 }]}
               onPress={() => {
                 openStoryViewer([
                   {
@@ -404,7 +400,6 @@ export const StoriesScreen: React.FC = () => {
                   },
                 ]);
               }}
-              activeOpacity={0.85}
             >
               <Image source={{ uri: item.image }} style={styles.discoverImage} />
               <View style={styles.discoverGradientOverlay}>
@@ -414,7 +409,7 @@ export const StoriesScreen: React.FC = () => {
                 </Text>
                 <Text style={styles.publisherName}>{item.publisher}</Text>
               </View>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </View>
       </ScrollView>
@@ -443,17 +438,17 @@ export const StoriesScreen: React.FC = () => {
           <View style={styles.addModalContent}>
             <View style={styles.addModalHeader}>
               <Text style={styles.addModalTitle}>👻 Add New Snap Story</Text>
-              <TouchableOpacity onPress={() => setShowAddStoryModal(false)} style={styles.addModalClose}>
+              <Pressable onPress={() => setShowAddStoryModal(false)} style={styles.addModalClose}>
                 <Text style={styles.addModalCloseText}>✕</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
 
             <Text style={styles.addModalSubtitle}>
               Post a 24-hour Snap Story visible to your followers and friends.
             </Text>
 
-            <TouchableOpacity
-              style={styles.addOptionBtnPrimary}
+            <Pressable
+              style={({ pressed }) => [styles.addOptionBtnPrimary, pressed && { opacity: 0.8 }]}
               onPress={() => {
                 if (Platform.OS === 'web' && fileInputRef.current) {
                   fileInputRef.current.click();
@@ -468,10 +463,10 @@ export const StoriesScreen: React.FC = () => {
                 <Text style={styles.addOptionText}>Upload Photo / Video from Device</Text>
                 <Text style={styles.addOptionSubtext}>Select any photo or video from gallery</Text>
               </View>
-            </TouchableOpacity>
+            </Pressable>
 
-            <TouchableOpacity
-              style={styles.addOptionBtnSecondary}
+            <Pressable
+              style={({ pressed }) => [styles.addOptionBtnSecondary, pressed && { opacity: 0.8 }]}
               onPress={() => {
                 setShowAddStoryModal(false);
                 navigation.navigate('MainTabs', { screen: 'Camera' });
@@ -482,7 +477,7 @@ export const StoriesScreen: React.FC = () => {
                 <Text style={styles.addOptionTextSecondary}>Snap Photo with Camera</Text>
                 <Text style={styles.addOptionSubtext}>Launch live camera viewfinder</Text>
               </View>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </Modal>
