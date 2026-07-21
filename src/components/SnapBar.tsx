@@ -59,12 +59,11 @@ export const SnapBar: React.FC<SnapBarProps> = ({
   const handleProfileClick = () => {
     if (onProfilePress) {
       onProfilePress();
-    } else if (userRole === 'admin') {
-      setShowAdminModal(true);
-    } else if (userRole === 'creator') {
-      setShowSettingsModal(true);
-    } else {
+    } else if (userRole === 'customer') {
       setShowCustomerModal(true);
+    } else {
+      // For Admin & Creator, open normal profile pic upload & account settings
+      setShowSettingsModal(true);
     }
   };
 
