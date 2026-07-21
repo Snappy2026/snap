@@ -772,14 +772,6 @@ export const StoriesScreen: React.FC = () => {
                     source={{ uri: sub.media_url || sub.image }}
                     style={styles.subImage}
                   />
-                  <View style={styles.subGradientOverlay}>
-                    <Text style={styles.subAuthor}>
-                      @{sub.creator_profile?.username || sub.author}
-                    </Text>
-                    <Text style={styles.subTitle} numberOfLines={2}>
-                      {sub.title}
-                    </Text>
-                  </View>
                 </button>
               ),
             )}
@@ -886,15 +878,6 @@ export const StoriesScreen: React.FC = () => {
                     <Text style={{ fontSize: 30 }}>🔒</Text>
                   </View>
                 )}
-                <View style={styles.discoverGradientOverlay}>
-                  <Text style={styles.categoryBadge}>{item.category}</Text>
-                  <Text style={styles.discoverTitle} numberOfLines={3}>
-                    {item.title}
-                  </Text>
-                  <Text style={styles.publisherName}>
-                    @{item.creator_profile?.username || item.publisher}
-                  </Text>
-                </View>
               </button>
             ))}
           </div>
@@ -1030,14 +1013,6 @@ export const StoriesScreen: React.FC = () => {
                     source={{ uri: sub.media_url || sub.image }}
                     style={styles.subImage}
                   />
-                  <View style={styles.subGradientOverlay}>
-                    <Text style={styles.subAuthor}>
-                      @{sub.creator_profile?.username || sub.author}
-                    </Text>
-                    <Text style={styles.subTitle} numberOfLines={2}>
-                      {sub.title}
-                    </Text>
-                  </View>
                 </WebTouchable>
               ),
             )}
@@ -1096,15 +1071,6 @@ export const StoriesScreen: React.FC = () => {
                     <Text style={{ fontSize: 30 }}>🔒</Text>
                   </View>
                 )}
-                <View style={styles.discoverGradientOverlay}>
-                  <Text style={styles.categoryBadge}>{item.category}</Text>
-                  <Text style={styles.discoverTitle} numberOfLines={3}>
-                    {item.title}
-                  </Text>
-                  <Text style={styles.publisherName}>
-                    @{item.creator_profile?.username || item.publisher}
-                  </Text>
-                </View>
               </WebTouchable>
             ))}
           </View>
@@ -1135,7 +1101,6 @@ export const StoriesScreen: React.FC = () => {
           <View style={styles.addModalContent}>
             <View style={styles.addModalHeader}>
               <Text style={styles.addModalTitle}>👻 Add Content</Text>
-
 
               <Pressable
                 onPress={() => setShowAddStoryModal(false)}
