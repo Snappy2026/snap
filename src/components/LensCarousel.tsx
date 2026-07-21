@@ -22,13 +22,13 @@ export interface ARLens {
 
 const LENSES: ARLens[] = [
   { id: 'none', name: 'Normal', icon: '⭕️' },
-  { id: 'butterfly', name: 'Pink Butterfly', icon: '🦋', filterOverlay: 'rgba(255, 182, 193, 0.28)', topBadgeText: '🦋 ✨ 🦋 ✨ 🦋' },
-  { id: 'flower_crown', name: 'Golden Tiara', icon: '👑', filterOverlay: 'rgba(255, 215, 0, 0.22)', topBadgeText: '🌸 👑 🌸 👑 🌸' },
-  { id: 'soft_glam', name: 'Soft Glam', icon: '💖', filterOverlay: 'rgba(255, 105, 180, 0.22)', topBadgeText: '✨ Soft Beauty ✨' },
-  { id: 'goggles', name: 'Retro Sunglasses', icon: '🕶️', filterOverlay: 'rgba(255, 140, 0, 0.18)', topBadgeText: '🕶️ Cool Vibe 🕶️' },
-  { id: 'dog', name: 'Puppy Ears', icon: '🐶', filterOverlay: 'rgba(255, 235, 59, 0.15)', topBadgeText: '🐶 Cute Puppy 🐶' },
-  { id: 'neon', name: 'Cyber Neon', icon: '⚡️', filterOverlay: 'rgba(0, 242, 254, 0.2)', topBadgeText: '⚡️ Cyber Glow ⚡️' },
-  { id: 'vintage', name: '90s Film', icon: '🎞️', filterOverlay: 'rgba(255, 154, 158, 0.25)', topBadgeText: '🎞️ Retro Grain 🎞️' },
+  {
+    id: 'face_beauty',
+    name: 'Face Smooth',
+    icon: '✨',
+    filterOverlay: 'rgba(255, 235, 238, 0.18)',
+    topBadgeText: '✨ Face Beauty Smooth ✨',
+  },
 ];
 
 interface LensCarouselProps {

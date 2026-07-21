@@ -9,6 +9,7 @@ import {
   StyleSheet,
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
@@ -106,10 +107,15 @@ const DEMO_CREATORS: AdminCreatorItem[] = [
 ];
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ onClose }) => {
-  const [activeTab, setActiveTab] = useState<'creators' | 'users' | 'revenue'>('creators');
+  const [activeTab, setActiveTab] = useState<'creators' | 'users' | 'settings'>('creators');
   const [loading, setLoading] = useState(true);
   const [usersList, setUsersList] = useState<Profile[]>([]);
   const [creatorsList, setCreatorsList] = useState<AdminCreatorItem[]>([]);
+
+  // Platform Price & Commission Settings
+  const [platformCommission, setPlatformCommission] = useState('5.0');
+  const [founderPassPrice, setFounderPassPrice] = useState('75.00');
+  const [defaultGoldPrice, setDefaultGoldPrice] = useState('9.99');
 
   // Platform Volume Counters
   const [totalVolume, setTotalVolume] = useState(2737.70);
@@ -140,6 +146,32 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ onClos
 
     fetchAdminData();
   }, []);
+
+  const handleChangeUserRole = async (userId: string, newRole: 'customer' | 'creator' | 'admin') => {
+    try {
+      setUsersList((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
+      );
+      await (supabase.from('profiles') as any).update({ role: newRole }).eq('id', userId);
+      const msg = `User role updated to ${newRole.toUpperCase()} successfully!`;
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(`🛡️ Role Updated\n${msg}`);
+      } else {
+        Alert.alert('🛡️ Role Updated', msg);
+      }
+    } catch (err) {
+      console.error('[Change Role Error]', err);
+    }
+  };
+
+  const handleSavePlatformSettings = () => {
+    const msg = `Platform Settings Saved:\n- Admin Commission: ${platformCommission}%\n- Founder Pass Price: £${founderPassPrice}/yr\n- Default VIP Sub Price: $${defaultGoldPrice}/mo`;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.alert(`🛡️ Platform Price Settings Saved!\n\n${msg}`);
+    } else {
+      Alert.alert('🛡️ Settings Saved', msg);
+    }
+  };
 
   const handleBanUser = (username: string) => {
     const msg = `User @${username} status updated in moderation log.`;
@@ -186,7 +218,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ onClos
           onPress={() => setActiveTab('creators')}
         >
           <Text style={[styles.tabText, activeTab === 'creators' && styles.activeTabText]}>
-            CREATORS SELLING ({creatorsList.length})
+            CREATORS ({creatorsList.length})
           </Text>
         </TouchableOpacity>
 
@@ -195,7 +227,16 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ onClos
           onPress={() => setActiveTab('users')}
         >
           <Text style={[styles.tabText, activeTab === 'users' && styles.activeTabText]}>
-            ALL SIGNED-UP USERS ({usersList.length})
+            USERS ({usersList.length})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'settings' && styles.activeTab]}
+          onPress={() => setActiveTab('settings')}
+        >
+          <Text style={[styles.tabText, activeTab === 'settings' && styles.activeTabText]}>
+            ⚙️ PRICES
           </Text>
         </TouchableOpacity>
       </View>
@@ -222,7 +263,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ onClos
                       <Text style={styles.stripeIdText}>Stripe: {item.stripe_account_id}</Text>
                     </View>
                     <View style={styles.badgeBox}>
-                      <Text style={styles.badgeText}>SELLER</Text>
+                      <Text style={styles.badgeText}>CREATOR</Text>
                     </View>
                   </View>
 
@@ -247,36 +288,103 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({ onClos
                 </View>
               )}
             />
-          ) : (
-            /* TAB 2: All Signed-Up Users */
+          ) : activeTab === 'users' ? (
+            /* TAB 2: All Signed-Up Users & Role Management */
             <FlatList
               data={usersList}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.listPadding}
-              renderItem={({ item }) => (
-                <View style={styles.userRow}>
-                  <Image
-                    source={{ uri: item.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' }}
-                    style={styles.userAvatar}
-                  />
-                  <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{item.display_name || item.username}</Text>
-                    <Text style={styles.userHandle}>@{item.username}</Text>
-                    <Text style={styles.userDate}>Joined: {new Date(item.created_at).toLocaleDateString()}</Text>
-                  </View>
-                  <View style={styles.userActionBox}>
-                    <View style={[styles.tierTag, item.is_vip_member && styles.tierTagVip]}>
-                      <Text style={[styles.tierText, item.is_vip_member && styles.tierTextVip]}>
-                        {item.is_vip_member ? '👑 VIP MEMBER' : 'FREE'}
-                      </Text>
+              renderItem={({ item }) => {
+                const currentRole = item.role || 'customer';
+                return (
+                  <View style={styles.userRowCard}>
+                    <View style={styles.userRowTop}>
+                      <Image
+                        source={{ uri: item.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150' }}
+                        style={styles.userAvatar}
+                      />
+                      <View style={styles.userInfo}>
+                        <Text style={styles.userName}>{item.display_name || item.username}</Text>
+                        <Text style={styles.userHandle}>@{item.username}</Text>
+                      </View>
+                      <View style={[styles.roleBadge, currentRole === 'admin' ? styles.adminBadge : currentRole === 'creator' ? styles.creatorBadge : styles.customerBadge]}>
+                        <Text style={styles.roleBadgeText}>{currentRole.toUpperCase()}</Text>
+                      </View>
                     </View>
-                    <TouchableOpacity style={styles.modBtn} onPress={() => handleBanUser(item.username)}>
-                      <Text style={styles.modText}>Moderate</Text>
-                    </TouchableOpacity>
+
+                    {/* Role Switcher Controls */}
+                    <View style={styles.roleSwitchRow}>
+                      <Text style={styles.roleSwitchLabel}>Change Role:</Text>
+                      <TouchableOpacity
+                        style={[styles.roleBtn, currentRole === 'customer' && styles.roleBtnActive]}
+                        onPress={() => handleChangeUserRole(item.id, 'customer')}
+                      >
+                        <Text style={styles.roleBtnText}>👤 Customer</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.roleBtn, currentRole === 'creator' && styles.roleBtnActiveCreator]}
+                        onPress={() => handleChangeUserRole(item.id, 'creator')}
+                      >
+                        <Text style={styles.roleBtnText}>🎨 Creator</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.roleBtn, currentRole === 'admin' && styles.roleBtnActiveAdmin]}
+                        onPress={() => handleChangeUserRole(item.id, 'admin')}
+                      >
+                        <Text style={styles.roleBtnText}>👑 Admin</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              )}
+                );
+              }}
             />
+          ) : (
+            /* TAB 3: Platform Prices & Commission Settings */
+            <ScrollView contentContainerStyle={styles.listPadding}>
+              <View style={styles.settingsCard}>
+                <Text style={styles.settingsTitle}>⚙️ Global Platform Pricing & Fee Controls</Text>
+                <Text style={styles.settingsDesc}>
+                  Manage platform fee rates, annual creator license pricing, and default subscription tiers.
+                </Text>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>ADMIN COMMISSION FEE RATE (%)</Text>
+                  <TextInput
+                    value={platformCommission}
+                    onChangeText={setPlatformCommission}
+                    keyboardType="numeric"
+                    style={styles.settingsInput}
+                  />
+                  <Text style={styles.inputSubtext}>Default: 5% platform fee taken from transaction sales</Text>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>FOUNDER CREATOR ANNUAL PASS (£)</Text>
+                  <TextInput
+                    value={founderPassPrice}
+                    onChangeText={setFounderPassPrice}
+                    keyboardType="numeric"
+                    style={styles.settingsInput}
+                  />
+                  <Text style={styles.inputSubtext}>Default 1-off annual fee for 0% commission creator pass</Text>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>DEFAULT MONTHLY CREATOR SUB PRICE ($)</Text>
+                  <TextInput
+                    value={defaultGoldPrice}
+                    onChangeText={setDefaultGoldPrice}
+                    keyboardType="numeric"
+                    style={styles.settingsInput}
+                  />
+                  <Text style={styles.inputSubtext}>Default starter subscription price for new creators</Text>
+                </View>
+
+                <TouchableOpacity style={styles.saveSettingsBtn} onPress={handleSavePlatformSettings}>
+                  <Text style={styles.saveSettingsText}>💾 Save Platform Price Settings</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           )}
         </View>
       )}
@@ -476,17 +584,23 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     marginTop: 2,
   },
-  userRow: {
+  userRowCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  userRowTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1C1C1E',
-    padding: 12,
-    borderRadius: 14,
+    marginBottom: 10,
   },
   userAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     marginRight: 12,
   },
   userInfo: {
@@ -500,6 +614,120 @@ const styles = StyleSheet.create({
   userHandle: {
     color: '#8E8E93',
     fontSize: 12,
+  },
+  roleBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  adminBadge: {
+    backgroundColor: 'rgba(255, 252, 0, 0.2)',
+    borderColor: '#FFFC00',
+  },
+  creatorBadge: {
+    backgroundColor: 'rgba(157, 78, 221, 0.2)',
+    borderColor: '#9D4EDD',
+  },
+  customerBadge: {
+    backgroundColor: 'rgba(0, 242, 254, 0.2)',
+    borderColor: '#00F2FE',
+  },
+  roleBadgeText: {
+    color: '#FFF',
+    fontSize: 9,
+    fontWeight: '900',
+  },
+  roleSwitchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#2C2C2E',
+    padding: 6,
+    borderRadius: 10,
+  },
+  roleSwitchLabel: {
+    color: '#8E8E93',
+    fontSize: 11,
+    fontWeight: '700',
+    marginRight: 4,
+  },
+  roleBtn: {
+    flex: 1,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#1C1C1E',
+    alignItems: 'center',
+  },
+  roleBtnActive: {
+    backgroundColor: '#00F2FE',
+  },
+  roleBtnActiveCreator: {
+    backgroundColor: '#9D4EDD',
+  },
+  roleBtnActiveAdmin: {
+    backgroundColor: '#FFFC00',
+  },
+  roleBtnText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  settingsCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 20,
+    padding: 18,
+    gap: 14,
+  },
+  settingsTitle: {
+    color: '#FFF',
+    fontSize: 17,
+    fontWeight: 'bold',
+  },
+  settingsDesc: {
+    color: '#8E8E93',
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  inputGroup: {
+    gap: 4,
+  },
+  inputLabel: {
+    color: '#FFFC00',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  settingsInput: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    height: 44,
+    paddingHorizontal: 12,
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  inputSubtext: {
+    color: '#666',
+    fontSize: 11,
+  },
+  saveSettingsBtn: {
+    backgroundColor: '#FFFC00',
+    paddingVertical: 14,
+    borderRadius: 18,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  saveSettingsText: {
+    color: '#000',
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    padding: 12,
+    borderRadius: 14,
   },
   userDate: {
     color: '#666',
