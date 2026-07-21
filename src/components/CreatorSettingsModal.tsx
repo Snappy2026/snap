@@ -283,29 +283,33 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
             </View>
           </View>
 
-          {/* 📸 Profile Photo Upload / Capture Controls */}
-          <View style={styles.avatarActionRow}>
-            <TouchableOpacity
-              style={styles.uploadPhotoBtn}
-              onPress={handleDevicePhotoUpload}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.uploadPhotoText}>📁 Upload from Device</Text>
-            </TouchableOpacity>
+          {/* 📸 Unified "Choose Profile Photo" Card in One Line */}
+          <View style={styles.unifiedAvatarCard}>
+            <Text style={styles.unifiedAvatarTitle}>Choose Profile Photo:</Text>
 
-            <TouchableOpacity
-              style={styles.takeSelfieBtn}
-              onPress={handleCameraSelfieCapture}
-              activeOpacity={0.8}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.unifiedAvatarRow}
             >
-              <Text style={styles.takeSelfieText}>📸 Take Selfie Photo</Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={styles.uploadPhotoBtnInline}
+                onPress={handleDevicePhotoUpload}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.uploadPhotoTextInline}>📁 Upload Photo</Text>
+              </TouchableOpacity>
 
-          {/* Quick Preset Avatars Picker */}
-          <View style={styles.avatarPickerRow}>
-            <Text style={styles.avatarPickerTitle}>Choose Preset Bitmoji Avatar:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 6 }}>
+              <TouchableOpacity
+                style={styles.takeSelfieBtnInline}
+                onPress={handleCameraSelfieCapture}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.takeSelfieTextInline}>📸 Take Selfie</Text>
+              </TouchableOpacity>
+
+              <View style={styles.avatarDivider} />
+
               {[
                 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
                 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
@@ -316,9 +320,9 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
                 <TouchableOpacity
                   key={idx}
                   onPress={() => setAvatarUrl(uri)}
-                  style={[styles.presetAvatarBtn, avatarUrl === uri && styles.presetAvatarSelected]}
+                  style={[styles.presetAvatarBtnInline, avatarUrl === uri && styles.presetAvatarSelectedInline]}
                 >
-                  <Image source={{ uri }} style={styles.presetAvatarImg} />
+                  <Image source={{ uri }} style={styles.presetAvatarImgInline} />
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -634,64 +638,70 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     padding: 0,
   },
-  avatarActionRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: -6,
-  },
-  uploadPhotoBtn: {
-    flex: 1,
+  unifiedAvatarCard: {
     backgroundColor: '#1C1C1E',
-    paddingVertical: 12,
-    borderRadius: 14,
+    borderRadius: 18,
+    padding: 14,
+    marginTop: -6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  unifiedAvatarTitle: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  unifiedAvatarRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 10,
+  },
+  uploadPhotoBtnInline: {
+    backgroundColor: 'rgba(0, 242, 254, 0.12)',
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: '#00F2FE',
   },
-  uploadPhotoText: {
+  uploadPhotoTextInline: {
     color: '#00F2FE',
     fontSize: 12,
     fontWeight: '800',
   },
-  takeSelfieBtn: {
-    flex: 1,
-    backgroundColor: '#1C1C1E',
-    paddingVertical: 12,
+  takeSelfieBtnInline: {
+    backgroundColor: 'rgba(255, 252, 0, 0.12)',
+    paddingHorizontal: 12,
+    paddingVertical: 9,
     borderRadius: 14,
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#FFFC00',
   },
-  takeSelfieText: {
+  takeSelfieTextInline: {
     color: '#FFFC00',
     fontSize: 12,
     fontWeight: '800',
   },
-  avatarPickerRow: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    padding: 12,
-    marginTop: -6,
+  avatarDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    marginHorizontal: 4,
   },
-  avatarPickerTitle: {
-    color: '#8E8E93',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  presetAvatarBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    marginRight: 10,
+  presetAvatarBtnInline: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 2,
     borderColor: 'transparent',
     overflow: 'hidden',
   },
-  presetAvatarSelected: {
+  presetAvatarSelectedInline: {
     borderColor: '#FFFC00',
     transform: [{ scale: 1.1 }],
   },
-  presetAvatarImg: {
+  presetAvatarImgInline: {
     width: '100%',
     height: '100%',
   },

@@ -55,7 +55,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Left: Profile Bitmoji Avatar with Snapchat Yellow Ring */}
+        {/* Left: Profile Bitmoji Avatar */}
         <TouchableOpacity
           style={styles.profileButton}
           onPress={handleProfileClick}
@@ -69,25 +69,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
           </View>
         </TouchableOpacity>
 
-        {/* 1-Tap Master Admin Console Button */}
-        <TouchableOpacity
-          style={styles.adminBarBtn}
-          onPress={() => setShowAdminModal(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.adminBarText}>🛡️ Admin</Text>
-        </TouchableOpacity>
-
-        {/* 1-Tap Creator Stripe Payouts Button */}
-        <TouchableOpacity
-          style={styles.stripeBarBtn}
-          onPress={() => setShowSettingsModal(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.stripeBarText}>💳 Payouts</Text>
-        </TouchableOpacity>
-
-        {/* Center: Search Bar */}
+        {/* Center: Responsive Search Bar */}
         <View style={styles.searchBox}>
           <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
@@ -98,14 +80,32 @@ export const SnapBar: React.FC<SnapBarProps> = ({
           />
         </View>
 
-        {/* Right: Add Friend & Contact Bulk SMS Invite Trigger */}
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={handleAddFriendClick}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.actionIcon}>👤➕</Text>
-        </TouchableOpacity>
+        {/* Right Actions Group */}
+        <View style={styles.rightActionsGroup}>
+          <TouchableOpacity
+            style={styles.adminBarBtn}
+            onPress={() => setShowAdminModal(true)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.adminBarText}>🛡️ Admin</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.stripeBarBtn}
+            onPress={() => setShowSettingsModal(true)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.stripeBarText}>💳 Payouts</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={handleAddFriendClick}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.actionIcon}>👤➕</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Bulk Phone Invites Modal */}
@@ -147,67 +147,72 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   container: {
-    height: 56,
+    height: 52,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    gap: 10,
+    paddingHorizontal: 8,
+    gap: 6,
+    justifyContent: 'space-between',
   },
   profileButton: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   yellowRing: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 2.5,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 2,
     borderColor: '#FFFC00',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#1C1C1E',
   },
   avatar: {
-    width: 34,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+  },
+  searchBox: {
+    flex: 1,
     height: 34,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
     borderRadius: 17,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    marginHorizontal: 2,
+  },
+  rightActionsGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   adminBarBtn: {
     backgroundColor: 'rgba(255, 252, 0, 0.25)',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 14,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#FFFC00',
-    marginRight: 8,
   },
   adminBarText: {
     color: '#FFFC00',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
   },
   stripeBarBtn: {
     backgroundColor: 'rgba(99, 91, 255, 0.25)',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 14,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#635BFF',
-    marginRight: 8,
   },
   stripeBarText: {
     color: '#635BFF',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
-  },
-  searchBox: {
-    flex: 1,
-    height: 38,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    borderRadius: 19,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
   },
   searchIcon: {
     fontSize: 14,
