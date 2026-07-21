@@ -1,10 +1,12 @@
 // ============================================================================
 // StoryViewerModal Component
-// Instant 100% Full-Screen 24-Hour Story Player Modal overlay for web & mobile.
-// Prevents navigation route drops and plays story reels seamlessly!
+// 100% Full-Screen Story Player.
+// On Web: uses ReactDOM.createPortal to mount directly on document.body,
+// bypassing ALL parent container clipping (SafeAreaView, ScrollView, etc.)
+// On Native: uses React Native <Modal> for native full-screen overlay.
 // ============================================================================
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -21,11 +23,22 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  cancelAnimation,
   runOnJS,
   Easing,
 } from 'react-native-reanimated';
 
-const { width, height } = Dimensions.get('window');
+// Web-only: import createPortal to escape parent DOM tree
+let createPortal: any = null;
+if (Platform.OS === 'web') {
+  try {
+    createPortal = require('react-dom').createPortal;
+  } catch (e) {
+    // Fallback: will render inline if createPortal not available
+  }
+}
+
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 export interface StoryViewerItem {
   id: string;
@@ -54,10 +67,13 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const progress = useSharedValue(0);
 
+  // Reset index when modal opens
   useEffect(() => {
     if (visible) {
       setCurrentIndex(initialIndex);
       progress.value = 0;
+    } else {
+      cancelAnimation(progress);
     }
   }, [visible, initialIndex]);
 
@@ -71,24 +87,28 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   const activeStories = stories && stories.length > 0 ? stories : [fallbackStory];
   const currentStory = activeStories[currentIndex] || activeStories[0] || fallbackStory;
 
-  const advanceStory = () => {
+  const handleClose = useCallback(() => {
+    cancelAnimation(progress);
+    onClose();
+  }, [onClose]);
+
+  const advanceStory = useCallback(() => {
     if (currentIndex < activeStories.length - 1) {
       setCurrentIndex((prev) => prev + 1);
       progress.value = 0;
     } else {
-      onClose();
+      handleClose();
     }
-  };
+  }, [currentIndex, activeStories.length, handleClose]);
 
-  const previousStory = () => {
+  const previousStory = useCallback(() => {
     if (currentIndex > 0) {
       setCurrentIndex((prev) => prev - 1);
       progress.value = 0;
-    } else {
-      onClose();
     }
-  };
+  }, [currentIndex]);
 
+  // Auto-advance timer
   useEffect(() => {
     if (!visible) return;
     progress.value = 0;
@@ -101,6 +121,9 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         }
       }
     );
+    return () => {
+      cancelAnimation(progress);
+    };
   }, [currentIndex, visible]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -109,15 +132,17 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
 
   if (!visible) return null;
 
-  const content = (
-    <View style={styles.modalContainer}>
-      {/* Media Background Display */}
+  // ── The actual full-screen story UI ──
+  const storyUI = (
+    <View style={webStyles.fullScreenContainer}>
+      {/* Background Media */}
       {currentStory.media_type === 'video' ? (
         Platform.OS === 'web' ? (
           <video
             src={currentStory.media_url}
             autoPlay
             playsInline
+            muted={false}
             loop={false}
             style={{
               width: '100%',
@@ -144,23 +169,23 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         />
       )}
 
-      {/* Left & Right Touch Advance Overlay */}
-      <View style={styles.touchOverlay}>
-        <TouchableOpacity style={styles.leftTouch} onPress={previousStory} activeOpacity={1} />
-        <TouchableOpacity style={styles.rightTouch} onPress={advanceStory} activeOpacity={1} />
+      {/* Touch zones: left = previous, right = next */}
+      <View style={nativeStyles.touchOverlay}>
+        <TouchableOpacity style={nativeStyles.leftTouch} onPress={previousStory} activeOpacity={1} />
+        <TouchableOpacity style={nativeStyles.rightTouch} onPress={advanceStory} activeOpacity={1} />
       </View>
 
-      {/* Top Segmented Progress Bar & Author Header */}
-      <SafeAreaView style={styles.topOverlay}>
-        <View style={styles.segmentedProgressContainer}>
+      {/* Top bar: progress segments + author + close */}
+      <SafeAreaView style={nativeStyles.topOverlay}>
+        <View style={nativeStyles.segmentedProgressContainer}>
           {activeStories.map((s, idx) => (
-            <View key={s.id || idx} style={styles.segmentBackground}>
+            <View key={s.id || idx} style={nativeStyles.segmentBackground}>
               {idx === currentIndex ? (
-                <Animated.View style={[styles.segmentFill, animatedStyle]} />
+                <Animated.View style={[nativeStyles.segmentFill, animatedStyle]} />
               ) : (
                 <View
                   style={[
-                    styles.segmentFill,
+                    nativeStyles.segmentFill,
                     { width: idx < currentIndex ? '100%' : '0%' },
                   ]}
                 />
@@ -169,73 +194,65 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
           ))}
         </View>
 
-        <View style={styles.authorHeader}>
+        <View style={nativeStyles.authorHeader}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             {currentStory.user_profile?.avatar_url && (
               <Image
                 source={{ uri: currentStory.user_profile.avatar_url }}
-                style={styles.authorAvatar}
+                style={nativeStyles.authorAvatar}
               />
             )}
-            <Text style={styles.authorName}>
+            <Text style={nativeStyles.authorName}>
               {currentStory.user_profile?.display_name || 'Snapchat Story'}
             </Text>
           </View>
 
-          <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-            <Text style={styles.closeIcon}>✕</Text>
+          <TouchableOpacity onPress={handleClose} style={nativeStyles.closeBtn}>
+            <Text style={nativeStyles.closeIcon}>✕</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     </View>
   );
 
+  // ── WEB: use createPortal to mount on document.body ──
   if (Platform.OS === 'web') {
-    return (
-      <View
-        style={{
-          position: 'fixed' as any,
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          width: '100vw' as any,
-          height: '100vh' as any,
-          backgroundColor: '#000000',
-          zIndex: 9999999,
-          display: 'flex',
-        }}
-      >
-        {content}
-      </View>
-    );
+    if (createPortal && typeof document !== 'undefined') {
+      return createPortal(storyUI, document.body);
+    }
+    // Fallback if createPortal unavailable: render inline with fixed positioning
+    return storyUI;
   }
 
+  // ── NATIVE: use <Modal> ──
   return (
     <Modal
       visible={visible}
       animationType="fade"
       transparent={false}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
-      {content}
+      {storyUI}
     </Modal>
   );
 };
 
-const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-    width: Platform.OS === 'web' ? ('100vw' as any) : '100%',
-    height: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+// Web-specific styles using fixed viewport units
+const webStyles = StyleSheet.create({
+  fullScreenContainer: {
     position: Platform.OS === 'web' ? ('fixed' as any) : 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 999999,
+    width: Platform.OS === 'web' ? ('100vw' as any) : '100%',
+    height: Platform.OS === 'web' ? ('100vh' as any) : '100%',
+    backgroundColor: '#000',
+    zIndex: 9999999,
   },
+});
+
+const nativeStyles = StyleSheet.create({
   touchOverlay: {
     ...StyleSheet.absoluteFillObject,
     flexDirection: 'row',
@@ -250,6 +267,10 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   topOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: 12,
     paddingTop: Platform.OS === 'ios' ? 12 : 24,
     zIndex: 20,
