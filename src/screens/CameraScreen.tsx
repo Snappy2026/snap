@@ -381,7 +381,45 @@ export const CameraScreen: React.FC = () => {
   };
 
   const handleInstantPostStory = async () => {
-    takePhoto();
+    try {
+      const snapUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800';
+      const { data: userData } = await supabase.auth.getUser();
+      const currentUser = userData?.user;
+
+      const newStoryItem = {
+        id: `story-${Date.now()}`,
+        user_id: currentUser?.id || 'demo-user-id',
+        media_url: snapUrl,
+        media_type: 'image' as const,
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 86400000).toISOString(),
+        user_profile: {
+          display_name: currentUser?.user_metadata?.display_name || 'My Story',
+          username: currentUser?.user_metadata?.username || 'you',
+          avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+        },
+      };
+
+      // Instantly save to 24h local session store & Supabase DB
+      sessionStore.addStory(newStoryItem);
+
+      if (currentUser) {
+        await (supabase.from('stories') as any).insert({
+          user_id: currentUser.id,
+          media_url: snapUrl,
+          media_type: 'image',
+        });
+      }
+
+      const msg = 'Posted to My Story! 🔥 Play it now in the Stories tab.';
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert(`👻 My Story Updated!\n\n${msg}`);
+      } else {
+        Alert.alert('👻 Posted to My Story!', msg);
+      }
+    } catch (err) {
+      console.error('[Instant Story Error]', err);
+    }
   };
 
   // Double-tap gesture to flip camera
