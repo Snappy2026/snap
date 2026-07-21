@@ -26,7 +26,6 @@ export const StoryViewerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [initialIndex, setInitialIndex] = useState(0);
 
   const openStoryViewer = useCallback((newStories: StoryViewerItem[], idx = 0) => {
-    if (typeof window !== 'undefined') window.alert('DEBUG: openStoryViewer called with ' + newStories.length + ' stories. Setting visible=true');
     setStories(newStories);
     setInitialIndex(idx);
     setVisible(true);

@@ -1,9 +1,8 @@
 // ============================================================================
 // StoryViewerModal Component
-// On Web: renders a pure HTML full-screen overlay via createPortal.
-// Uses only native HTML elements (div, img, button) - NO React Native Web
-// components inside the portal, to avoid iOS Safari touch blocking.
-// On Native: uses React Native <Modal> with RN components.
+// Uses React Native <Modal> on ALL platforms (web + native).
+// On web, the story content uses native HTML elements for iOS Safari compat.
+// createPortal was causing invisible rendering on iOS Safari.
 // ============================================================================
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -27,14 +26,6 @@ import Animated, {
   runOnJS,
   Easing,
 } from 'react-native-reanimated';
-
-// Web-only: import createPortal
-let createPortal: any = null;
-if (Platform.OS === 'web') {
-  try {
-    createPortal = require('react-dom').createPortal;
-  } catch (e) {}
-}
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
@@ -127,214 +118,156 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
     width: `${progress.value * 100}%`,
   }));
 
-  if (!visible) return null;
+  // ── Build the story content based on platform ──
+  const storyContent = Platform.OS === 'web' ? (
+    // WEB: Pure HTML elements for iOS Safari compatibility
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#000',
+        position: 'relative' as any,
+        overflow: 'hidden',
+      }}
+    >
+      {/* Background Media */}
+      {currentStory.media_type === 'video' ? (
+        <video
+          src={currentStory.media_url}
+          autoPlay
+          playsInline
+          muted={false}
+          loop={false}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          }}
+        />
+      ) : (
+        <img
+          src={currentStory.media_url}
+          alt="Story"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          }}
+        />
+      )}
 
-  // ══════════════════════════════════════════════════════════════
-  // WEB: Pure HTML rendering via createPortal
-  // No React Native Web components inside the portal — only native
-  // HTML elements to avoid iOS Safari touch blocking.
-  // ══════════════════════════════════════════════════════════════
-  if (Platform.OS === 'web') {
-    const webOverlay = (
+      {/* Touch zones */}
       <div
         style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: '#000',
-          zIndex: 9999999,
+          position: 'absolute',
+          top: 0, left: 0, right: 0, bottom: 0,
           display: 'flex',
-          flexDirection: 'column' as any,
+          flexDirection: 'row' as any,
+          zIndex: 10,
         }}
       >
-        {/* Background Media */}
-        {currentStory.media_type === 'video' ? (
-          <video
-            src={currentStory.media_url}
-            autoPlay
-            playsInline
-            muted={false}
-            loop={false}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-            }}
-          />
-        ) : (
-          <img
-            src={currentStory.media_url}
-            alt="Story"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-            }}
-          />
-        )}
-
-        {/* Touch zones: left = previous, right = next */}
-        <div
+        <button
+          type="button"
+          onClick={previousStory}
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: 'flex',
-            flexDirection: 'row' as any,
-            zIndex: 10,
+            flex: 1, height: '100%',
+            border: 'none', background: 'transparent',
+            cursor: 'pointer', WebkitAppearance: 'none' as any,
+            appearance: 'none' as any, touchAction: 'manipulation', padding: 0,
           }}
-        >
-          <button
-            type="button"
-            onClick={previousStory}
-            style={{
-              flex: 1,
-              height: '100%',
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              WebkitAppearance: 'none' as any,
-              appearance: 'none' as any,
-              touchAction: 'manipulation',
-              padding: 0,
-            }}
-            aria-label="Previous story"
-          />
-          <button
-            type="button"
-            onClick={advanceStory}
-            style={{
-              flex: 2,
-              height: '100%',
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              WebkitAppearance: 'none' as any,
-              appearance: 'none' as any,
-              touchAction: 'manipulation',
-              padding: 0,
-            }}
-            aria-label="Next story"
-          />
+          aria-label="Previous"
+        />
+        <button
+          type="button"
+          onClick={advanceStory}
+          style={{
+            flex: 2, height: '100%',
+            border: 'none', background: 'transparent',
+            cursor: 'pointer', WebkitAppearance: 'none' as any,
+            appearance: 'none' as any, touchAction: 'manipulation', padding: 0,
+          }}
+          aria-label="Next"
+        />
+      </div>
+
+      {/* Top bar */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0, zIndex: 20,
+          padding: '12px 16px',
+          paddingTop: 'max(12px, env(safe-area-inset-top))',
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)',
+        }}
+      >
+        {/* Progress segments */}
+        <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
+          {activeStories.map((s, idx) => (
+            <div
+              key={s.id || idx}
+              style={{
+                flex: 1, height: '3px',
+                backgroundColor: 'rgba(255,255,255,0.3)',
+                borderRadius: '2px', overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  height: '100%',
+                  backgroundColor: '#FFF',
+                  borderRadius: '2px',
+                  width: idx < currentIndex ? '100%' : idx === currentIndex ? '0%' : '0%',
+                  ...(idx === currentIndex ? {
+                    animation: 'storyProgress 5s linear forwards',
+                  } : {}),
+                }}
+              />
+            </div>
+          ))}
         </div>
 
-        {/* Top bar: progress + author + close */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 20,
-            padding: '12px 16px',
-            paddingTop: 'max(12px, env(safe-area-inset-top))',
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)',
-          }}
-        >
-          {/* Progress segments */}
-          <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
-            {activeStories.map((s, idx) => (
-              <div
-                key={s.id || idx}
-                style={{
-                  flex: 1,
-                  height: '3px',
-                  backgroundColor: 'rgba(255,255,255,0.3)',
-                  borderRadius: '2px',
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    height: '100%',
-                    backgroundColor: '#FFF',
-                    borderRadius: '2px',
-                    width: idx < currentIndex ? '100%' : idx === currentIndex ? '50%' : '0%',
-                    transition: idx === currentIndex ? 'width 5s linear' : 'none',
-                    ...(idx === currentIndex && visible ? { width: '100%' } : {}),
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Author + close */}
-          <div
+        {/* Author + close */}
+        <div style={{
+          display: 'flex', flexDirection: 'row' as any,
+          justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <span style={{ color: '#FFF', fontSize: '15px', fontWeight: 'bold' }}>
+            {currentStory.user_profile?.display_name || 'Snapchat Story'}
+          </span>
+          <button
+            type="button"
+            onClick={handleClose}
             style={{
-              display: 'flex',
-              flexDirection: 'row' as any,
-              justifyContent: 'space-between',
-              alignItems: 'center',
+              border: 'none', background: 'rgba(0,0,0,0.5)',
+              color: '#FFF', fontSize: '20px', fontWeight: 'bold',
+              width: '36px', height: '36px', borderRadius: '50%',
+              cursor: 'pointer', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              WebkitAppearance: 'none' as any,
+              appearance: 'none' as any, touchAction: 'manipulation', padding: 0,
             }}
           >
-            <div style={{ display: 'flex', flexDirection: 'row' as any, alignItems: 'center', gap: '8px' }}>
-              {currentStory.user_profile?.avatar_url && (
-                <img
-                  src={currentStory.user_profile.avatar_url}
-                  alt=""
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    border: '2px solid #FFF',
-                  }}
-                />
-              )}
-              <span style={{ color: '#FFF', fontSize: '15px', fontWeight: 'bold' }}>
-                {currentStory.user_profile?.display_name || 'Snapchat Story'}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleClose}
-              style={{
-                border: 'none',
-                background: 'rgba(0,0,0,0.5)',
-                color: '#FFF',
-                fontSize: '20px',
-                fontWeight: 'bold',
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                WebkitAppearance: 'none' as any,
-                appearance: 'none' as any,
-                touchAction: 'manipulation',
-                padding: 0,
-              }}
-              aria-label="Close story"
-            >
-              ✕
-            </button>
-          </div>
+            ✕
+          </button>
         </div>
       </div>
-    );
 
-    if (createPortal && typeof document !== 'undefined') {
-      return createPortal(webOverlay, document.body);
-    }
-    return webOverlay;
-  }
-
-  // ══════════════════════════════════════════════════════════════
-  // NATIVE: React Native Modal with RN components
-  // ══════════════════════════════════════════════════════════════
-  const nativeUI = (
+      {/* CSS animation for progress bar */}
+      <style>{`
+        @keyframes storyProgress {
+          from { width: 0%; }
+          to { width: 100%; }
+        }
+      `}</style>
+    </div>
+  ) : (
+    // NATIVE: React Native components
     <View style={nativeStyles.container}>
       {currentStory.media_type === 'video' ? (
         <Video
@@ -375,18 +308,9 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         </View>
 
         <View style={nativeStyles.authorHeader}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {currentStory.user_profile?.avatar_url && (
-              <Image
-                source={{ uri: currentStory.user_profile.avatar_url }}
-                style={nativeStyles.authorAvatar}
-              />
-            )}
-            <Text style={nativeStyles.authorName}>
-              {currentStory.user_profile?.display_name || 'Snapchat Story'}
-            </Text>
-          </View>
-
+          <Text style={nativeStyles.authorName}>
+            {currentStory.user_profile?.display_name || 'Snapchat Story'}
+          </Text>
           <Pressable onPress={handleClose} style={nativeStyles.closeBtn}>
             <Text style={nativeStyles.closeIcon}>✕</Text>
           </Pressable>
@@ -395,6 +319,8 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
     </View>
   );
 
+  // ── Use React Native <Modal> on ALL platforms ──
+  // This is proven to work on iOS Safari (the Add Story modal uses it)
   return (
     <Modal
       visible={visible}
@@ -402,7 +328,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
       transparent={false}
       onRequestClose={handleClose}
     >
-      {nativeUI}
+      {storyContent}
     </Modal>
   );
 };
@@ -427,9 +353,7 @@ const nativeStyles = StyleSheet.create({
   },
   topOverlay: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
+    top: 0, left: 0, right: 0,
     zIndex: 20,
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -455,14 +379,6 @@ const nativeStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  authorAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#FFF',
-    marginRight: 8,
   },
   authorName: {
     color: '#FFF',
