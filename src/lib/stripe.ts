@@ -87,3 +87,36 @@ export const launchPpvCheckout = async ({
   }
   return { url: stripeDirectUrl };
 };
+
+export const launchCreatorLicenseCheckout = async (userId: string) => {
+  const supabaseUrl = 'https://aevkzgdhjjzaybfphxcy.supabase.co';
+  const returnUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8098';
+
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'creator_pass',
+        price: 75,
+        currency: 'gbp',
+        userId,
+        returnUrl,
+      }),
+    });
+
+    const data = await response.json();
+    if (data && data.url && typeof window !== 'undefined') {
+      window.location.href = data.url;
+      return data;
+    }
+  } catch (e) {
+    console.warn('[Creator License Checkout Notice]:', e);
+  }
+
+  const stripeDirectUrl = `https://buy.stripe.com/test_creator_pass_75gbp`;
+  if (typeof window !== 'undefined') {
+    window.open(stripeDirectUrl, '_blank');
+  }
+  return { url: stripeDirectUrl };
+};

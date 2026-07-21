@@ -21,6 +21,7 @@ import {
   Modal,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
+import { launchCreatorLicenseCheckout } from '../lib/stripe';
 import AdminDashboardModal from './AdminDashboardModal';
 
 interface CreatorSettingsModalProps {
@@ -326,6 +327,35 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({ onCl
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+
+          {/* 👑 Founder Creator Annual Pass Promo (£75 1-Off Fee) */}
+          <View style={styles.founderPassCard}>
+            <View style={styles.founderPassHeaderRow}>
+              <Text style={styles.founderPassBadge}>🔥 BEST VALUE CREATOR PLAN</Text>
+              <Text style={styles.founderPassPrice}>£75 <Text style={{ fontSize: 12, color: '#AAA' }}>/ year</Text></Text>
+            </View>
+            <Text style={styles.founderPassTitle}>Founder Creator Annual License</Text>
+            <Text style={styles.founderPassDesc}>
+              Pay <Text style={{ color: '#FFFC00', fontWeight: 'bold' }}>£75 one-time</Text> today and keep <Text style={{ color: '#00F2FE', fontWeight: 'bold' }}>100% of all subscriber & PPV earnings</Text> with <Text style={{ color: '#FFFC00', fontWeight: 'bold' }}>0% platform transaction fees</Text> for an entire year!
+            </Text>
+
+            <View style={styles.founderPassPerksRow}>
+              <Text style={styles.founderPassPerk}>⚡ 0% Platform Transaction Fees</Text>
+              <Text style={styles.founderPassPerk}>💳 Direct 100% Stripe Bank Payouts</Text>
+              <Text style={styles.founderPassPerk}>⭐ Gold Verified Profile Badge</Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.buyFounderPassBtn}
+              onPress={async () => {
+                const { data } = await supabase.auth.getUser();
+                await launchCreatorLicenseCheckout(data?.user?.id || 'demo-user');
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.buyFounderPassText}>👑 Upgrade to Founder Pass (£75/yr)</Text>
+            </TouchableOpacity>
           </View>
 
           {/* SECTION 1: Stripe Connected Account & Payouts Setup */}
@@ -704,6 +734,73 @@ const styles = StyleSheet.create({
   presetAvatarImgInline: {
     width: '100%',
     height: '100%',
+  },
+  founderPassCard: {
+    backgroundColor: '#161622',
+    borderRadius: 22,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: '#FFFC00',
+    shadowColor: '#FFFC00',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    marginTop: -2,
+  },
+  founderPassHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  founderPassBadge: {
+    backgroundColor: '#FFFC00',
+    color: '#000',
+    fontSize: 10,
+    fontWeight: '900',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  founderPassPrice: {
+    color: '#FFFC00',
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  founderPassTitle: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 6,
+  },
+  founderPassDesc: {
+    color: '#CCC',
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  founderPassPerksRow: {
+    gap: 6,
+    marginBottom: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 10,
+    borderRadius: 14,
+  },
+  founderPassPerk: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  buyFounderPassBtn: {
+    backgroundColor: '#FFFC00',
+    paddingVertical: 14,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  buyFounderPassText: {
+    color: '#000',
+    fontSize: 15,
+    fontWeight: '900',
   },
   profileName: {
     color: '#FFF',
