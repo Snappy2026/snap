@@ -37,6 +37,43 @@ export const DirectChatScreen: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
+  const getStorageKey = (fId: string) => `snap_chat_messages_${fId}`;
+
+  // Filter messages to retain only those created within the last 24 hours (86,400,000 ms)
+  const filter24hMessages = (list: ChatMessage[]): ChatMessage[] => {
+    const cutoff = Date.now() - 86400000;
+    return list.filter((m) => {
+      const time = m.created_at ? new Date(m.created_at).getTime() : Date.now();
+      return time > cutoff;
+    });
+  };
+
+  const loadLocal24hMessages = (fId: string): ChatMessage[] => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const raw = window.localStorage.getItem(getStorageKey(fId));
+        if (raw) {
+          const parsed: ChatMessage[] = JSON.parse(raw);
+          return filter24hMessages(parsed);
+        }
+      }
+    } catch (e) {
+      console.warn('[DirectChat] Storage load warning:', e);
+    }
+    return [];
+  };
+
+  const saveLocal24hMessages = (fId: string, list: ChatMessage[]) => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const valid = filter24hMessages(list);
+        window.localStorage.setItem(getStorageKey(fId), JSON.stringify(valid));
+      }
+    } catch (e) {
+      console.warn('[DirectChat] Storage save warning:', e);
+    }
+  };
+
   // Fetch initial 1-on-1 chat history
   const fetchMessages = async () => {
     try {
@@ -45,6 +82,12 @@ export const DirectChatScreen: React.FC = () => {
       if (!userId) return;
 
       setCurrentUserId(userId);
+
+      // Load cached local 24-hour messages first for instant rendering
+      const cached = loadLocal24hMessages(friendId);
+      if (cached.length > 0) {
+        setMessages(cached);
+      }
 
       const { data, error } = await supabase
         .from('messages')
@@ -55,13 +98,18 @@ export const DirectChatScreen: React.FC = () => {
       if (error) {
         console.error('[DirectChat Error]', error.message);
       } else if (data && data.length > 0) {
-        setMessages(data as ChatMessage[]);
-      } else {
-        // Fallback demo chat history
-        setMessages([
+        const validDb = filter24hMessages(data as ChatMessage[]);
+        setMessages(validDb);
+        saveLocal24hMessages(friendId, validDb);
+      } else if (cached.length === 0) {
+        // Fallback default starter 24h messages
+        const initialDemo: ChatMessage[] = [
           { id: 'm1', sender_id: friendId, recipient_id: userId, text_content: 'Hey! Did you check out the new snap?', created_at: new Date(Date.now() - 3600000).toISOString(), read_at: null },
           { id: 'm2', sender_id: userId, recipient_id: friendId, text_content: 'Yeah! Looks awesome 🔥', created_at: new Date(Date.now() - 1800000).toISOString(), read_at: null },
-        ]);
+        ];
+        const validDemo = filter24hMessages(initialDemo);
+        setMessages(validDemo);
+        saveLocal24hMessages(friendId, validDemo);
       }
     } catch (err) {
       console.error('[DirectChat Error]', err);
@@ -89,7 +137,11 @@ export const DirectChatScreen: React.FC = () => {
           },
           (payload: RealtimePostgresChangesPayload<ChatMessage>) => {
             if (payload.new && (payload.new as ChatMessage).sender_id === friendId) {
-              setMessages((prev) => [...prev, payload.new as ChatMessage]);
+              setMessages((prev) => {
+                const updated = [...prev, payload.new as ChatMessage];
+                saveLocal24hMessages(friendId, updated);
+                return filter24hMessages(updated);
+              });
             }
           }
         )
@@ -129,7 +181,11 @@ export const DirectChatScreen: React.FC = () => {
       read_at: null,
     };
 
-    setMessages((prev) => [...prev, tempMsg]);
+    setMessages((prev) => {
+      const updated = [...prev, tempMsg];
+      saveLocal24hMessages(friendId, updated);
+      return filter24hMessages(updated);
+    });
 
     try {
       if (currentUserId) {
