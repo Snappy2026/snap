@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Dimensions,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import Animated, {
@@ -88,6 +89,14 @@ export const StoryViewerScreen: React.FC = () => {
           source={{ uri: currentStory.media_url }}
           style={StyleSheet.absoluteFillObject}
           resizeMode="cover"
+        />
+      ) : Platform.OS === 'web' ? (
+        <video
+          src={currentStory.media_url}
+          autoPlay
+          playsInline
+          loop={false}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute' }}
         />
       ) : (
         <Video

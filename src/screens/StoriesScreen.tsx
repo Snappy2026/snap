@@ -236,22 +236,22 @@ export const StoriesScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
-          {/* LIVE DB POSTED STORIES */}
-          {dbStories.map((story) => (
+          {/* LIVE LOCAL & DB POSTED STORIES */}
+          {allUserStories.map((story) => (
             <TouchableOpacity
               key={story.id}
               style={styles.friendItem}
               onPress={() => openDbStoryReel(story)}
               activeOpacity={0.8}
             >
-              <View style={[styles.avatarRing, styles.activeStoryRing]}>
+              <View style={[styles.avatarRing, styles.activeMyStoryRing]}>
                 <Image
                   source={{ uri: story.media_url }}
                   style={styles.friendAvatar}
                 />
               </View>
-              <Text style={styles.friendName} numberOfLines={1}>
-                {story.user_profile?.display_name || 'Snap User'}
+              <Text style={styles.myStoryName} numberOfLines={1}>
+                {story.user_profile?.display_name || 'My Story'}
               </Text>
             </TouchableOpacity>
           ))}
