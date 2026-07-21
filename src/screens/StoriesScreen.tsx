@@ -245,6 +245,7 @@ export const StoriesScreen: React.FC = () => {
   };
 
   const openStoryReel = (friend: FriendStoryItem) => {
+    if (Platform.OS === 'web') window.alert('DEBUG: openStoryReel called for ' + friend.name);
     openStoryViewer([
       {
         id: friend.id,
