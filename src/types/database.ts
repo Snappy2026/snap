@@ -4,12 +4,17 @@
 
 export type FriendshipStatus = 'pending' | 'accepted' | 'blocked';
 export type MediaType = 'image' | 'video';
+export type UserRole = 'admin' | 'creator' | 'customer';
 
 export interface Profile {
   id: string;
   username: string;
   display_name: string;
   avatar_url: string | null;
+  role?: UserRole;
+  stripe_account_id?: string | null;
+  custom_gold_price?: number;
+  custom_yearly_price?: number;
   is_vip_member?: boolean;
   vip_tier?: string;
   vip_expires_at?: string | null;

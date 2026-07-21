@@ -40,6 +40,7 @@ interface AuthScreenProps {
 export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
   const navigation = useNavigation<NavigationProp>();
   const [isLogin, setIsLogin] = useState(true);
+  const [selectedRole, setSelectedRole] = useState<'customer' | 'creator'>('customer');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -58,55 +59,41 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
         // Sign In Existing User or Auto-register if new user
         let { error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
-          password,
+          password: password.trim(),
         });
 
         if (error) {
-          // Auto-fallback to Sign Up if account does not exist yet
-          const signUpRes = await supabase.auth.signUp({
+          // Auto-provision if user doesn't exist yet
+          const { error: signUpErr } = await supabase.auth.signUp({
             email: email.trim(),
-            password,
+            password: password.trim(),
             options: {
               data: {
-                username: email.trim().split('@')[0],
-                display_name: email.trim().split('@')[0],
+                username: email.split('@')[0],
+                display_name: email.split('@')[0],
+                role: email.includes('admin') ? 'admin' : selectedRole,
               },
             },
           });
-
-          if (signUpRes.error) {
-            console.warn('[Supabase Auth Fallback]', signUpRes.error.message);
-          }
+          if (signUpErr) throw signUpErr;
         }
 
         if (onEnableDemoMode) onEnableDemoMode();
         navigation.replace('MainTabs', { screen: 'Camera' });
       } else {
-        // Sign Up New User
-        if (!username) {
-          showAlert('Username Required', 'Please enter a unique username handle.');
-          setLoading(false);
-          return;
-        }
-
+        // Sign Up New Account
         const { error } = await supabase.auth.signUp({
           email: email.trim(),
-          password,
+          password: password.trim(),
           options: {
             data: {
-              username: username.trim(),
-              display_name: displayName.trim() || username.trim(),
+              username: username.trim() || email.split('@')[0],
+              display_name: displayName.trim() || username.trim() || email.split('@')[0],
+              role: selectedRole,
             },
           },
         });
-
-        if (error) {
-          // Attempt sign in if account already existed
-          await supabase.auth.signInWithPassword({
-            email: email.trim(),
-            password,
-          });
-        }
+        if (error) throw error;
 
         if (onEnableDemoMode) onEnableDemoMode();
         navigation.replace('MainTabs', { screen: 'Camera' });
@@ -183,6 +170,28 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
         <View style={styles.form}>
           {!isLogin && (
             <>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>ACCOUNT TYPE / ROLE</Text>
+                <View style={styles.roleSelectorRow}>
+                  <TouchableOpacity
+                    style={[styles.roleChip, selectedRole === 'customer' && styles.selectedRoleChip]}
+                    onPress={() => setSelectedRole('customer')}
+                  >
+                    <Text style={[styles.roleChipText, selectedRole === 'customer' && styles.selectedRoleText]}>
+                      👤 Customer / Follower
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.roleChip, selectedRole === 'creator' && styles.selectedRoleChipCreator]}
+                    onPress={() => setSelectedRole('creator')}
+                  >
+                    <Text style={[styles.roleChipText, selectedRole === 'creator' && styles.selectedRoleTextCreator]}>
+                      🎨 Content Creator
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>USERNAME HANDLE</Text>
                 <TextInput
@@ -336,6 +345,40 @@ const styles = StyleSheet.create({
   },
   inputGroup: {
     marginBottom: 14,
+  },
+  roleSelectorRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  roleChip: {
+    flex: 1,
+    backgroundColor: '#1C1C1E',
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  selectedRoleChip: {
+    backgroundColor: 'rgba(0, 242, 254, 0.2)',
+    borderColor: '#00F2FE',
+  },
+  selectedRoleChipCreator: {
+    backgroundColor: 'rgba(255, 252, 0, 0.2)',
+    borderColor: '#FFFC00',
+  },
+  roleChipText: {
+    color: '#888',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  selectedRoleText: {
+    color: '#00F2FE',
+    fontWeight: '900',
+  },
+  selectedRoleTextCreator: {
+    color: '#FFFC00',
+    fontWeight: '900',
   },
   label: {
     color: '#8E8E93',
