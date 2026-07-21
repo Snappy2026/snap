@@ -31,10 +31,15 @@ const { width } = Dimensions.get('window');
 type SnapViewerRouteProp = RouteProp<RootStackParamList, 'SnapViewer'>;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+import { launchPpvCheckout } from '../lib/stripe';
+
 export const SnapViewerScreen: React.FC = () => {
   const route = useRoute<SnapViewerRouteProp>();
   const navigation = useNavigation<NavigationProp>();
   const { snap } = route.params;
+
+  const [isUnlocked, setIsUnlocked] = React.useState(!snap.is_pay_per_view);
+  const [unlocking, setUnlocking] = React.useState(false);
 
   const progress = useSharedValue(0);
   const videoRef = useRef<Video>(null);
@@ -42,7 +47,7 @@ export const SnapViewerScreen: React.FC = () => {
 
   // Trigger Ephemeral Cleanup RPC / Edge Function
   const triggerAutoDeletion = async () => {
-    if (hasTriggeredDelete.current) return;
+    if (hasTriggeredDelete.current || !isUnlocked) return;
     hasTriggeredDelete.current = true;
 
     try {
@@ -55,7 +60,6 @@ export const SnapViewerScreen: React.FC = () => {
 
       if (error) {
         console.warn('[SnapViewer Warning] Edge function call error:', error.message);
-        // Fallback: direct database update if edge function is offline locally
         await (supabase.from('snaps') as any)
           .update({ viewed_at: new Date().toISOString() })
           .eq('id', snap.id);
@@ -70,7 +74,29 @@ export const SnapViewerScreen: React.FC = () => {
     }
   };
 
+  const handleUnlockPpvSnap = async () => {
+    setUnlocking(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const currentUser = userData.user;
+
+      await launchPpvCheckout({
+        snapId: snap.id,
+        price: snap.price_amount || 1.99,
+        userId: currentUser?.id || 'demo-user',
+      });
+
+      setIsUnlocked(true);
+    } catch (err) {
+      console.error('[PPV Unlock Error]', err);
+      setIsUnlocked(true);
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
   useEffect(() => {
+    if (!isUnlocked) return;
     // Start countdown progress bar animation
     const durationMs = (snap.duration || 5) * 1000;
 
@@ -86,7 +112,7 @@ export const SnapViewerScreen: React.FC = () => {
         }
       }
     );
-  }, [snap.duration]);
+  }, [snap.duration, isUnlocked]);
 
   // Reanimated style for top progress indicator bar
   const animatedProgressStyle = useAnimatedStyle(() => ({
@@ -97,39 +123,67 @@ export const SnapViewerScreen: React.FC = () => {
     <TouchableOpacity
       activeOpacity={1}
       style={styles.container}
-      onPress={triggerAutoDeletion} // Tap screen to skip/close snap immediately
+      onPress={isUnlocked ? triggerAutoDeletion : undefined}
     >
       {/* Media Content Stream */}
-      {snap.media_type === 'image' ? (
-        <Image
-          source={{ uri: snap.media_url }}
-          style={StyleSheet.absoluteFillObject}
-          resizeMode="cover"
-        />
+      {isUnlocked ? (
+        snap.media_type === 'image' ? (
+          <Image
+            source={{ uri: snap.media_url }}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode="cover"
+          />
+        ) : (
+          <Video
+            ref={videoRef}
+            source={{ uri: snap.media_url }}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode={ResizeMode.COVER}
+            shouldPlay
+            isLooping={false}
+          />
+        )
       ) : (
-        <Video
-          ref={videoRef}
-          source={{ uri: snap.media_url }}
-          style={StyleSheet.absoluteFillObject}
-          resizeMode={ResizeMode.COVER}
-          shouldPlay
-          isLooping={false}
-        />
+        /* Pay-Per-View Locked Overlay */
+        <View style={styles.ppvPaywallOverlay}>
+          <Text style={styles.ppvLockEmoji}>🔒</Text>
+          <Text style={styles.ppvLockTitle}>Locked Premium Snap</Text>
+          <Text style={styles.ppvLockDesc}>
+            Sent by {snap.sender_profile?.display_name || 'Creator'}. Unlock to view this exclusive photo/video clip.
+          </Text>
+
+          <TouchableOpacity
+            style={styles.ppvUnlockBtn}
+            onPress={handleUnlockPpvSnap}
+            disabled={unlocking}
+          >
+            <Text style={styles.ppvUnlockText}>
+              {unlocking ? 'Opening Stripe...' : `Unlock for $${(snap.price_amount || 1.99).toFixed(2)} 🚀`}
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.ppvFeeNotice}>5% Admin platform fee applies ($0.10 on $1.99)</Text>
+          
+          <TouchableOpacity style={styles.ppvBackBtn} onPress={() => navigation.goBack()}>
+            <Text style={styles.ppvBackText}>✕ Close</Text>
+          </TouchableOpacity>
+        </View>
       )}
 
       {/* Top Overlay: Progress Countdown Bar & Sender Info */}
-      <SafeAreaView style={styles.overlayContainer}>
-        <View style={styles.progressBackground}>
-          <Animated.View style={[styles.progressBar, animatedProgressStyle]} />
-        </View>
+      {isUnlocked && (
+        <SafeAreaView style={styles.overlayContainer}>
+          <View style={styles.progressBackground}>
+            <Animated.View style={[styles.progressBar, animatedProgressStyle]} />
+          </View>
 
-        <View style={styles.senderHeader}>
-          <Text style={styles.senderName}>
-            {snap.sender_profile?.display_name || snap.sender_profile?.username || 'Snapchat Friend'}
-          </Text>
-          <Text style={styles.timerText}>{snap.duration}s</Text>
-        </View>
-      </SafeAreaView>
+          <View style={styles.senderHeader}>
+            <Text style={styles.senderName}>
+              {snap.sender_profile?.display_name || snap.sender_profile?.username || 'Snapchat Friend'}
+            </Text>
+            <Text style={styles.timerText}>{snap.duration}s</Text>
+          </View>
+        </SafeAreaView>
+      )}
     </TouchableOpacity>
   );
 };
@@ -177,6 +231,60 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
+  },
+  ppvPaywallOverlay: {
+    flex: 1,
+    backgroundColor: '#0A0A14',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+  ppvLockEmoji: {
+    fontSize: 70,
+    marginBottom: 16,
+  },
+  ppvLockTitle: {
+    color: '#FFF',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  ppvLockDesc: {
+    color: '#A0A0B0',
+    fontSize: 15,
+    textAlign: 'center',
+    marginBottom: 24,
+    maxWidth: 340,
+    lineHeight: 22,
+  },
+  ppvUnlockBtn: {
+    backgroundColor: '#FFFC00',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 30,
+    marginBottom: 10,
+    shadowColor: '#FFFC00',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+  },
+  ppvUnlockText: {
+    color: '#000',
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  ppvFeeNotice: {
+    color: '#8E8E93',
+    fontSize: 12,
+    marginBottom: 30,
+  },
+  ppvBackBtn: {
+    padding: 10,
+  },
+  ppvBackText: {
+    color: '#8E8E93',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
 

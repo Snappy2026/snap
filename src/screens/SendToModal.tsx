@@ -9,6 +9,7 @@ import {
   StyleSheet,
   View,
   Text,
+  TextInput,
   FlatList,
   TouchableOpacity,
   SafeAreaView,
@@ -92,12 +93,16 @@ export const SendToModal: React.FC = () => {
       const { data: userData } = await supabase.auth.getUser();
       const currentUser = userData.user;
 
+      const priceNum = parseFloat(ppvPrice) || 1.99;
+
       // 1. Post to My Story if selected
       if (postToStory && currentUser) {
         await (supabase.from('stories') as any).insert({
           user_id: currentUser.id,
           media_url: mediaUrl,
           media_type: mediaType,
+          is_pay_per_view: isPpv,
+          price_amount: priceNum,
         });
       }
 
@@ -109,6 +114,8 @@ export const SendToModal: React.FC = () => {
           media_url: mediaUrl,
           media_type: mediaType,
           duration: duration || 5,
+          is_pay_per_view: isPpv,
+          price_amount: priceNum,
         }));
 
         await (supabase.from('snaps') as any).insert(snapInserts);
@@ -125,6 +132,9 @@ export const SendToModal: React.FC = () => {
       setSending(false);
     }
   };
+
+  const [isPpv, setIsPpv] = useState(false);
+  const [ppvPrice, setPpvPrice] = useState('1.99');
 
   const handleSaveToDevice = () => {
     try {
@@ -175,6 +185,48 @@ export const SendToModal: React.FC = () => {
         <TouchableOpacity style={styles.saveActionBtn} onPress={handleSaveToDevice}>
           <Text style={styles.saveActionText}>💾 Save to Device</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* Pay-Per-View (PPV) Price Tag Selector */}
+      <View style={styles.ppvConfigCard}>
+        <View style={styles.ppvHeaderRow}>
+          <TouchableOpacity
+            style={[styles.ppvOptionTab, !isPpv && styles.ppvOptionActive]}
+            onPress={() => setIsPpv(false)}
+          >
+            <Text style={[styles.ppvOptionText, !isPpv && styles.ppvOptionTextActive]}>
+              🔓 Free Snap
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.ppvOptionTab, isPpv && styles.ppvOptionActive]}
+            onPress={() => setIsPpv(true)}
+          >
+            <Text style={[styles.ppvOptionText, isPpv && styles.ppvOptionTextActive]}>
+              🔒 Pay-Per-View Snap ($)
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {isPpv && (
+          <View style={styles.ppvPriceRow}>
+            <Text style={styles.ppvPriceLabel}>Set Unlock Price (USD):</Text>
+            <View style={styles.ppvInputBox}>
+              <Text style={styles.ppvCurrency}>$</Text>
+              <TextInput
+                value={ppvPrice}
+                onChangeText={setPpvPrice}
+                style={styles.ppvInput}
+                keyboardType="numeric"
+                placeholder="1.99"
+                placeholderTextColor="#666"
+              />
+            </View>
+            <Text style={styles.ppvFeeNote}>
+              5% Admin Fee: ${(parseFloat(ppvPrice || '0') * 0.05).toFixed(2)} | Net to you: ${(parseFloat(ppvPrice || '0') * 0.95).toFixed(2)}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* "My Story" Selector Card */}
@@ -333,6 +385,73 @@ const styles = StyleSheet.create({
     color: '#FFFC00',
     fontSize: 12,
     fontWeight: '800',
+  },
+  ppvConfigCard: {
+    backgroundColor: '#1C1C1E',
+    marginHorizontal: 16,
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 16,
+  },
+  ppvHeaderRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  ppvOptionTab: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#2C2C2E',
+    alignItems: 'center',
+  },
+  ppvOptionActive: {
+    backgroundColor: '#FFFC00',
+  },
+  ppvOptionText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  ppvOptionTextActive: {
+    color: '#000',
+    fontWeight: '800',
+  },
+  ppvPriceRow: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  ppvPriceLabel: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  ppvInputBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2C2C2E',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 42,
+  },
+  ppvCurrency: {
+    color: '#FFFC00',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 6,
+  },
+  ppvInput: {
+    flex: 1,
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  ppvFeeNote: {
+    color: '#8E8E93',
+    fontSize: 11,
+    marginTop: 6,
   },
   storyRow: {
     flexDirection: 'row',

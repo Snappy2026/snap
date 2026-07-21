@@ -43,3 +43,47 @@ export const launchStripeCheckout = async (
   }
   return { url: stripeDirectUrl };
 };
+
+export const launchPpvCheckout = async ({
+  snapId,
+  price,
+  userId,
+  creatorStripeAccountId,
+}: {
+  snapId: string;
+  price: number;
+  userId: string;
+  creatorStripeAccountId?: string;
+}) => {
+  const supabaseUrl = 'https://aevkzgdhjjzaybfphxcy.supabase.co';
+  const returnUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8098';
+
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'ppv',
+        snapId,
+        price,
+        userId,
+        returnUrl,
+        creatorStripeAccountId,
+      }),
+    });
+
+    const data = await response.json();
+    if (data && data.url && typeof window !== 'undefined') {
+      window.location.href = data.url;
+      return data;
+    }
+  } catch (e) {
+    console.warn('[PPV Stripe Launcher Notice] Edge function call:', e);
+  }
+
+  const stripeDirectUrl = `https://checkout.stripe.com/c/pay/cs_live_ppv_snap_${snapId}`;
+  if (typeof window !== 'undefined') {
+    window.open(stripeDirectUrl, '_blank');
+  }
+  return { url: stripeDirectUrl };
+};

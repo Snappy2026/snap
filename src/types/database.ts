@@ -34,6 +34,8 @@ export interface Snap {
   media_type: MediaType;
   duration: number;
   viewed_at: string | null;
+  is_pay_per_view?: boolean;
+  price_amount?: number;
   created_at: string;
   sender_profile?: Partial<Profile>;
 }
@@ -53,6 +55,8 @@ export interface Story {
   user_id: string;
   media_url: string;
   media_type: MediaType;
+  is_pay_per_view?: boolean;
+  price_amount?: number;
   created_at: string;
   expires_at: string;
   user_profile?: Partial<Profile>;

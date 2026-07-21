@@ -30,40 +30,60 @@ serve(async (req: Request) => {
       httpClient: Stripe.createFetchHttpClient(),
     });
 
-    const { plan, userId, returnUrl, creatorStripeAccountId } = await req.json();
+    const { plan, userId, returnUrl, creatorStripeAccountId, type, snapId, price } = await req.json();
 
-    const priceAmount = plan === "platinum" ? 9900 : 999; // $99.00 or $9.99 in cents
-    const planName = plan === "platinum" ? "Snapchat VIP Annual Membership" : "Snapchat VIP Gold Monthly";
+    const isPpv = type === "ppv";
+    const priceAmount = isPpv ? Math.round((price || 1.99) * 100) : (plan === "platinum" ? 9900 : 999);
+    const planName = isPpv
+      ? `Snapchat Pay-Per-View Locked Snap (#${snapId || "ppv"})`
+      : plan === "platinum"
+      ? "Snapchat VIP Annual Membership"
+      : "Snapchat VIP Gold Monthly";
 
-    // Create Stripe Checkout Session with Direct Payout to Creator's Connected Account
+    const lineItemPriceData: any = {
+      currency: "usd",
+      product_data: {
+        name: planName,
+        description: isPpv
+          ? "Instant 1-tap unlock for premium creator photo/video snap."
+          : "Full access to private stories, exclusive snaps, and VIP badge.",
+      },
+      unit_amount: priceAmount,
+    };
+
+    if (!isPpv) {
+      lineItemPriceData.recurring = { interval: plan === "platinum" ? "year" : "month" };
+    }
+
+    // Create Stripe Checkout Session (Supports both Subscription & Pay-Per-View Single Payment)
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: planName,
-              description: "Full access to private stories, exclusive snaps, and VIP badge.",
-            },
-            unit_amount: priceAmount,
-            recurring: { interval: plan === "platinum" ? "year" : "month" },
-          },
+          price_data: lineItemPriceData,
           quantity: 1,
         },
       ],
-      mode: "subscription",
+      mode: isPpv ? "payment" : "subscription",
       client_reference_id: userId,
-      subscription_data: creatorStripeAccountId
+      payment_intent_data: isPpv && creatorStripeAccountId
         ? {
-            application_fee_percent: 5, // 5% Admin fee retained by platform owner
+            application_fee_amount: Math.round(priceAmount * 0.05), // 5% Admin fee on PPV snap
             transfer_data: {
               destination: creatorStripeAccountId,
             },
           }
         : undefined,
-      success_url: returnUrl ? `${returnUrl}?vip_success=true` : "http://localhost:8098/?vip_success=true",
-      cancel_url: returnUrl ? `${returnUrl}?vip_cancel=true` : "http://localhost:8098/?vip_cancel=true",
+      subscription_data: !isPpv && creatorStripeAccountId
+        ? {
+            application_fee_percent: 5, // 5% Admin fee on subscription
+            transfer_data: {
+              destination: creatorStripeAccountId,
+            },
+          }
+        : undefined,
+      success_url: returnUrl ? `${returnUrl}?ppv_success=true&snap_id=${snapId || ''}` : "http://localhost:8098/?ppv_success=true",
+      cancel_url: returnUrl ? `${returnUrl}?ppv_cancel=true` : "http://localhost:8098/?ppv_cancel=true",
     });
 
     return new Response(
