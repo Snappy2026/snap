@@ -174,10 +174,6 @@ export const StoriesScreen: React.FC = () => {
   const localStories = sessionStore.getStories();
   const allUserStories = [...localStories, ...dbStories];
 
-  const myStories = allUserStories.filter(
-    (s) => s.user_id === currentUserId || s.user_id === 'demo-user-id' || currentUserId === null
-  );
-
   const handleDeviceFileUpload = (event: any) => {
     const file = event.target?.files?.[0];
     if (file) {
@@ -188,6 +184,7 @@ export const StoriesScreen: React.FC = () => {
           const mediaUrl = e.target.result as string;
           const { data: userData } = await supabase.auth.getUser();
           const user = userData?.user;
+          const userDisplayName = user?.user_metadata?.display_name || user?.user_metadata?.username || user?.email?.split('@')[0] || 'My Story';
 
           const newStoryItem: Story = {
             id: `uploaded-story-${Date.now()}`,
@@ -197,7 +194,7 @@ export const StoriesScreen: React.FC = () => {
             created_at: new Date().toISOString(),
             expires_at: new Date(Date.now() + 86400000).toISOString(),
             user_profile: {
-              display_name: user?.user_metadata?.display_name || 'My Story',
+              display_name: userDisplayName,
             },
           };
 
@@ -223,6 +220,15 @@ export const StoriesScreen: React.FC = () => {
       reader.readAsDataURL(file);
     }
   };
+
+  // Separate my stories from other creators' stories to avoid duplicate circles
+  const myStories = allUserStories.filter(
+    (s) => s.user_id === currentUserId || s.user_id === 'demo-user-id' || currentUserId === null
+  );
+
+  const otherStories = allUserStories.filter(
+    (s) => s.user_id !== currentUserId && s.user_id !== 'demo-user-id' && currentUserId !== null
+  );
 
   const openMyStory = () => {
     if (myStories.length > 0) {
@@ -258,7 +264,7 @@ export const StoriesScreen: React.FC = () => {
         id: story.id,
         media_url: story.media_url,
         media_type: story.media_type,
-        user_profile: { display_name: story.user_profile?.display_name || 'My Story' },
+        user_profile: { display_name: story.user_profile?.display_name || story.user_profile?.username || 'Snap Creator' },
       },
     ]);
     setShowStoryModal(true);
@@ -280,7 +286,7 @@ export const StoriesScreen: React.FC = () => {
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.friendsScroll}>
-          {/* MY STORY CARD */}
+          {/* MY STORY CARD (Card 1 Only) */}
           <TouchableOpacity
             style={styles.friendItem}
             onPress={openMyStory}
@@ -304,25 +310,28 @@ export const StoriesScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
-          {/* LIVE LOCAL & DB POSTED STORIES */}
-          {allUserStories.map((story) => (
-            <TouchableOpacity
-              key={story.id}
-              style={styles.friendItem}
-              onPress={() => openDbStoryReel(story)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.avatarRing, styles.activeMyStoryRing]}>
-                <Image
-                  source={{ uri: story.media_url }}
-                  style={styles.friendAvatar}
-                />
-              </View>
-              <Text style={styles.myStoryName} numberOfLines={1}>
-                {story.user_profile?.display_name || 'My Story'}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {/* OTHER CREATORS' POSTED STORIES */}
+          {otherStories.map((story) => {
+            const displayName = story.user_profile?.display_name || story.user_profile?.username || 'Creator';
+            return (
+              <TouchableOpacity
+                key={story.id}
+                style={styles.friendItem}
+                onPress={() => openDbStoryReel(story)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.avatarRing, styles.activeStoryRing]}>
+                  <Image
+                    source={{ uri: story.media_url }}
+                    style={styles.friendAvatar}
+                  />
+                </View>
+                <Text style={styles.friendName} numberOfLines={1}>
+                  {displayName}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
 
           {/* DEMO FRIEND STORIES */}
           {FRIEND_STORIES.map((friend) => (
