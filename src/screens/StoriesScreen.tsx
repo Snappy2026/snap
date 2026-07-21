@@ -11,13 +11,14 @@ import {
   Text,
   ScrollView,
   Image,
-  Pressable,
   SafeAreaView,
   Dimensions,
   ActivityIndicator,
   Platform,
   Modal,
+  Pressable,
 } from 'react-native';
+import WebTouchable from '../components/WebTouchable';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
@@ -282,8 +283,8 @@ export const StoriesScreen: React.FC = () => {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.friendsScroll}>
           {/* MY STORY CARD (Card 1 Only) */}
-          <Pressable
-            style={({ pressed }) => [styles.friendItem, pressed && { opacity: 0.7 }]}
+          <WebTouchable
+            style={styles.friendItem}
             onPress={openMyStory}
           >
             <View style={[styles.avatarRing, myStories.length > 0 ? styles.activeMyStoryRing : styles.addStoryRing]}>
@@ -302,15 +303,15 @@ export const StoriesScreen: React.FC = () => {
             <Text style={styles.myStoryName} numberOfLines={1}>
               {myStories.length > 0 ? `My Story (${myStories.length})` : 'Add Story'}
             </Text>
-          </Pressable>
+          </WebTouchable>
 
           {/* OTHER CREATORS' POSTED STORIES */}
           {otherStories.map((story) => {
             const displayName = story.user_profile?.display_name || story.user_profile?.username || 'Creator';
             return (
-              <Pressable
+              <WebTouchable
                 key={story.id}
-                style={({ pressed }) => [styles.friendItem, pressed && { opacity: 0.7 }]}
+                style={styles.friendItem}
                 onPress={() => openDbStoryReel(story)}
               >
                 <View style={[styles.avatarRing, styles.activeStoryRing]}>
@@ -322,15 +323,15 @@ export const StoriesScreen: React.FC = () => {
                 <Text style={styles.friendName} numberOfLines={1}>
                   {displayName}
                 </Text>
-              </Pressable>
+              </WebTouchable>
             );
           })}
 
           {/* DEMO FRIEND STORIES */}
           {FRIEND_STORIES.map((friend) => (
-            <Pressable
+            <WebTouchable
               key={friend.id}
-              style={({ pressed }) => [styles.friendItem, pressed && { opacity: 0.7 }]}
+              style={styles.friendItem}
               onPress={() => openStoryReel(friend)}
             >
               <View style={[styles.avatarRing, friend.hasUnseen && styles.activeStoryRing]}>
@@ -339,7 +340,7 @@ export const StoriesScreen: React.FC = () => {
               <Text style={styles.friendName} numberOfLines={1}>
                 {friend.name}
               </Text>
-            </Pressable>
+            </WebTouchable>
           ))}
         </ScrollView>
 
@@ -349,9 +350,9 @@ export const StoriesScreen: React.FC = () => {
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.subsScroll}>
           {SUBSCRIPTIONS.map((sub) => (
-            <Pressable
+            <WebTouchable
               key={sub.id}
-              style={({ pressed }) => [styles.subCard, pressed && { opacity: 0.85 }]}
+              style={styles.subCard}
               onPress={() => {
                 openStoryViewer([
                   {
@@ -370,7 +371,7 @@ export const StoriesScreen: React.FC = () => {
                   {sub.title}
                 </Text>
               </View>
-            </Pressable>
+            </WebTouchable>
           ))}
         </ScrollView>
 
@@ -387,9 +388,9 @@ export const StoriesScreen: React.FC = () => {
         {/* 4. Filtered "For You" Discover Grid */}
         <View style={styles.discoverGrid}>
           {filteredDiscover.map((item) => (
-            <Pressable
+            <WebTouchable
               key={item.id}
-              style={({ pressed }) => [styles.discoverCard, pressed && { opacity: 0.85 }]}
+              style={styles.discoverCard}
               onPress={() => {
                 openStoryViewer([
                   {
@@ -409,7 +410,7 @@ export const StoriesScreen: React.FC = () => {
                 </Text>
                 <Text style={styles.publisherName}>{item.publisher}</Text>
               </View>
-            </Pressable>
+            </WebTouchable>
           ))}
         </View>
       </ScrollView>
