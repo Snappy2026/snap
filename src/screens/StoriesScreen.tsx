@@ -654,7 +654,6 @@ export const StoriesScreen: React.FC = () => {
           >
             <span
               style={{
-                color: "#FFF",
                 fontSize: "17px",
                 fontWeight: "bold",
                 color: "#FFD700",
