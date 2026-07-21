@@ -514,11 +514,6 @@ export const CameraScreen: React.FC = () => {
           >
             <Text style={styles.iconText}>🔄</Text>
           </TouchableOpacity>
-
-          {/* Quick Post Story Button */}
-          <TouchableOpacity style={styles.iconButton} onPress={handleInstantPostStory}>
-            <Text style={styles.iconText}>➕</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Bottom Shutter Controls */}
