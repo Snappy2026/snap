@@ -110,26 +110,20 @@ export const AppNavigator: React.FC = () => {
     );
   }
 
-  const showAuthScreen = !session && !demoMode;
+  const initialRoute = !session && !demoMode ? 'Auth' : 'MainTabs';
 
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName={showAuthScreen ? 'Auth' : 'MainTabs'}
+        initialRouteName={initialRoute}
         screenOptions={{
           headerShown: false,
         }}
       >
-        {showAuthScreen ? (
-          <Stack.Screen name="Auth">
-            {(props) => <AuthScreen {...props} onEnableDemoMode={() => setDemoMode(true)} />}
-          </Stack.Screen>
-        ) : (
-          <>
-            <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-            <Stack.Screen name="Auth" component={AuthScreen} />
-          </>
-        )}
+        <Stack.Screen name="Auth">
+          {(props) => <AuthScreen {...props} onEnableDemoMode={() => setDemoMode(true)} />}
+        </Stack.Screen>
+        <Stack.Screen name="MainTabs" component={MainTabNavigator} />
         <Stack.Screen name="DirectChat" component={DirectChatScreen} />
         <Stack.Screen
           name="SendToModal"

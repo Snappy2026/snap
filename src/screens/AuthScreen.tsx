@@ -67,8 +67,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
           setLoading(false);
           return;
         } else {
-          showAlert('Welcome Back! 🎉', 'Successfully logged in.');
           if (onEnableDemoMode) onEnableDemoMode();
+          navigation.replace('MainTabs', { screen: 'Camera' });
         }
       } else {
         // Sign Up New User
@@ -95,8 +95,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
           setLoading(false);
           return;
         } else {
-          showAlert('Account Created! 🎉', 'Welcome to Snapchat. Logged in successfully.');
           if (onEnableDemoMode) onEnableDemoMode();
+          navigation.replace('MainTabs', { screen: 'Camera' });
         }
       }
     } catch (err: unknown) {
@@ -111,16 +111,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
   const handleAdminLogin = () => {
     setEmail('admin@snapchat.com');
     setPassword('admin123');
-    showAlert('🛡️ Master Admin Credentials Set', 'Email: admin@snapchat.com | Password: admin123\nTapped to log in as Platform Admin.');
     if (onEnableDemoMode) onEnableDemoMode();
+    navigation.replace('MainTabs', { screen: 'Camera' });
   };
 
   const handleSkipDemo = () => {
-    if (onEnableDemoMode) {
-      onEnableDemoMode();
-    } else {
-      navigation.replace('MainTabs', { screen: 'Camera' });
-    }
+    if (onEnableDemoMode) onEnableDemoMode();
+    navigation.replace('MainTabs', { screen: 'Camera' });
   };
 
   return (
