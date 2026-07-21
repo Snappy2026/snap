@@ -147,13 +147,20 @@ export const StoryViewerScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
     backgroundColor: '#000',
+    zIndex: 99999,
   },
   touchOverlay: {
     ...StyleSheet.absoluteFillObject,
     flexDirection: 'row',
-    zIndex: 5,
+    zIndex: 100000,
   },
   leftTouch: {
     flex: 1,
