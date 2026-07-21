@@ -75,6 +75,8 @@ export interface VipContentItem {
   media_url: string;
   media_type: MediaType;
   required_tier: string;
+  category?: string;
+  is_public_gallery?: boolean;
   created_at: string;
   creator_profile?: Partial<Profile>;
 }

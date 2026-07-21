@@ -4,7 +4,7 @@
 // and dynamic category filtering for the Discover Grid.
 // ============================================================================
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -17,17 +17,17 @@ import {
   Platform,
   Modal,
   Pressable,
-} from 'react-native';
-import WebTouchable from '../components/WebTouchable';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../types/navigation';
-import { supabase } from '../lib/supabase';
-import { Story } from '../types/database';
-import SnapBar from '../components/SnapBar';
-import CategoryFilterBar from '../components/CategoryFilterBar';
+} from "react-native";
+import WebTouchable from "../components/WebTouchable";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../types/navigation";
+import { supabase } from "../lib/supabase";
+import { Story } from "../types/database";
+import SnapBar from "../components/SnapBar";
+import CategoryFilterBar from "../components/CategoryFilterBar";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const cardWidth = (width - 36) / 2;
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -56,91 +56,139 @@ interface DiscoverItem {
 }
 
 const FRIEND_STORIES: FriendStoryItem[] = [
-  { id: '1', name: 'Sarah', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150', hasUnseen: true, storyMedia: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800' },
-  { id: '2', name: 'Alex', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', hasUnseen: true, storyMedia: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800' },
-  { id: '3', name: 'Maya', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150', hasUnseen: false, storyMedia: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800' },
-  { id: '4', name: 'Jordan', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150', hasUnseen: true, storyMedia: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800' },
-  { id: '5', name: 'Emma', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150', hasUnseen: false, storyMedia: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800' },
+  {
+    id: "1",
+    name: "Sarah",
+    avatar:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+    hasUnseen: true,
+    storyMedia:
+      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800",
+  },
+  {
+    id: "2",
+    name: "Alex",
+    avatar:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
+    hasUnseen: true,
+    storyMedia:
+      "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800",
+  },
+  {
+    id: "3",
+    name: "Maya",
+    avatar:
+      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
+    hasUnseen: false,
+    storyMedia:
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800",
+  },
+  {
+    id: "4",
+    name: "Jordan",
+    avatar:
+      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150",
+    hasUnseen: true,
+    storyMedia:
+      "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800",
+  },
+  {
+    id: "5",
+    name: "Emma",
+    avatar:
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150",
+    hasUnseen: false,
+    storyMedia:
+      "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800",
+  },
 ];
 
 const SUBSCRIPTIONS: Subscription[] = [
   {
-    id: 's1',
-    title: '10 Mind-Blowing AI Innovations of 2026',
-    author: 'Tech Daily',
-    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400',
+    id: "s1",
+    title: "10 Mind-Blowing AI Innovations of 2026",
+    author: "Tech Daily",
+    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400",
   },
   {
-    id: 's2',
-    title: 'Secret Street Food Spots in Tokyo 🍜',
-    author: 'Foodie Travel',
-    image: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=400',
+    id: "s2",
+    title: "Secret Street Food Spots in Tokyo 🍜",
+    author: "Foodie Travel",
+    image: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=400",
   },
   {
-    id: 's3',
-    title: 'Ultimate 15-Min Workout Routine',
-    author: 'FitLife',
-    image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400',
+    id: "s3",
+    title: "Ultimate 15-Min Workout Routine",
+    author: "FitLife",
+    image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400",
   },
 ];
 
 const FOR_YOU: DiscoverItem[] = [
   {
-    id: 'f1',
-    title: 'What Happens When You Fly Through Saturn Rings?',
-    publisher: 'Cosmos Mag',
-    category: 'SCIENCE',
-    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400',
+    id: "f1",
+    title: "What Happens When You Fly Through Saturn Rings?",
+    publisher: "Cosmos Mag",
+    category: "SCIENCE",
+    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400",
   },
   {
-    id: 'f2',
-    title: 'Inside the World Most Exclusive Cyber Supercars',
-    publisher: 'Motor Trend',
-    category: 'AUTO',
-    image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400',
+    id: "f2",
+    title: "Inside the World Most Exclusive Cyber Supercars",
+    publisher: "Motor Trend",
+    category: "AUTO",
+    image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400",
   },
   {
-    id: 'f3',
-    title: 'Next Gen Gaming Specs & Unreal Engine 5.5',
-    publisher: 'IGN Snap',
-    category: 'GAMING',
-    image: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400',
+    id: "f3",
+    title: "Next Gen Gaming Specs & Unreal Engine 5.5",
+    publisher: "IGN Snap",
+    category: "GAMING",
+    image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400",
   },
   {
-    id: 'f4',
-    title: '5 Aesthetic Room Makeovers You Can Do Under $100',
-    publisher: 'Design Digest',
-    category: 'LIFESTYLE',
-    image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=400',
+    id: "f4",
+    title: "5 Aesthetic Room Makeovers You Can Do Under $100",
+    publisher: "Design Digest",
+    category: "LIFESTYLE",
+    image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=400",
   },
   {
-    id: 'f5',
-    title: 'Quantum Computing Break-Through in Silicon Valley',
-    publisher: 'Tech Crunch',
-    category: 'TECH',
-    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400',
+    id: "f5",
+    title: "Quantum Computing Break-Through in Silicon Valley",
+    publisher: "Tech Crunch",
+    category: "TECH",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400",
   },
   {
-    id: 'f6',
-    title: 'Top 10 Hidden Ramen Joints in Kyoto',
-    publisher: 'Food & Wine',
-    category: 'FOOD',
-    image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400',
+    id: "f6",
+    title: "Top 10 Hidden Ramen Joints in Kyoto",
+    publisher: "Food & Wine",
+    category: "FOOD",
+    image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400",
   },
 ];
 
-import { sessionStore } from '../lib/sessionStore';
-import { StoryViewerItem } from '../components/StoryViewerModal';
-import { useStoryViewer } from '../context/StoryViewerContext';
+import { sessionStore } from "../lib/sessionStore";
+import { StoryViewerItem } from "../components/StoryViewerModal";
+import { useStoryViewer } from "../context/StoryViewerContext";
 
 export const StoriesScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const isFocused = useIsFocused();
   const { openStoryViewer } = useStoryViewer();
-  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [dbStories, setDbStories] = useState<Story[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
+  const [isVipMember, setIsVipMember] = useState(false);
+  const [userRole, setUserRole] = useState("customer");
+  const [galleryItems, setGalleryItems] = useState<any[]>([]);
+  const [vipItems, setVipItems] = useState<any[]>([]);
+  const [uploadDestination, setUploadDestination] = useState<
+    "story" | "gallery" | "vip"
+  >("story");
+  const [uploadCategory, setUploadCategory] = useState("ALL");
 
   const fileInputRef = useRef<any>(null);
 
@@ -153,16 +201,37 @@ export const StoriesScreen: React.FC = () => {
         const user = userData?.user;
         setCurrentUserId(user?.id || null);
 
+        if (user?.id) {
+          const { data: profileData } = (await supabase
+            .from("profiles")
+            .select("role, is_vip_member")
+            .eq("id", user.id)
+            .single()) as any;
+          setIsVipMember(profileData?.is_vip_member || false);
+          setUserRole(profileData?.role || "customer");
+        }
+
+        const { data: vipData } = await supabase
+          .from("vip_content")
+          .select("*, creator_profile:profiles(*)");
+
+        if (vipData) {
+          setGalleryItems(
+            vipData.filter((v: any) => v.is_public_gallery === true),
+          );
+          setVipItems(vipData.filter((v: any) => v.is_public_gallery !== true));
+        }
+
         const { data } = await supabase
-          .from('stories')
-          .select('*, user_profile:profiles(*)')
-          .order('created_at', { ascending: false });
+          .from("stories")
+          .select("*, user_profile:profiles(*)")
+          .order("created_at", { ascending: false });
 
         if (data && data.length > 0) {
           setDbStories(data as Story[]);
         }
       } catch (err) {
-        console.error('[Fetch Stories Error]', err);
+        console.error("[Fetch Stories Error]", err);
       }
     };
 
@@ -176,42 +245,80 @@ export const StoriesScreen: React.FC = () => {
   const handleDeviceFileUpload = (event: any) => {
     const file = event.target?.files?.[0];
     if (file) {
-      const isVideo = file.type.startsWith('video');
+      const isVideo = file.type.startsWith("video");
       const reader = new FileReader();
       reader.onload = async (e) => {
         if (e.target?.result) {
           const mediaUrl = e.target.result as string;
           const { data: userData } = await supabase.auth.getUser();
           const user = userData?.user;
-          const userDisplayName = user?.user_metadata?.display_name || user?.user_metadata?.username || user?.email?.split('@')[0] || 'My Story';
+          const userDisplayName =
+            user?.user_metadata?.display_name ||
+            user?.user_metadata?.username ||
+            user?.email?.split("@")[0] ||
+            "My Story";
 
-          const newStoryItem: Story = {
-            id: `uploaded-story-${Date.now()}`,
-            user_id: user?.id || 'demo-user-id',
-            media_url: mediaUrl,
-            media_type: isVideo ? 'video' : 'image',
-            created_at: new Date().toISOString(),
-            expires_at: new Date(Date.now() + 86400000).toISOString(),
-            user_profile: {
-              display_name: userDisplayName,
-            },
-          };
-
-          // Save to 24h local session store & Supabase DB
-          sessionStore.addStory(newStoryItem);
-          setDbStories((prev) => [newStoryItem, ...prev]);
+          if (uploadDestination === "story") {
+            const newStoryItem: Story = {
+              id: `uploaded-story-${Date.now()}`,
+              user_id: user?.id || "demo-user-id",
+              media_url: mediaUrl,
+              media_type: isVideo ? "video" : "image",
+              created_at: new Date().toISOString(),
+              expires_at: new Date(Date.now() + 86400000).toISOString(),
+              user_profile: { display_name: userDisplayName },
+            };
+            sessionStore.addStory(newStoryItem);
+            setDbStories((prev) => [newStoryItem, ...prev]);
+          } else {
+            // Upload to Gallery or VIP
+            const newVipItem = {
+              id: `uploaded-${uploadDestination}-${Date.now()}`,
+              creator_id: user?.id || "demo-user-id",
+              title: `My ${uploadDestination} post`,
+              description: "",
+              media_url: mediaUrl,
+              media_type: isVideo ? "video" : "image",
+              required_tier: uploadDestination === "vip" ? "vip" : "public",
+              category: uploadCategory,
+              is_public_gallery: uploadDestination === "gallery",
+              created_at: new Date().toISOString(),
+              creator_profile: {
+                display_name: userDisplayName,
+                username: userDisplayName,
+              },
+            };
+            if (uploadDestination === "gallery") {
+              setGalleryItems((prev) => [newVipItem, ...prev]);
+            } else {
+              setVipItems((prev) => [newVipItem, ...prev]);
+            }
+          }
 
           if (user) {
-            await (supabase.from('stories') as any).insert({
-              user_id: user.id,
-              media_url: mediaUrl,
-              media_type: isVideo ? 'video' : 'image',
-            });
+            if (uploadDestination === "story") {
+              await (supabase.from("stories") as any).insert({
+                user_id: user.id,
+                media_url: mediaUrl,
+                media_type: isVideo ? "video" : "image",
+              });
+            } else {
+              await (supabase.from("vip_content") as any).insert({
+                creator_id: user.id,
+                media_url: mediaUrl,
+                media_type: isVideo ? "video" : "image",
+                title: `My ${uploadDestination} post`,
+                description: "",
+                required_tier: uploadDestination === "vip" ? "vip" : "public",
+                category: uploadCategory,
+                is_public_gallery: uploadDestination === "gallery",
+              });
+            }
           }
 
           setShowAddStoryModal(false);
-          const msg = 'New Snap Story added! 🔥 View it in full screen now.';
-          if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          const msg = "New Snap Story added! 🔥 View it in full screen now.";
+          if (Platform.OS === "web" && typeof window !== "undefined") {
             window.alert(`👻 New Story Posted!\n\n${msg}`);
           }
         }
@@ -222,11 +329,17 @@ export const StoriesScreen: React.FC = () => {
 
   // Separate my stories from other creators' stories to avoid duplicate circles
   const myStories = allUserStories.filter(
-    (s) => s.user_id === currentUserId || s.user_id === 'demo-user-id' || currentUserId === null
+    (s) =>
+      s.user_id === currentUserId ||
+      s.user_id === "demo-user-id" ||
+      currentUserId === null,
   );
 
   const otherStories = allUserStories.filter(
-    (s) => s.user_id !== currentUserId && s.user_id !== 'demo-user-id' && currentUserId !== null
+    (s) =>
+      s.user_id !== currentUserId &&
+      s.user_id !== "demo-user-id" &&
+      currentUserId !== null,
   );
 
   const openMyStory = () => {
@@ -236,8 +349,10 @@ export const StoriesScreen: React.FC = () => {
           id: s.id,
           media_url: s.media_url,
           media_type: s.media_type,
-          user_profile: { display_name: s.user_profile?.display_name || 'My Story' },
-        }))
+          user_profile: {
+            display_name: s.user_profile?.display_name || "My Story",
+          },
+        })),
       );
     } else {
       setShowAddStoryModal(true);
@@ -249,7 +364,7 @@ export const StoriesScreen: React.FC = () => {
       {
         id: friend.id,
         media_url: friend.storyMedia,
-        media_type: 'image',
+        media_type: "image",
         user_profile: { display_name: friend.name },
       },
     ]);
@@ -261,47 +376,64 @@ export const StoriesScreen: React.FC = () => {
         id: story.id,
         media_url: story.media_url,
         media_type: story.media_type,
-        user_profile: { display_name: story.user_profile?.display_name || story.user_profile?.username || 'Snap Creator' },
+        user_profile: {
+          display_name:
+            story.user_profile?.display_name ||
+            story.user_profile?.username ||
+            "Snap Creator",
+        },
       },
     ]);
   };
 
   // Filter Discover content dynamically based on selected category
-  const filteredDiscover = FOR_YOU.filter(
-    (item) => selectedCategory === 'ALL' || item.category === selectedCategory
+  const displayVipItems = vipItems.length > 0 ? vipItems : FOR_YOU;
+  const filteredDiscover = displayVipItems.filter(
+    (item) =>
+      selectedCategory === "ALL" ||
+      (item.category &&
+        item.category.toUpperCase() === selectedCategory.toUpperCase()),
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <SnapBar title="Discover" />
 
-
-
       {/* On web: use native HTML scroll containers to fix iOS Safari touch blocking */}
       {/* On native: use React Native ScrollView */}
-      {Platform.OS === 'web' ? (
+      {Platform.OS === "web" ? (
         <div
           style={{
             flex: 1,
-            overflowY: 'auto' as any,
-            overflowX: 'hidden' as any,
-            WebkitOverflowScrolling: 'touch' as any,
-            paddingBottom: '100px',
+            overflowY: "auto" as any,
+            overflowX: "hidden" as any,
+            WebkitOverflowScrolling: "touch" as any,
+            paddingBottom: "100px",
           }}
         >
           {/* 1. Friends Stories Row */}
-          <div style={{ paddingLeft: '16px', paddingTop: '12px', paddingBottom: '4px' }}>
-            <span style={{ color: '#FFF', fontSize: '17px', fontWeight: 'bold' }}>Stories</span>
+          <div
+            style={{
+              paddingLeft: "16px",
+              paddingTop: "12px",
+              paddingBottom: "4px",
+            }}
+          >
+            <span
+              style={{ color: "#FFF", fontSize: "17px", fontWeight: "bold" }}
+            >
+              Stories
+            </span>
           </div>
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'row' as any,
-              overflowX: 'auto' as any,
-              WebkitOverflowScrolling: 'touch' as any,
-              paddingLeft: '16px',
-              paddingBottom: '8px',
-              gap: '16px',
+              display: "flex",
+              flexDirection: "row" as any,
+              overflowX: "auto" as any,
+              WebkitOverflowScrolling: "touch" as any,
+              paddingLeft: "16px",
+              paddingBottom: "8px",
+              gap: "16px",
             }}
           >
             {/* MY STORY */}
@@ -309,17 +441,35 @@ export const StoriesScreen: React.FC = () => {
               type="button"
               onClick={() => openMyStory()}
               style={{
-                border: 'none', background: 'none', padding: 0, margin: 0,
-                display: 'flex', flexDirection: 'column' as any, alignItems: 'center',
-                cursor: 'pointer', WebkitAppearance: 'none' as any,
-                appearance: 'none' as any, touchAction: 'manipulation',
-                minWidth: '80px', flexShrink: 0,
+                border: "none",
+                background: "none",
+                padding: 0,
+                margin: 0,
+                display: "flex",
+                flexDirection: "column" as any,
+                alignItems: "center",
+                cursor: "pointer",
+                WebkitAppearance: "none" as any,
+                appearance: "none" as any,
+                touchAction: "manipulation",
+                minWidth: "80px",
+                flexShrink: 0,
               }}
             >
-              <View style={[styles.avatarRing, myStories.length > 0 ? styles.activeMyStoryRing : styles.addStoryRing]}>
+              <View
+                style={[
+                  styles.avatarRing,
+                  myStories.length > 0
+                    ? styles.activeMyStoryRing
+                    : styles.addStoryRing,
+                ]}
+              >
                 <Image
                   source={{
-                    uri: myStories.length > 0 ? myStories[0].media_url : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+                    uri:
+                      myStories.length > 0
+                        ? myStories[0].media_url
+                        : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
                   }}
                   style={styles.friendAvatar}
                 />
@@ -330,30 +480,48 @@ export const StoriesScreen: React.FC = () => {
                 )}
               </View>
               <Text style={styles.myStoryName} numberOfLines={1}>
-                {myStories.length > 0 ? `My Story (${myStories.length})` : 'Add Story'}
+                {myStories.length > 0
+                  ? `My Story (${myStories.length})`
+                  : "Add Story"}
               </Text>
             </button>
 
             {/* OTHER CREATORS' POSTED STORIES */}
             {otherStories.map((story) => {
-              const displayName = story.user_profile?.display_name || story.user_profile?.username || 'Creator';
+              const displayName =
+                story.user_profile?.display_name ||
+                story.user_profile?.username ||
+                "Creator";
               return (
                 <button
                   key={story.id}
                   type="button"
                   onClick={() => openDbStoryReel(story)}
                   style={{
-                    border: 'none', background: 'none', padding: 0, margin: 0,
-                    display: 'flex', flexDirection: 'column' as any, alignItems: 'center',
-                    cursor: 'pointer', WebkitAppearance: 'none' as any,
-                    appearance: 'none' as any, touchAction: 'manipulation',
-                    minWidth: '80px', flexShrink: 0,
+                    border: "none",
+                    background: "none",
+                    padding: 0,
+                    margin: 0,
+                    display: "flex",
+                    flexDirection: "column" as any,
+                    alignItems: "center",
+                    cursor: "pointer",
+                    WebkitAppearance: "none" as any,
+                    appearance: "none" as any,
+                    touchAction: "manipulation",
+                    minWidth: "80px",
+                    flexShrink: 0,
                   }}
                 >
                   <View style={[styles.avatarRing, styles.activeStoryRing]}>
-                    <Image source={{ uri: story.media_url }} style={styles.friendAvatar} />
+                    <Image
+                      source={{ uri: story.media_url }}
+                      style={styles.friendAvatar}
+                    />
                   </View>
-                  <Text style={styles.friendName} numberOfLines={1}>{displayName}</Text>
+                  <Text style={styles.friendName} numberOfLines={1}>
+                    {displayName}
+                  </Text>
                 </button>
               );
             })}
@@ -365,71 +533,135 @@ export const StoriesScreen: React.FC = () => {
                 type="button"
                 onClick={() => openStoryReel(friend)}
                 style={{
-                  border: 'none', background: 'none', padding: 0, margin: 0,
-                  display: 'flex', flexDirection: 'column' as any, alignItems: 'center',
-                  cursor: 'pointer', WebkitAppearance: 'none' as any,
-                  appearance: 'none' as any, touchAction: 'manipulation',
-                  minWidth: '80px', flexShrink: 0,
+                  border: "none",
+                  background: "none",
+                  padding: 0,
+                  margin: 0,
+                  display: "flex",
+                  flexDirection: "column" as any,
+                  alignItems: "center",
+                  cursor: "pointer",
+                  WebkitAppearance: "none" as any,
+                  appearance: "none" as any,
+                  touchAction: "manipulation",
+                  minWidth: "80px",
+                  flexShrink: 0,
                 }}
               >
-                <View style={[styles.avatarRing, friend.hasUnseen && styles.activeStoryRing]}>
-                  <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
+                <View
+                  style={[
+                    styles.avatarRing,
+                    friend.hasUnseen && styles.activeStoryRing,
+                  ]}
+                >
+                  <Image
+                    source={{ uri: friend.avatar }}
+                    style={styles.friendAvatar}
+                  />
                 </View>
-                <Text style={styles.friendName} numberOfLines={1}>{friend.name}</Text>
+                <Text style={styles.friendName} numberOfLines={1}>
+                  {friend.name}
+                </Text>
               </button>
             ))}
           </div>
 
           {/* 2. Subscriptions Section */}
-          <div style={{ paddingLeft: '16px', paddingTop: '12px', paddingBottom: '4px' }}>
-            <span style={{ color: '#FFF', fontSize: '17px', fontWeight: 'bold' }}>Subscriptions</span>
+          <div
+            style={{
+              paddingLeft: "16px",
+              paddingTop: "12px",
+              paddingBottom: "4px",
+            }}
+          >
+            <span
+              style={{ color: "#FFF", fontSize: "17px", fontWeight: "bold" }}
+            >
+              Gallery
+            </span>
           </div>
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'row' as any,
-              overflowX: 'auto' as any,
-              WebkitOverflowScrolling: 'touch' as any,
-              paddingLeft: '16px',
-              paddingBottom: '8px',
-              gap: '12px',
+              display: "flex",
+              flexDirection: "row" as any,
+              overflowX: "auto" as any,
+              WebkitOverflowScrolling: "touch" as any,
+              paddingLeft: "16px",
+              paddingBottom: "8px",
+              gap: "12px",
             }}
           >
-            {SUBSCRIPTIONS.map((sub) => (
-              <button
-                key={sub.id}
-                type="button"
-                onClick={() => {
-                  openStoryViewer([
-                    {
-                      id: sub.id,
-                      media_url: sub.image,
-                      media_type: 'image',
-                      user_profile: { display_name: sub.author },
-                    },
-                  ]);
-                }}
-                style={{
-                  border: 'none', background: 'none', padding: 0, margin: 0,
-                  cursor: 'pointer', WebkitAppearance: 'none' as any,
-                  appearance: 'none' as any, touchAction: 'manipulation',
-                  width: '140px', height: '200px', borderRadius: '14px',
-                  overflow: 'hidden', backgroundColor: '#1C1C1E', flexShrink: 0,
-                  position: 'relative' as any,
-                }}
-              >
-                <Image source={{ uri: sub.image }} style={styles.subImage} />
-                <View style={styles.subGradientOverlay}>
-                  <Text style={styles.subAuthor}>{sub.author}</Text>
-                  <Text style={styles.subTitle} numberOfLines={2}>{sub.title}</Text>
-                </View>
-              </button>
-            ))}
+            {(galleryItems.length > 0 ? galleryItems : SUBSCRIPTIONS).map(
+              (sub) => (
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() => {
+                    openStoryViewer([
+                      {
+                        id: sub.id,
+                        media_url: sub.media_url || sub.image,
+                        media_type: sub.media_type || "image",
+                        user_profile: {
+                          display_name:
+                            sub.creator_profile?.username || sub.author,
+                        },
+                      },
+                    ]);
+                  }}
+                  style={{
+                    border: "none",
+                    background: "none",
+                    padding: 0,
+                    margin: 0,
+                    cursor: "pointer",
+                    WebkitAppearance: "none" as any,
+                    appearance: "none" as any,
+                    touchAction: "manipulation",
+                    width: "140px",
+                    height: "200px",
+                    borderRadius: "14px",
+                    overflow: "hidden",
+                    backgroundColor: "#1C1C1E",
+                    flexShrink: 0,
+                    position: "relative" as any,
+                  }}
+                >
+                  <Image
+                    source={{ uri: sub.media_url || sub.image }}
+                    style={styles.subImage}
+                  />
+                  <View style={styles.subGradientOverlay}>
+                    <Text style={styles.subAuthor}>
+                      @{sub.creator_profile?.username || sub.author}
+                    </Text>
+                    <Text style={styles.subTitle} numberOfLines={2}>
+                      {sub.title}
+                    </Text>
+                  </View>
+                </button>
+              ),
+            )}
           </div>
 
           {/* 3. Category Filter Pill Bar */}
-          <div style={{ paddingLeft: '16px', paddingTop: '12px', paddingBottom: '4px' }}>
-            <span style={{ color: '#FFF', fontSize: '17px', fontWeight: 'bold' }}>For You</span>
+          <div
+            style={{
+              paddingLeft: "16px",
+              paddingTop: "12px",
+              paddingBottom: "4px",
+            }}
+          >
+            <span
+              style={{
+                color: "#FFF",
+                fontSize: "17px",
+                fontWeight: "bold",
+                color: "#FFD700",
+              }}
+            >
+              👑 VIP Section
+            </span>
           </div>
 
           <CategoryFilterBar
@@ -440,13 +672,13 @@ export const StoriesScreen: React.FC = () => {
           {/* 4. Filtered "For You" Discover Grid */}
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'row' as any,
-              flexWrap: 'wrap' as any,
-              paddingLeft: '12px',
-              paddingRight: '12px',
-              justifyContent: 'space-between',
-              marginTop: '4px',
+              display: "flex",
+              flexDirection: "row" as any,
+              flexWrap: "wrap" as any,
+              paddingLeft: "12px",
+              paddingRight: "12px",
+              justifyContent: "space-between",
+              marginTop: "4px",
             }}
           >
             {filteredDiscover.map((item) => (
@@ -454,48 +686,109 @@ export const StoriesScreen: React.FC = () => {
                 key={item.id}
                 type="button"
                 onClick={() => {
+                  if (!isVipMember) {
+                    window.alert(
+                      "👑 VIP Membership Required\n\nRedirecting to checkout...",
+                    );
+                    // trigger stripe checkout here or open VIP Modal
+                    navigation.navigate("MainTabs", { screen: "VipMembers" } as any);
+                    return;
+                  }
                   openStoryViewer([
                     {
                       id: item.id,
-                      media_url: item.image,
-                      media_type: 'image',
-                      user_profile: { display_name: item.publisher },
+                      media_url: item.media_url || item.image,
+                      media_type: item.media_type || "image",
+                      user_profile: {
+                        display_name:
+                          item.creator_profile?.username || item.publisher,
+                      },
                     },
                   ]);
                 }}
                 style={{
-                  border: 'none', background: 'none', padding: 0, margin: 0,
-                  cursor: 'pointer', WebkitAppearance: 'none' as any,
-                  appearance: 'none' as any, touchAction: 'manipulation',
-                  width: `${cardWidth}px`, height: `${cardWidth * 1.5}px`,
-                  borderRadius: '14px', overflow: 'hidden',
-                  backgroundColor: '#1C1C1E', marginBottom: '12px',
-                  position: 'relative' as any,
+                  border: "none",
+                  background: "none",
+                  padding: 0,
+                  margin: 0,
+                  cursor: "pointer",
+                  WebkitAppearance: "none" as any,
+                  appearance: "none" as any,
+                  touchAction: "manipulation",
+                  width: `${cardWidth}px`,
+                  height: `${cardWidth * 1.5}px`,
+                  borderRadius: "14px",
+                  overflow: "hidden",
+                  backgroundColor: "#1C1C1E",
+                  marginBottom: "12px",
+                  position: "relative" as any,
                 }}
               >
-                <Image source={{ uri: item.image }} style={styles.discoverImage} />
+                <Image
+                  source={{ uri: item.media_url || item.image }}
+                  style={[
+                    styles.discoverImage,
+                    !isVipMember &&
+                      ({ opacity: 0.4, filter: "blur(8px)" } as any),
+                  ]}
+                />
+                {!isVipMember && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)" as any,
+                    }}
+                  >
+                    <Text style={{ fontSize: 30 }}>🔒</Text>
+                  </View>
+                )}
                 <View style={styles.discoverGradientOverlay}>
-                  <Text style={styles.categoryBadge}>{item.category}</Text>
-                  <Text style={styles.discoverTitle} numberOfLines={3}>{item.title}</Text>
-                  <Text style={styles.publisherName}>{item.publisher}</Text>
+                  <Text style={styles.categoryBadge}>
+                    {item.category}
+                  </Text>
+                  <Text style={styles.discoverTitle} numberOfLines={3}>
+                    {item.title}
+                  </Text>
+                  <Text style={styles.publisherName}>
+                    @{item.creator_profile?.username || item.publisher}
+                  </Text>
                 </View>
               </button>
             ))}
           </div>
         </div>
       ) : (
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* 1. Friends Stories Row */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Stories</Text>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.friendsScroll}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.friendsScroll}
+          >
             <WebTouchable style={styles.friendItem} onPress={openMyStory}>
-              <View style={[styles.avatarRing, myStories.length > 0 ? styles.activeMyStoryRing : styles.addStoryRing]}>
+              <View
+                style={[
+                  styles.avatarRing,
+                  myStories.length > 0
+                    ? styles.activeMyStoryRing
+                    : styles.addStoryRing,
+                ]}
+              >
                 <Image
                   source={{
-                    uri: myStories.length > 0 ? myStories[0].media_url : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+                    uri:
+                      myStories.length > 0
+                        ? myStories[0].media_url
+                        : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
                   }}
                   style={styles.friendAvatar}
                 />
@@ -506,62 +799,115 @@ export const StoriesScreen: React.FC = () => {
                 )}
               </View>
               <Text style={styles.myStoryName} numberOfLines={1}>
-                {myStories.length > 0 ? `My Story (${myStories.length})` : 'Add Story'}
+                {myStories.length > 0
+                  ? `My Story (${myStories.length})`
+                  : "Add Story"}
               </Text>
             </WebTouchable>
 
             {otherStories.map((story) => {
-              const displayName = story.user_profile?.display_name || story.user_profile?.username || 'Creator';
+              const displayName =
+                story.user_profile?.display_name ||
+                story.user_profile?.username ||
+                "Creator";
               return (
-                <WebTouchable key={story.id} style={styles.friendItem} onPress={() => openDbStoryReel(story)}>
+                <WebTouchable
+                  key={story.id}
+                  style={styles.friendItem}
+                  onPress={() => openDbStoryReel(story)}
+                >
                   <View style={[styles.avatarRing, styles.activeStoryRing]}>
-                    <Image source={{ uri: story.media_url }} style={styles.friendAvatar} />
+                    <Image
+                      source={{ uri: story.media_url }}
+                      style={styles.friendAvatar}
+                    />
                   </View>
-                  <Text style={styles.friendName} numberOfLines={1}>{displayName}</Text>
+                  <Text style={styles.friendName} numberOfLines={1}>
+                    {displayName}
+                  </Text>
                 </WebTouchable>
               );
             })}
 
             {FRIEND_STORIES.map((friend) => (
-              <WebTouchable key={friend.id} style={styles.friendItem} onPress={() => openStoryReel(friend)}>
-                <View style={[styles.avatarRing, friend.hasUnseen && styles.activeStoryRing]}>
-                  <Image source={{ uri: friend.avatar }} style={styles.friendAvatar} />
+              <WebTouchable
+                key={friend.id}
+                style={styles.friendItem}
+                onPress={() => openStoryReel(friend)}
+              >
+                <View
+                  style={[
+                    styles.avatarRing,
+                    friend.hasUnseen && styles.activeStoryRing,
+                  ]}
+                >
+                  <Image
+                    source={{ uri: friend.avatar }}
+                    style={styles.friendAvatar}
+                  />
                 </View>
-                <Text style={styles.friendName} numberOfLines={1}>{friend.name}</Text>
+                <Text style={styles.friendName} numberOfLines={1}>
+                  {friend.name}
+                </Text>
               </WebTouchable>
             ))}
           </ScrollView>
 
           {/* 2. Subscriptions Section */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Subscriptions</Text>
+            <Text style={styles.sectionTitle}>Gallery</Text>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.subsScroll}>
-            {SUBSCRIPTIONS.map((sub) => (
-              <WebTouchable
-                key={sub.id}
-                style={styles.subCard}
-                onPress={() => {
-                  openStoryViewer([{
-                    id: sub.id, media_url: sub.image, media_type: 'image',
-                    user_profile: { display_name: sub.author },
-                  }]);
-                }}
-              >
-                <Image source={{ uri: sub.image }} style={styles.subImage} />
-                <View style={styles.subGradientOverlay}>
-                  <Text style={styles.subAuthor}>{sub.author}</Text>
-                  <Text style={styles.subTitle} numberOfLines={2}>{sub.title}</Text>
-                </View>
-              </WebTouchable>
-            ))}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.subsScroll}
+          >
+            {(galleryItems.length > 0 ? galleryItems : SUBSCRIPTIONS).map(
+              (sub) => (
+                <WebTouchable
+                  key={sub.id}
+                  style={styles.subCard}
+                  onPress={() => {
+                    openStoryViewer([
+                      {
+                        id: sub.id,
+                        media_url: sub.media_url || sub.image,
+                        media_type: sub.media_type || "image",
+                        user_profile: {
+                          display_name:
+                            sub.creator_profile?.username || sub.author,
+                        },
+                      },
+                    ]);
+                  }}
+                >
+                  <Image
+                    source={{ uri: sub.media_url || sub.image }}
+                    style={styles.subImage}
+                  />
+                  <View style={styles.subGradientOverlay}>
+                    <Text style={styles.subAuthor}>
+                      @{sub.creator_profile?.username || sub.author}
+                    </Text>
+                    <Text style={styles.subTitle} numberOfLines={2}>
+                      {sub.title}
+                    </Text>
+                  </View>
+                </WebTouchable>
+              ),
+            )}
           </ScrollView>
 
           {/* 3. Category Filter Pill Bar */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>For You</Text>
+            <Text style={[styles.sectionTitle, { color: "#FFD700" }]}>
+              👑 VIP Section
+            </Text>
           </View>
-          <CategoryFilterBar selectedCategoryId={selectedCategory} onSelectCategory={setSelectedCategory} />
+          <CategoryFilterBar
+            selectedCategoryId={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
 
           {/* 4. Filtered "For You" Discover Grid */}
           <View style={styles.discoverGrid}>
@@ -570,17 +916,47 @@ export const StoriesScreen: React.FC = () => {
                 key={item.id}
                 style={styles.discoverCard}
                 onPress={() => {
-                  openStoryViewer([{
-                    id: item.id, media_url: item.image, media_type: 'image',
-                    user_profile: { display_name: item.publisher },
-                  }]);
+                  if (!isVipMember) {
+                    // Trigger native checkout (e.g. RevenueCat or Stripe)
+                    navigation.navigate("MainTabs", { screen: "VipMembers" } as any);
+                    return;
+                  }
+                  openStoryViewer([
+                    {
+                      id: item.id,
+                      media_url: item.media_url || item.image,
+                      media_type: item.media_type || "image",
+                      user_profile: {
+                        display_name:
+                          item.creator_profile?.username || item.publisher,
+                      },
+                    },
+                  ]);
                 }}
               >
-                <Image source={{ uri: item.image }} style={styles.discoverImage} />
+                <Image
+                  source={{ uri: item.media_url || item.image }}
+                  style={[
+                    styles.discoverImage,
+                    !isVipMember && { opacity: 0.4 },
+                  ]}
+                  blurRadius={!isVipMember ? 10 : 0}
+                />
+                {!isVipMember && (
+                  <View
+                    style={{ position: "absolute", top: "40%", left: "45%" }}
+                  >
+                    <Text style={{ fontSize: 30 }}>🔒</Text>
+                  </View>
+                )}
                 <View style={styles.discoverGradientOverlay}>
                   <Text style={styles.categoryBadge}>{item.category}</Text>
-                  <Text style={styles.discoverTitle} numberOfLines={3}>{item.title}</Text>
-                  <Text style={styles.publisherName}>{item.publisher}</Text>
+                  <Text style={styles.discoverTitle} numberOfLines={3}>
+                    {item.title}
+                  </Text>
+                  <Text style={styles.publisherName}>
+                    @{item.creator_profile?.username || item.publisher}
+                  </Text>
                 </View>
               </WebTouchable>
             ))}
@@ -589,12 +965,12 @@ export const StoriesScreen: React.FC = () => {
       )}
 
       {/* Hidden File Picker Input for Device Photo/Video Upload */}
-      {Platform.OS === 'web' && (
+      {Platform.OS === "web" && (
         <input
           type="file"
           ref={fileInputRef}
           accept="image/*,video/*"
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
           onChange={handleDeviceFileUpload}
         />
       )}
@@ -611,45 +987,147 @@ export const StoriesScreen: React.FC = () => {
         <View style={styles.addModalOverlay}>
           <View style={styles.addModalContent}>
             <View style={styles.addModalHeader}>
-              <Text style={styles.addModalTitle}>👻 Add New Snap Story</Text>
-              <Pressable onPress={() => setShowAddStoryModal(false)} style={styles.addModalClose}>
+              <Text style={styles.addModalTitle}>👻 Add Content</Text>
+              <Pressable
+                onPress={() => setShowAddStoryModal(false)}
+                style={styles.addModalClose}
+              >
                 <Text style={styles.addModalCloseText}>✕</Text>
               </Pressable>
             </View>
 
             <Text style={styles.addModalSubtitle}>
-              Post a 24-hour Snap Story visible to your followers and friends.
+              Where do you want to post this content?
             </Text>
 
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-around",
+                marginBottom: 16,
+              }}
+            >
+              <Pressable
+                onPress={() => setUploadDestination("story")}
+                style={{
+                  padding: 8,
+                  borderBottomWidth: uploadDestination === "story" ? 2 : 0,
+                  borderColor: "#00F2FE",
+                }}
+              >
+                <Text
+                  style={{
+                    color: uploadDestination === "story" ? "#00F2FE" : "#888",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Story (24h)
+                </Text>
+              </Pressable>
+              {userRole === "creator" && (
+                <>
+                  <Pressable
+                    onPress={() => setUploadDestination("gallery")}
+                    style={{
+                      padding: 8,
+                      borderBottomWidth:
+                        uploadDestination === "gallery" ? 2 : 0,
+                      borderColor: "#00F2FE",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color:
+                          uploadDestination === "gallery" ? "#00F2FE" : "#888",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Gallery
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setUploadDestination("vip")}
+                    style={{
+                      padding: 8,
+                      borderBottomWidth: uploadDestination === "vip" ? 2 : 0,
+                      borderColor: "#FFD700",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: uploadDestination === "vip" ? "#FFD700" : "#888",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      VIP 🔒
+                    </Text>
+                  </Pressable>
+                </>
+              )}
+            </View>
+
+            {(uploadDestination === "gallery" ||
+              uploadDestination === "vip") && (
+              <View style={{ marginBottom: 16 }}>
+                <Text style={{ color: "#FFF", marginBottom: 8 }}>
+                  Select Category:
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {[
+                    "ALL",
+                    "SCIENCE",
+                    "AUTO",
+                    "GAMING",
+                    "LIFESTYLE",
+                    "TECH",
+                    "FOOD",
+                  ].map((cat) => (
+                    <Pressable
+                      key={cat}
+                      onPress={() => setUploadCategory(cat)}
+                      style={{
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        backgroundColor:
+                          uploadCategory === cat ? "#FFFC00" : "#333",
+                        borderRadius: 12,
+                        marginRight: 8,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: uploadCategory === cat ? "#000" : "#FFF",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {cat}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
             <Pressable
-              style={({ pressed }) => [styles.addOptionBtnPrimary, pressed && { opacity: 0.8 }]}
+              style={({ pressed }) => [
+                styles.addOptionBtnPrimary,
+                pressed && { opacity: 0.8 },
+              ]}
               onPress={() => {
-                if (Platform.OS === 'web' && fileInputRef.current) {
+                if (Platform.OS === "web" && fileInputRef.current) {
                   fileInputRef.current.click();
                 } else {
                   setShowAddStoryModal(false);
-                  navigation.navigate('MainTabs', { screen: 'Camera' });
+                  navigation.navigate("MainTabs", { screen: "Camera" });
                 }
               }}
             >
               <Text style={styles.addOptionIcon}>📁</Text>
               <View>
-                <Text style={styles.addOptionText}>Upload Photo / Video from Device</Text>
-                <Text style={styles.addOptionSubtext}>Select any photo or video from gallery</Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              style={({ pressed }) => [styles.addOptionBtnSecondary, pressed && { opacity: 0.8 }]}
-              onPress={() => {
-                setShowAddStoryModal(false);
-                navigation.navigate('MainTabs', { screen: 'Camera' });
-              }}
-            >
-              <Text style={styles.addOptionIcon}>📸</Text>
-              <View>
-                <Text style={styles.addOptionTextSecondary}>Snap Photo with Camera</Text>
-                <Text style={styles.addOptionSubtext}>Launch live camera viewfinder</Text>
+                <Text style={styles.addOptionText}>Upload from Device</Text>
+                <Text style={styles.addOptionSubtext}>
+                  Select any photo or video
+                </Text>
               </View>
             </Pressable>
           </View>
@@ -662,7 +1140,7 @@ export const StoriesScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   scrollContent: {
     paddingBottom: 100,
@@ -673,15 +1151,15 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   sectionTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   friendsScroll: {
     paddingLeft: 16,
   },
   friendItem: {
-    alignItems: 'center',
+    alignItems: "center",
     marginRight: 16,
     width: 76,
   },
@@ -691,37 +1169,37 @@ const styles = StyleSheet.create({
     borderRadius: 37,
     padding: 3,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   activeStoryRing: {
-    borderColor: '#9D4EDD',
+    borderColor: "#9D4EDD",
   },
   activeMyStoryRing: {
-    borderColor: '#FFFC00',
+    borderColor: "#FFFC00",
   },
   addStoryRing: {
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    borderStyle: 'dashed',
+    borderColor: "rgba(255, 255, 255, 0.4)",
+    borderStyle: "dashed",
   },
   plusBadge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -2,
     right: -2,
-    backgroundColor: '#00F2FE',
+    backgroundColor: "#00F2FE",
     width: 22,
     height: 22,
     borderRadius: 11,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
-    borderColor: '#000',
+    borderColor: "#000",
   },
   plusBadgeText: {
-    color: '#000',
+    color: "#000",
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: "900",
   },
   friendAvatar: {
     width: 64,
@@ -729,18 +1207,18 @@ const styles = StyleSheet.create({
     borderRadius: 32,
   },
   friendName: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 6,
-    textAlign: 'center',
+    textAlign: "center",
   },
   myStoryName: {
-    color: '#FFFC00',
+    color: "#FFFC00",
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "800",
     marginTop: 6,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subsScroll: {
     paddingLeft: 16,
@@ -750,38 +1228,38 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 14,
     marginRight: 12,
-    overflow: 'hidden',
-    backgroundColor: '#1C1C1E',
+    overflow: "hidden",
+    backgroundColor: "#1C1C1E",
   },
   subImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   subGradientOverlay: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     padding: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: "rgba(0, 0, 0, 0.65)",
   },
   subAuthor: {
-    color: '#FFFC00',
+    color: "#FFFC00",
     fontSize: 11,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
+    fontWeight: "bold",
+    textTransform: "uppercase",
     marginBottom: 2,
   },
   subTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   discoverGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     paddingHorizontal: 12,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     marginTop: 4,
   },
   discoverCard: {
@@ -789,111 +1267,111 @@ const styles = StyleSheet.create({
     height: cardWidth * 1.5,
     borderRadius: 14,
     marginBottom: 12,
-    overflow: 'hidden',
-    backgroundColor: '#1C1C1E',
+    overflow: "hidden",
+    backgroundColor: "#1C1C1E",
   },
   discoverImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   discoverGradientOverlay: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     padding: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
   },
   categoryBadge: {
-    color: '#00F2FE',
+    color: "#00F2FE",
     fontSize: 10,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 1,
     marginBottom: 4,
   },
   discoverTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     lineHeight: 18,
     marginBottom: 6,
   },
   publisherName: {
-    color: '#A0A0B0',
+    color: "#A0A0B0",
     fontSize: 12,
   },
   addModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    justifyContent: "flex-end",
   },
   addModalContent: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: "#1C1C1E",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
     gap: 12,
     borderTopWidth: 1,
-    borderTopColor: '#FFFC00',
+    borderTopColor: "#FFFC00",
   },
   addModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   addModalTitle: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   addModalClose: {
     padding: 6,
   },
   addModalCloseText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   addModalSubtitle: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 13,
     marginBottom: 6,
   },
   addOptionBtnPrimary: {
-    backgroundColor: 'rgba(255, 252, 0, 0.18)',
+    backgroundColor: "rgba(255, 252, 0, 0.18)",
     borderWidth: 1.5,
-    borderColor: '#FFFC00',
+    borderColor: "#FFFC00",
     padding: 14,
     borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   addOptionIcon: {
     fontSize: 24,
   },
   addOptionText: {
-    color: '#FFFC00',
+    color: "#FFFC00",
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   addOptionSubtext: {
-    color: '#AAA',
+    color: "#AAA",
     fontSize: 11,
     marginTop: 2,
   },
   addOptionBtnSecondary: {
-    backgroundColor: '#2C2C2E',
+    backgroundColor: "#2C2C2E",
     padding: 14,
     borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   addOptionTextSecondary: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 
