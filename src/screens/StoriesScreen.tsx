@@ -23,6 +23,7 @@ import { useNavigation, useIsFocused } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
 import { supabase } from "../lib/supabase";
+import * as ImagePicker from "expo-image-picker";
 import { Story } from "../types/database";
 import SnapBar from "../components/SnapBar";
 import CategoryFilterBar from "../components/CategoryFilterBar";
@@ -242,6 +243,79 @@ export const StoriesScreen: React.FC = () => {
   const localStories = sessionStore.getStories();
   const allUserStories = [...localStories, ...dbStories];
 
+  const handleCameraCapture = async () => {
+    if (Platform.OS === "web") {
+      window.alert(
+        "Camera capture is only supported on native apps. Please use Upload from Device on web.",
+      );
+      return;
+    }
+
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      window.alert("Sorry, we need camera permissions to make this work!");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setShowAddStoryModal(false);
+      const asset = result.assets[0];
+      // Reuse handleDeviceFileUpload logic but skip file input
+      const mediaUrl = asset.uri;
+      const isVideo = asset.type === "video";
+      const userDisplayName = "Me";
+
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const user = userData?.user;
+
+        if (uploadDestination === "story") {
+          const newStoryItem: Story = {
+            id: `uploaded-story-${Date.now()}`,
+            user_id: user?.id || "demo-user-id",
+            media_url: mediaUrl,
+            media_type: isVideo ? "video" : "image",
+            created_at: new Date().toISOString(),
+            expires_at: new Date(Date.now() + 86400000).toISOString(),
+            user_profile: { display_name: userDisplayName },
+          };
+          sessionStore.addStory(newStoryItem);
+          setDbStories((prev) => [newStoryItem, ...prev]);
+        } else {
+          const newVipItem = {
+            id: `uploaded-${uploadDestination}-${Date.now()}`,
+            creator_id: user?.id || "demo-user-id",
+            title: `My ${uploadDestination} post`,
+            description: "",
+            media_url: mediaUrl,
+            media_type: isVideo ? "video" : "image",
+            required_tier: uploadDestination === "vip" ? "vip" : "public",
+            category: uploadCategory,
+            is_public_gallery: uploadDestination === "gallery",
+            created_at: new Date().toISOString(),
+            creator_profile: {
+              display_name: userDisplayName,
+              username: userDisplayName,
+            },
+          };
+          if (uploadDestination === "gallery") {
+            setGalleryItems((prev) => [newVipItem, ...prev]);
+          } else {
+            setVipItems((prev) => [newVipItem, ...prev]);
+          }
+        }
+      } catch (err) {
+        console.error("Camera upload failed", err);
+      }
+    }
+  };
+
   const handleDeviceFileUpload = (event: any) => {
     const file = event.target?.files?.[0];
     if (file) {
@@ -401,20 +475,48 @@ export const StoriesScreen: React.FC = () => {
 
       {/* DEBUG TOGGLE UI FOR TESTING */}
       {Platform.OS === "web" && (
-        <div style={{ display: 'flex', gap: '8px', padding: '8px 16px', backgroundColor: '#1C1C1E', borderBottom: '1px solid #333' }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            padding: "8px 16px",
+            backgroundColor: "#1C1C1E",
+            borderBottom: "1px solid #333",
+          }}
+        >
           <button
             type="button"
-            onClick={() => setUserRole(userRole === 'creator' ? 'customer' : 'creator')}
-            style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: userRole === 'creator' ? '#00F2FE' : '#333', color: userRole === 'creator' ? '#000' : '#FFF', fontWeight: 'bold', cursor: 'pointer' }}
+            onClick={() =>
+              setUserRole(userRole === "creator" ? "customer" : "creator")
+            }
+            style={{
+              flex: 1,
+              padding: "8px",
+              borderRadius: "8px",
+              border: "none",
+              backgroundColor: userRole === "creator" ? "#00F2FE" : "#333",
+              color: userRole === "creator" ? "#000" : "#FFF",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
           >
-            {userRole === 'creator' ? '✅ Role: Creator' : '❌ Role: Customer'}
+            {userRole === "creator" ? "✅ Role: Creator" : "❌ Role: Customer"}
           </button>
           <button
             type="button"
             onClick={() => setIsVipMember(!isVipMember)}
-            style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', backgroundColor: isVipMember ? '#FFD700' : '#333', color: isVipMember ? '#000' : '#FFF', fontWeight: 'bold', cursor: 'pointer' }}
+            style={{
+              flex: 1,
+              padding: "8px",
+              borderRadius: "8px",
+              border: "none",
+              backgroundColor: isVipMember ? "#FFD700" : "#333",
+              color: isVipMember ? "#000" : "#FFF",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
           >
-            {isVipMember ? '✅ VIP Active' : '❌ VIP Inactive'}
+            {isVipMember ? "✅ VIP Active" : "❌ VIP Inactive"}
           </button>
         </div>
       )}
@@ -710,7 +812,9 @@ export const StoriesScreen: React.FC = () => {
                       "👑 VIP Membership Required\n\nRedirecting to checkout...",
                     );
                     // trigger stripe checkout here or open VIP Modal
-                    navigation.navigate("MainTabs", { screen: "VipMembers" } as any);
+                    navigation.navigate("MainTabs", {
+                      screen: "VipMembers",
+                    } as any);
                     return;
                   }
                   openStoryViewer([
@@ -764,9 +868,7 @@ export const StoriesScreen: React.FC = () => {
                   </View>
                 )}
                 <View style={styles.discoverGradientOverlay}>
-                  <Text style={styles.categoryBadge}>
-                    {item.category}
-                  </Text>
+                  <Text style={styles.categoryBadge}>{item.category}</Text>
                   <Text style={styles.discoverTitle} numberOfLines={3}>
                     {item.title}
                   </Text>
@@ -937,7 +1039,9 @@ export const StoriesScreen: React.FC = () => {
                 onPress={() => {
                   if (!isVipMember) {
                     // Trigger native checkout (e.g. RevenueCat or Stripe)
-                    navigation.navigate("MainTabs", { screen: "VipMembers" } as any);
+                    navigation.navigate("MainTabs", {
+                      screen: "VipMembers",
+                    } as any);
                     return;
                   }
                   openStoryViewer([
@@ -1007,6 +1111,26 @@ export const StoriesScreen: React.FC = () => {
           <View style={styles.addModalContent}>
             <View style={styles.addModalHeader}>
               <Text style={styles.addModalTitle}>👻 Add Content</Text>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.addOptionBtnPrimary,
+                  pressed && { opacity: 0.8 },
+                  { marginBottom: 12, backgroundColor: "#FFD700" },
+                ]}
+                onPress={handleCameraCapture}
+              >
+                <Text style={styles.addOptionIcon}>📷</Text>
+                <View>
+                  <Text style={[styles.addOptionText, { color: "#000" }]}>
+                    Snap from Camera
+                  </Text>
+                  <Text style={[styles.addOptionSubtext, { color: "#333" }]}>
+                    Take a new photo or video
+                  </Text>
+                </View>
+              </Pressable>
+
               <Pressable
                 onPress={() => setShowAddStoryModal(false)}
                 style={styles.addModalClose}
