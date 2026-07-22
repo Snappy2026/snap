@@ -554,45 +554,32 @@ export const App: React.FC = () => {
       {/* ========================================================================= */}
       {activeCreator && activeCreator.role === "creator" && (
         <div style={{ paddingBottom: "40px" }}>
-          {/* Top Back Navigation */}
-          <div style={{ padding: "12px 16px 4px 16px" }}>
-            <button
-              style={{
-                background: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                color: "#FFF",
-                padding: "6px 14px",
-                borderRadius: "16px",
-                fontWeight: "bold",
-                fontSize: "12px",
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                window.location.search = "";
-              }}
-            >
-              ← Back to All Creators
-            </button>
-          </div>
-
-          {/* Dedicated Creator Profile Banner Card */}
+          {/* Luxury Creator Cover & Profile Card */}
           <section className="creator-banner-card">
+            {/* Ambient Gold Cover Glow */}
+            <div className="creator-cover-backdrop" />
+
             <div className="profile-avatar-wrapper">
               <img
-                src={activeCreator?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
+                src={activeCreator?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300"}
                 alt="Profile Avatar"
                 className="profile-avatar-img"
               />
               <div className="profile-crown-badge">👑</div>
             </div>
 
-            <h2 className="profile-name">{activeCreator?.display_name || activeCreator?.username}</h2>
-            <p className="profile-handle">@{activeCreator?.username}</p>
+            <div style={{ textAlign: "center", marginBottom: "14px" }}>
+              <h2 className="profile-name">
+                {activeCreator?.display_name || activeCreator?.username}
+                <span className="verified-badge-glow">✓</span>
+              </h2>
+              <p className="profile-handle">@{activeCreator?.username} • VIP Creator</p>
+            </div>
 
             <div className="profile-actions-stack">
               <div className="row-actions">
                 <button className="btn-follow" onClick={() => alert(`✓ Following @${activeCreator?.username}`)}>
-                  + Follow Creator
+                  + Follow
                 </button>
                 <button
                   className="btn-chat-locked"
@@ -614,7 +601,7 @@ export const App: React.FC = () => {
                     else alert(`👑 Subscribing to @${activeCreator?.username}'s VIP Lounge ($${customVipPrice}/mo)`);
                   }}
                 >
-                  👑 Subscribe to @{activeCreator?.username}'s VIP Lounge (${customVipPrice}/mo)
+                  👑 Subscribe to VIP Lounge (${customVipPrice}/mo)
                 </button>
               )}
             </div>
