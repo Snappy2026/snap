@@ -154,11 +154,11 @@ export const StoriesScreen: React.FC = () => {
 
         if (vipData) {
           const publicGallery = vipData.filter((v: any) => v.is_public_gallery === true);
-          // Show gallery items for the currently selected creator
+          // Strictly show ONLY gallery items belonging to the active creator
           const filteredGallery = publicGallery.filter(
             (v: any) => v.creator_id === (effectiveCreatorId || user?.id)
           );
-          setGalleryItems(filteredGallery.length > 0 ? filteredGallery : publicGallery);
+          setGalleryItems(filteredGallery);
 
           const vipFiltered = vipData.filter(
             (v: any) => v.is_public_gallery !== true && v.creator_id === (effectiveCreatorId || user?.id)
@@ -770,8 +770,12 @@ export const StoriesScreen: React.FC = () => {
               gap: "12px",
             }}
           >
-            {(galleryItems.length > 0 ? galleryItems : SUBSCRIPTIONS).map(
-              (sub) => (
+            {galleryItems.length === 0 ? (
+              <div style={{ color: "#AAA", fontSize: "14px", fontStyle: "italic", padding: "12px 0" }}>
+                No gallery photos uploaded yet. Tap ＋ above to add photos to gallery.
+              </div>
+            ) : (
+              galleryItems.map((sub) => (
                 <button
                   key={sub.id}
                   type="button"
@@ -815,7 +819,7 @@ export const StoriesScreen: React.FC = () => {
                     style={styles.subImage}
                   />
                 </button>
-              ),
+              ))
             )}
           </div>
 
@@ -1031,8 +1035,12 @@ export const StoriesScreen: React.FC = () => {
             showsHorizontalScrollIndicator={false}
             style={styles.subsScroll}
           >
-            {(galleryItems.length > 0 ? galleryItems : SUBSCRIPTIONS).map(
-              (sub) => (
+            {galleryItems.length === 0 ? (
+              <Text style={{ color: "#AAA", fontSize: 14, fontStyle: "italic", paddingVertical: 12, paddingLeft: 16 }}>
+                No gallery photos uploaded yet. Tap ＋ above to add photos to gallery.
+              </Text>
+            ) : (
+              galleryItems.map((sub) => (
                 <WebTouchable
                   key={sub.id}
                   style={styles.subCard}
@@ -1059,7 +1067,7 @@ export const StoriesScreen: React.FC = () => {
                     style={styles.subImage}
                   />
                 </WebTouchable>
-              ),
+              ))
             )}
           </ScrollView>
 
