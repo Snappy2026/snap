@@ -107,22 +107,22 @@ export const StoriesScreen: React.FC = () => {
         let invProfileData = null;
         if (effectiveParam) {
           const clean = effectiveParam.trim().toLowerCase();
-          // First try exact username match or ID match for creator role
+          // Query by exact match first, filtering out customer role profiles
           const { data: exact } = await supabase
             .from("profiles")
             .select("*")
-            .eq("role", "creator")
+            .filter("role", "eq", "creator")
             .or(`username.ilike.${clean},id.eq.${effectiveParam}`)
             .maybeSingle();
 
           if (exact) {
             invProfileData = exact;
           } else {
-            // Second try fuzzy username/display_name match for creator role
+            // Query fuzzy match filtering out customer role profiles
             const { data: fuzzy } = await supabase
               .from("profiles")
               .select("*")
-              .eq("role", "creator")
+              .filter("role", "eq", "creator")
               .or(`username.ilike.%${clean}%,display_name.ilike.%${clean}%`)
               .order("created_at", { ascending: false })
               .limit(1)
@@ -134,35 +134,30 @@ export const StoriesScreen: React.FC = () => {
         const user = userDataRes.data?.user;
         setCurrentUserId(user?.id || null);
 
-        let targetCreatorId = activeCreatorId;
+        let targetCreatorId: string | null = null;
         if (invProfileData) {
           targetCreatorId = (invProfileData as any).id;
           setActiveCreatorProfile(invProfileData);
           setActiveCreatorId((invProfileData as any).id);
-        }
-
-        if (!targetCreatorId) {
+        } else {
           targetCreatorId = activeCreatorId;
         }
 
         // Determine effective creator profile ID:
         // Priority 1: Target Creator ID from current URL query parameter or invite link
-        // Priority 2: Tapped story creator profile ID
-        // Priority 3: If logged in as Creator and no invite specified, show own profile
-        // Priority 4: Fallback to first active creator profile
+        // Priority 2: Active tapped story creator profile ID
+        // Priority 3: Latest creator profile in database with role = 'creator'
         let effectiveCreatorId = targetCreatorId;
-        if (!effectiveCreatorId && userRole === "creator" && user?.id) {
-          effectiveCreatorId = user.id;
-        }
 
         if (!effectiveCreatorId) {
           const { data: defaultCreator } = await supabase
             .from("profiles")
             .select("*")
-            .eq("role", "creator")
+            .filter("role", "eq", "creator")
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle();
+
           if (defaultCreator) {
             effectiveCreatorId = (defaultCreator as any).id;
             setActiveCreatorProfile(defaultCreator);
