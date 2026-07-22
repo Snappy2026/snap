@@ -226,29 +226,46 @@ export const App: React.FC = () => {
     if (!emailInput || !passwordInput) return;
 
     if (authMode === "signup") {
-      const { data: signUpData, error } = await supabase.auth.signUp({
+      let userObj = null;
+
+      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
         email: emailInput,
         password: passwordInput,
       });
 
-      if (error) {
-        alert(`Sign Up Error: ${error.message}`);
-        return;
+      if (signUpErr) {
+        if (signUpErr.message.includes("User already registered")) {
+          // If auth user exists in Supabase Auth schema, log in directly and upsert profile
+          const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+            email: emailInput,
+            password: passwordInput,
+          });
+          if (signInErr) {
+            alert(`Authentication Error: ${signInErr.message}`);
+            return;
+          }
+          userObj = signInData?.user;
+        } else {
+          alert(`Sign Up Error: ${signUpErr.message}`);
+          return;
+        }
+      } else {
+        userObj = signUpData?.user;
       }
 
-      if (signUpData?.user) {
+      if (userObj) {
         await supabase.from("profiles").upsert({
-          id: signUpData.user.id,
+          id: userObj.id,
           username: (usernameInput || emailInput.split("@")[0]).trim().toLowerCase(),
           display_name: usernameInput || emailInput.split("@")[0],
           email: emailInput.trim().toLowerCase(),
           role: selectedRoleInput,
         });
 
-        setCurrentUser(signUpData.user);
+        setCurrentUser(userObj);
         setUserRole(selectedRoleInput);
         setShowAuthModal(false);
-        alert(`🎉 Account created successfully as ${selectedRoleInput.toUpperCase()}!`);
+        alert(`🎉 Account registered/logged in as ${selectedRoleInput.toUpperCase()}!`);
       }
     } else {
       const { data: loginData, error } = await supabase.auth.signInWithPassword({
