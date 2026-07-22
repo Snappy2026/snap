@@ -147,9 +147,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
           .maybeSingle();
         const finalRole = isMasterAdminEmail ? "admin" : ((profileData as any)?.role || "customer");
 
-        // On login, proceed straight to app for existing users!
+        // On login, proceed straight to Stories page for existing users!
         if (onEnableDemoMode) onEnableDemoMode();
-        navigation.replace("MainTabs", { screen: "Camera" });
+        navigation.replace("MainTabs", { screen: "Stories" });
       } else {
         // Pre-check if username handle is already registered in profiles
         const { data: existingUser } = await supabase
@@ -205,13 +205,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
           });
         }
 
-        if (selectedRole === "creator") {
-          setRegisteredUser(signUpData?.user || { id: signUpData?.user?.id, email: email.trim() });
-          setShowCreatorModal(true);
-        } else {
-          if (onEnableDemoMode) onEnableDemoMode();
-          navigation.replace("MainTabs", { screen: "Camera" });
-        }
+        // First time signup: Show payment / subscription options modal for both creators and followers
+        setRegisteredUser(signUpData?.user || { id: signUpData?.user?.id, email: email.trim() });
+        setShowCreatorModal(true);
       }
     } catch (err: any) {
       console.error("[Auth Exception]", err);
@@ -432,7 +428,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
         onClose={() => {
           setShowCreatorModal(false);
           if (onEnableDemoMode) onEnableDemoMode();
-          navigation.replace("MainTabs", { screen: "Camera" });
+          navigation.replace("MainTabs", { screen: "Stories" });
         }}
       />
     </SafeAreaView>

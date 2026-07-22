@@ -116,7 +116,7 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
 const MainTabNavigator: React.FC = () => {
   return (
     <Tab.Navigator
-      initialRouteName="Camera"
+      initialRouteName="Stories"
       tabBar={(props: BottomTabBarProps) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
