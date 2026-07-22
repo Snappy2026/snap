@@ -36,20 +36,12 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     const initApp = async () => {
-      // Execute automatic database purge to clear out all old test profiles & content
-      try {
-        await supabase.from("profiles").delete().gt("created_at", "1970-01-01T00:00:00Z");
-        await supabase.from("stories").delete().gt("created_at", "1970-01-01T00:00:00Z");
-        await supabase.from("vip_content").delete().gt("created_at", "1970-01-01T00:00:00Z");
-      } catch (purgeErr) {
-        console.log("[Purge Error]", purgeErr);
-      }
-
       // 1. Get logged-in user
       const { data: authData } = await supabase.auth.getUser();
       const user = authData?.user;
       setCurrentUser(user || null);
 
+      let loggedInCreatorProf = null;
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
@@ -60,6 +52,9 @@ export const App: React.FC = () => {
         if (profile) {
           setUserRole(profile.role || "customer");
           setIsVipMember(profile.is_vip_member || false);
+          if (profile.role === "creator") {
+            loggedInCreatorProf = profile;
+          }
         }
       }
 
@@ -82,7 +77,9 @@ export const App: React.FC = () => {
 
       const cleanHandle = linkHandle ? linkHandle.trim().toLowerCase() : "";
 
-      // If a link parameter is present (or ?creator=, ?hippygogo, /hippygogo), load THAT exact creator's profile layout!
+      // Set active creator profile:
+      // Priority 1: Link parameter in URL (?username)
+      // Priority 2: Logged in creator user's own profile page
       if (linkHandle) {
         const { data: creatorProf } = await supabase
           .from("profiles")
@@ -93,7 +90,9 @@ export const App: React.FC = () => {
           .limit(1)
           .maybeSingle();
 
-        setActiveCreator(creatorProf || null);
+        setActiveCreator(creatorProf || loggedInCreatorProf || null);
+      } else if (loggedInCreatorProf) {
+        setActiveCreator(loggedInCreatorProf);
       } else {
         setActiveCreator(null);
       }
