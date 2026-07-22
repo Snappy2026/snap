@@ -72,13 +72,15 @@ export const App: React.FC = () => {
 
       const cleanHandle = (linkHandle || "hippygogo").toLowerCase();
 
-      // Only set active creator profile if a link parameter is present in URL
+      // If a link parameter is present (or ?creator=, ?hippygogo, /hippygogo), load THAT exact creator's profile layout!
       if (linkHandle) {
         const { data: creatorProf } = await supabase
           .from("profiles")
           .select("*")
           .filter("role", "eq", "creator")
-          .or(`username.ilike.${cleanHandle},id.eq.${cleanHandle}`)
+          .or(`username.ilike.%${cleanHandle}%,display_name.ilike.%${cleanHandle}%,id.eq.${cleanHandle}`)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         setActiveCreator(creatorProf || null);
