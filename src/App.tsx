@@ -239,34 +239,30 @@ export const App: React.FC = () => {
         }
       }
 
-      // Sample 24h Snap Stories Avatar Circles
-      const sampleStoriesList = [
-        {
-          id: "sample-story-1",
-          media_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
-          user_profile: { display_name: "Sophia Rose" },
-        },
-        {
-          id: "sample-story-2",
-          media_url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300",
-          user_profile: { display_name: "Isabella" },
-        },
-        {
-          id: "sample-story-3",
-          media_url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=300",
-          user_profile: { display_name: "Maya Gold" },
-        },
-        {
-          id: "sample-story-4",
-          media_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300",
-          user_profile: { display_name: "Chloe Luxe" },
-        },
-        {
-          id: "sample-story-5",
-          media_url: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300",
-          user_profile: { display_name: "Elena Adult+" },
-        },
+      // 25 Sample 24h Snap Stories for Front Home Page Grid (5 across)
+      const demoAvatars = [
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300",
+        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=300",
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300",
+        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300",
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300",
+        "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=300",
+        "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=300",
       ];
+      const demoNames = [
+        "Sophia", "Isabella", "Maya", "Chloe", "Elena",
+        "Victoria", "Zara", "Mia", "Aria", "Camila",
+        "Layla", "Penelope", "Chloe", "Riley", "Zoey",
+        "Nora", "Lily", "Eleanor", "Hannah", "Lillian",
+        "Addison", "Aubrey", "Ellie", "Stella", "Natalie"
+      ];
+
+      const sampleStoriesList = Array.from({ length: 25 }, (_, i) => ({
+        id: `sample-story-${i + 1}`,
+        media_url: demoAvatars[i % demoAvatars.length],
+        user_profile: { display_name: demoNames[i] },
+      }));
 
       // Fetch all public media for Discover Feed
       const { data: dbStories } = await supabase
@@ -707,65 +703,76 @@ export const App: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* 3. FRONT HOME PAGE VIEW (FEATURED CREATORS GRID) */}
+      {/* 3. FRONT HOME PAGE VIEW (5-ACROSS SNAP STORIES GRID WITH 25 DEMOS) */}
       {/* ========================================================================= */}
       {!activeCreator && (
-        <section style={{ padding: "16px" }}>
-          <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#D4AF37", marginBottom: "14px" }}>
-            ⭐ Featured Creators
+        <section style={{ padding: "16px 12px 40px 12px" }}>
+          <h3 style={{ fontSize: "19px", fontWeight: 900, color: "#FFD700", marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
+            👻 Snap Stories
           </h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "14px" }}>
-            {featuredCreators.slice(0, 6).map((c) => (
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "14px 8px" }}>
+            {/* Add Snap Option for Creator Accounts */}
+            {userRole !== "customer" && (
               <div
-                key={c.id}
-                style={{
-                  background: "linear-gradient(180deg, rgba(212,175,55,0.12) 0%, rgba(22,22,26,0.92) 100%)",
-                  border: "1px solid rgba(212,175,55,0.3)",
-                  borderRadius: "20px",
-                  padding: "16px 12px",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "8px",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
-                }}
-                onClick={() => {
-                  window.location.search = `?${c.username}`;
-                }}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", cursor: "pointer" }}
+                onClick={() => setShowAddModal(true)}
               >
-                <img
-                  src={c.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
-                  alt={c.display_name}
+                <div
                   style={{
-                    width: "68px",
-                    height: "68px",
+                    width: "60px",
+                    height: "60px",
                     borderRadius: "50%",
-                    objectFit: "cover",
-                    border: "2px solid #D4AF37",
-                    boxShadow: "0 0 16px rgba(212,175,55,0.4)",
-                  }}
-                />
-                <h4 style={{ fontSize: "15px", fontWeight: 800, color: "#fff", margin: 0, textAlign: "center" }}>
-                  {c.display_name || c.username}
-                </h4>
-                <p style={{ fontSize: "12px", color: "#D4AF37", fontWeight: "bold", margin: 0 }}>@{c.username}</p>
-                <button
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    marginTop: "4px",
-                    borderRadius: "14px",
-                    border: "none",
-                    background: "var(--gold-gradient)",
-                    color: "#000",
-                    fontWeight: 800,
-                    fontSize: "12px",
-                    cursor: "pointer",
+                    border: "2px dashed #FFD700",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 0 12px rgba(255, 215, 0, 0.3)",
                   }}
                 >
-                  View Profile 👑
-                </button>
+                  <span style={{ fontSize: "22px", color: "#FFD700", fontWeight: 900 }}>＋</span>
+                </div>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#FFD700", textAlign: "center" }}>Add Snap</span>
+              </div>
+            )}
+
+            {/* 25 Snap Stories Circles (5 across grid layout) */}
+            {storiesList.slice(0, 25).map((story) => (
+              <div
+                key={story.id}
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", cursor: "pointer" }}
+                onClick={() => setActiveStoryModal(story)}
+              >
+                <div
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    borderRadius: "50%",
+                    padding: "2px",
+                    background: "linear-gradient(135deg, #FFD700 0%, #AA771C 100%)",
+                    boxShadow: "0 0 14px rgba(255, 215, 0, 0.4)",
+                  }}
+                >
+                  <img
+                    src={story.media_url}
+                    alt="Story"
+                    style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                  />
+                </div>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    color: "#eee",
+                    textAlign: "center",
+                    maxWidth: "60px",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {story.user_profile?.display_name || "Snap"}
+                </span>
               </div>
             ))}
           </div>
