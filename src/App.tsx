@@ -558,7 +558,7 @@ export const App: React.FC = () => {
               🛡️ Admin
             </button>
           )}
-          {userRole === "creator" && (
+          {(userRole === "creator" || (currentUser && activeCreator && currentUser.id === activeCreator.id)) && (
             <button className="btn-pill-gold" onClick={() => setShowStudioModal(true)}>
               🎨 Studio
             </button>
@@ -1175,19 +1175,26 @@ export const App: React.FC = () => {
               />
             </div>
 
-            <h4 style={{ fontSize: "14px", marginBottom: "10px" }}>Manage Uploaded Posts</h4>
-            <div style={{ maxHeight: "250px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px" }}>
-              {[...galleryList, ...vipList].map((item) => (
-                <div key={item.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#222", padding: "8px 12px", borderRadius: "12px" }}>
-                  <img src={item.media_url} alt="" style={{ width: "45px", height: "45px", borderRadius: "8px", objectFit: "cover" }} />
-                  <span style={{ fontSize: "12px", color: item.is_public_gallery ? "#00F2FE" : "#FFD700", fontWeight: "bold" }}>
-                    {item.is_public_gallery ? "Gallery" : "VIP Lounge"}
-                  </span>
-                  <button style={{ background: "#ff4444", border: "none", color: "#fff", padding: "6px 12px", borderRadius: "8px", fontWeight: "bold", cursor: "pointer" }} onClick={() => handleDeleteMedia(item.id, "vip_content")}>
-                    🗑️ Delete
-                  </button>
-                </div>
-              ))}
+            <h4 style={{ fontSize: "14px", marginBottom: "10px", color: "#FFD700" }}>Manage Uploaded Posts (Gallery & VIP)</h4>
+            <div style={{ maxHeight: "280px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px" }}>
+              {[...galleryList, ...vipList].length === 0 ? (
+                <p style={{ fontSize: "12px", color: "#888", fontStyle: "italic" }}>No uploaded posts yet.</p>
+              ) : (
+                [...galleryList, ...vipList].map((item) => (
+                  <div key={item.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#222", padding: "8px 12px", borderRadius: "12px" }}>
+                    <img src={item.media_url} alt="" style={{ width: "45px", height: "45px", borderRadius: "8px", objectFit: "cover" }} />
+                    <span style={{ fontSize: "12px", color: item.is_public_gallery ? "#00F2FE" : "#FFD700", fontWeight: "bold" }}>
+                      {item.is_public_gallery ? "🖼️ Gallery" : "👑 VIP Lounge"}
+                    </span>
+                    <button
+                      style={{ background: "#ff4444", border: "none", color: "#fff", padding: "6px 12px", borderRadius: "8px", fontWeight: "bold", cursor: "pointer" }}
+                      onClick={() => handleDeleteMedia(item.id, "vip_content")}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
