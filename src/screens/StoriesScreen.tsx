@@ -292,7 +292,7 @@ export const StoriesScreen: React.FC = () => {
     }
   };
 
-  const handleDeviceFileUpload = (event: any) => {
+  const handleDeviceFileUpload = async (event: any) => {
     const file = event.target?.files?.[0];
     if (file) {
       const isVideo = file.type.startsWith("video");
@@ -320,110 +320,104 @@ export const StoriesScreen: React.FC = () => {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        if (e.target?.result) {
-          const mediaUrl = e.target.result as string;
-          const { data: userData } = await supabase.auth.getUser();
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const user = userData?.user;
+        if (!user) return;
 
-          let localFollowedIds: string[] = [];
-          if (userData?.user) {
-            const { data: follows } = await (
-              supabase.from("friendships") as any
-            )
-              .select("addressee_id")
-              .eq("requester_id", userData.user.id)
-              .eq("status", "accepted");
-            if (follows) {
-              localFollowedIds = follows.map((f: any) => f.addressee_id);
-              setFollowedCreatorIds(localFollowedIds);
-            }
-          }
-          const user = userData?.user;
-          const userDisplayName =
-            user?.user_metadata?.display_name ||
-            user?.user_metadata?.username ||
-            user?.email?.split("@")[0] ||
-            "My Story";
+        const fileExt = file.name.split(".").pop() || (isVideo ? "mp4" : "jpg");
+        const fileName = `vip_content/${user.id}/${Date.now()}.${fileExt}`;
 
-          if (uploadDestination === "story") {
-            const newStoryItem: Story = {
-              id: `uploaded-story-${Date.now()}`,
-              user_id: user?.id || "demo-user-id",
-              media_url: mediaUrl,
-              media_type: isVideo ? "video" : "image",
-              created_at: new Date().toISOString(),
-              expires_at: new Date(Date.now() + 86400000).toISOString(),
-              user_profile: { display_name: userDisplayName },
-            };
-            sessionStore.addStory(newStoryItem);
-            setDbStories((prev) => [newStoryItem, ...prev]);
+        // 1. Upload to Supabase Storage Bucket
+        const { error: storageErr } = await supabase.storage
+          .from("snaps-media")
+          .upload(fileName, file, { upsert: true });
+
+        let publicUrl = "";
+        if (!storageErr) {
+          const { data: urlData } = supabase.storage
+            .from("snaps-media")
+            .getPublicUrl(fileName);
+          publicUrl = urlData?.publicUrl || "";
+        }
+
+        // Fallback to inline reader data URL if storage upload failed or unconfigured
+        if (!publicUrl) {
+          publicUrl = await new Promise<string>((resolve) => {
+            const r = new FileReader();
+            r.onload = (ev: any) => resolve(ev.target?.result as string);
+            r.readAsDataURL(file);
+          });
+        }
+
+        const userDisplayName =
+          user.user_metadata?.display_name ||
+          user.user_metadata?.username ||
+          user.email?.split("@")[0] ||
+          "Creator";
+
+        if (uploadDestination === "story") {
+          const { error: insertErr } = await (supabase.from("stories") as any).insert({
+            user_id: user.id,
+            media_url: publicUrl,
+            media_type: isVideo ? "video" : "image",
+          });
+          if (insertErr) console.error("[Story DB Insert Error]", insertErr);
+
+          const newStoryItem: Story = {
+            id: `uploaded-story-${Date.now()}`,
+            user_id: user.id,
+            media_url: publicUrl,
+            media_type: isVideo ? "video" : "image",
+            created_at: new Date().toISOString(),
+            expires_at: new Date(Date.now() + 86400000).toISOString(),
+            user_profile: { display_name: userDisplayName },
+          };
+          sessionStore.addStory(newStoryItem);
+          setDbStories((prev) => [newStoryItem, ...prev]);
+        } else {
+          const { error: insertErr } = await (supabase.from("vip_content") as any).insert({
+            creator_id: user.id,
+            media_url: publicUrl,
+            media_type: isVideo ? "video" : "image",
+            title: `My ${uploadDestination} post`,
+            description: "",
+            required_tier: uploadDestination === "vip" ? "vip" : "public",
+            is_public_gallery: uploadDestination === "gallery",
+          });
+          if (insertErr) console.error("[VIP Content DB Insert Error]", insertErr);
+
+          const newVipItem = {
+            id: `uploaded-${uploadDestination}-${Date.now()}`,
+            creator_id: user.id,
+            title: `My ${uploadDestination} post`,
+            description: "",
+            media_url: publicUrl,
+            media_type: isVideo ? "video" : "image",
+            required_tier: uploadDestination === "vip" ? "vip" : "public",
+            is_public_gallery: uploadDestination === "gallery",
+            created_at: new Date().toISOString(),
+            creator_profile: {
+              display_name: userDisplayName,
+              username: userDisplayName,
+            },
+          };
+
+          if (uploadDestination === "gallery") {
+            setGalleryItems((prev) => [newVipItem, ...prev]);
           } else {
-            // Upload to Gallery or VIP
-            const newVipItem = {
-              id: `uploaded-${uploadDestination}-${Date.now()}`,
-              creator_id: user?.id || "demo-user-id",
-              title: `My ${uploadDestination} post`,
-              description: "",
-              media_url: mediaUrl,
-              media_type: isVideo ? "video" : "image",
-              required_tier: uploadDestination === "vip" ? "vip" : "public",
-              is_public_gallery: uploadDestination === "gallery",
-              created_at: new Date().toISOString(),
-              creator_profile: {
-                display_name: userDisplayName,
-                username: userDisplayName,
-              },
-            };
-            if (uploadDestination === "gallery") {
-              setGalleryItems((prev) => [newVipItem, ...prev]);
-            } else {
-              setVipItems((prev) => [newVipItem, ...prev]);
-            }
-          }
-
-          if (user) {
-            if (uploadDestination === "story") {
-              const { error: insertErr } = await (supabase.from("stories") as any).insert({
-                user_id: user.id,
-                media_url: mediaUrl,
-                media_type: isVideo ? "video" : "image",
-              });
-              if (insertErr) console.error("[Story DB Insert Error]", insertErr);
-            } else {
-              const { error: insertErr } = await (supabase.from("vip_content") as any).insert({
-                creator_id: user.id,
-                media_url: mediaUrl,
-                media_type: isVideo ? "video" : "image",
-                title: `My ${uploadDestination} post`,
-                description: "",
-                required_tier: uploadDestination === "vip" ? "vip" : "public",
-                is_public_gallery: uploadDestination === "gallery",
-              });
-              if (insertErr) console.error("[VIP Content DB Insert Error]", insertErr);
-
-              // Instantly refetch DB VIP items so new uploads persist in local state immediately
-              const { data: updatedVip } = await supabase
-                .from("vip_content")
-                .select("*, creator_profile:profiles(*)")
-                .order("created_at", { ascending: false });
-
-              if (updatedVip) {
-                const activeId = activeCreatorId || user.id;
-                setGalleryItems(updatedVip.filter((v: any) => v.is_public_gallery === true && v.creator_id === activeId));
-                setVipItems(updatedVip.filter((v: any) => v.is_public_gallery !== true && v.creator_id === activeId));
-              }
-            }
-          }
-
-          setShowAddStoryModal(false);
-          const msg = "New Snap Story added! 🔥 View it in full screen now.";
-          if (Platform.OS === "web" && typeof window !== "undefined") {
-            window.alert(`👻 New Story Posted!\n\n${msg}`);
+            setVipItems((prev) => [newVipItem, ...prev]);
           }
         }
-      };
-      reader.readAsDataURL(file);
+
+        setShowAddStoryModal(false);
+        const msg = `${uploadDestination === "story" ? "Story" : uploadDestination === "gallery" ? "Gallery photo" : "VIP Lounge post"} published successfully! 🔥`;
+        if (Platform.OS === "web" && typeof window !== "undefined") {
+          window.alert(`✨ Upload Successful!\n\n${msg}`);
+        }
+      } catch (err: any) {
+        console.error("[Upload Handler Error]", err);
+      }
     }
   };
 
