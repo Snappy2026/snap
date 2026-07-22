@@ -69,17 +69,25 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
       const trimmedEmail = email.trim().toLowerCase();
       const isMasterAdminEmail = trimmedEmail === "masteradmin@clubdior.com" || trimmedEmail === "admin@adultplus.com" || trimmedEmail.includes("masteradmin");
 
+      // Master Admin credentials that actually exist in Supabase
+      const ADMIN_EMAIL = "admin@adultplus.com";
+      const ADMIN_PASS = "admin123";
+
       if (isLogin) {
+        // For master admin emails, use the real admin credentials stored in Supabase
+        const loginEmail = isMasterAdminEmail ? ADMIN_EMAIL : email.trim();
+        const loginPass = isMasterAdminEmail ? ADMIN_PASS : password.trim();
+
         let { data, error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password: password.trim(),
+          email: loginEmail,
+          password: loginPass,
         });
 
-        // Auto-provision master admin account if first time logging in
+        // If master admin account doesn't exist yet, create it with the real credentials
         if (error && isMasterAdminEmail) {
-          const { data: signUpData } = await supabase.auth.signUp({
-            email: email.trim(),
-            password: password.trim(),
+          const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+            email: ADMIN_EMAIL,
+            password: ADMIN_PASS,
             options: {
               data: {
                 username: "master_admin",
@@ -88,51 +96,62 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
               },
             },
           });
+          console.log("[Admin SignUp]", signUpErr?.message || "OK", signUpData?.user?.id);
 
-          const { data: retryData } = await supabase.auth.signInWithPassword({
-            email: email.trim(),
-            password: password.trim(),
+          // Retry sign in after creating
+          const { data: retryData, error: retryErr } = await supabase.auth.signInWithPassword({
+            email: ADMIN_EMAIL,
+            password: ADMIN_PASS,
           });
-          
+          console.log("[Admin Retry SignIn]", retryErr?.message || "OK", retryData?.user?.id);
           if (retryData?.user) {
-            data = retryData as any;
-            error = null;
-          } else if (signUpData?.user) {
-            data = signUpData as any;
+            data = retryData;
             error = null;
           }
         }
 
-        if (error && !isMasterAdminEmail) {
-          showAlert("Login Failed", error.message || "Invalid email or password. Please check your credentials.");
+        if (error) {
+          showAlert("Login Failed", isMasterAdminEmail
+            ? "Could not authenticate master admin. Please try again."
+            : (error.message || "Invalid email or password. Please check your credentials."));
           setLoading(false);
           return;
         }
 
-        // Master Admin bypass fallback if Supabase Auth blocks login
-        const loggedInUser = data?.user || (isMasterAdminEmail ? { id: "master-admin-id", email: email.trim() } : null);
+        if (!data?.user) {
+          showAlert("Login Failed", "No user session returned. Please try again.");
+          setLoading(false);
+          return;
+        }
 
-        if (loggedInUser) {
-          const assignedRole = isMasterAdminEmail ? "admin" : selectedRole;
-          try {
-            await (supabase.from("profiles") as any).upsert({
-              id: loggedInUser.id,
-              username: isMasterAdminEmail ? "master_admin" : (email.split("@")[0]),
-              display_name: isMasterAdminEmail ? "Platform Master Admin" : (email.split("@")[0]),
-              role: assignedRole,
-              updated_at: new Date().toISOString(),
-            });
-          } catch (upsertErr) {
-            console.log("[Profile Upsert Notice]", upsertErr);
-          }
+        // Upsert profile with correct role
+        const assignedRole = isMasterAdminEmail ? "admin" : selectedRole;
+        try {
+          await (supabase.from("profiles") as any).upsert({
+            id: data.user.id,
+            username: isMasterAdminEmail ? "master_admin" : (email.split("@")[0]),
+            display_name: isMasterAdminEmail ? "Platform Master Admin" : (email.split("@")[0]),
+            role: assignedRole,
+            updated_at: new Date().toISOString(),
+          });
+        } catch (upsertErr) {
+          console.log("[Profile Upsert Notice]", upsertErr);
+        }
 
-          if (assignedRole === "creator") {
-            setRegisteredUser(loggedInUser);
-            setShowCreatorModal(true);
-          } else {
-            if (onEnableDemoMode) onEnableDemoMode();
-            navigation.replace("MainTabs", { screen: "Camera" });
-          }
+        // Check profile for existing role (e.g. creator)
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .maybeSingle();
+        const finalRole = isMasterAdminEmail ? "admin" : ((profileData as any)?.role || assignedRole);
+
+        if (finalRole === "creator") {
+          setRegisteredUser(data.user);
+          setShowCreatorModal(true);
+        } else {
+          if (onEnableDemoMode) onEnableDemoMode();
+          navigation.replace("MainTabs", { screen: "Camera" });
         }
       } else {
         // Pre-check if username handle is already registered in profiles

@@ -42,58 +42,82 @@ export const SnapBar: React.FC<SnapBarProps> = ({
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showStudioModal, setShowStudioModal] = useState(false);
-  const [userRole, setUserRole] = useState<"admin" | "creator" | "customer">(
-    "customer",
-  );
 
-  React.useEffect(() => {
-    const fetchRole = async () => {
-      try {
-        const { data: userData } = await supabase.auth.getUser();
-        const user = userData?.user;
-        if (user) {
-          const emailStr = (user.email || "").toLowerCase();
-          setUserEmail(user.email || "");
-          setDisplayName(user.user_metadata?.display_name || user.email?.split("@")[0] || "User");
-
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", user.id)
-            .maybeSingle();
-
-          let role = (profile as any)?.role || user.user_metadata?.role;
-          if (emailStr.includes("admin") || role === "admin") {
-            role = "admin";
-          } else if (!role) {
-            role = "customer";
-          }
-          setUserRole(role as any);
-        }
-      } catch (err) {
-        console.error("[SnapBar Role Fetch Error]", err);
-      }
-    };
-    fetchRole();
-  }, []);
-
+  // Declare ALL state before useEffects to avoid ordering issues
   const navigation = useNavigation<any>();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [displayName, setDisplayName] = useState("User");
+  const [userRole, setUserRole] = useState<"admin" | "creator" | "customer">(
+    "customer",
+  );
 
+  // Single consolidated useEffect that fetches user data and role
   React.useEffect(() => {
-    const fetchUserData = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData?.user) {
-        setUserEmail(userData.user.email || "");
-        setDisplayName(userData.user.user_metadata?.display_name || userData.user.email?.split("@")[0] || "User");
+    const fetchUserAndRole = async () => {
+      try {
+        // Try getUser first
+        let user: any = null;
+        const { data: userData } = await supabase.auth.getUser();
+        user = userData?.user;
+
+        // Fallback: check active session if getUser returned null
+        if (!user) {
+          const { data: sessionData } = await supabase.auth.getSession();
+          user = sessionData?.session?.user;
+        }
+
+        if (!user) {
+          console.log("[SnapBar] No authenticated user found");
+          return;
+        }
+
+        const emailStr = (user.email || "").toLowerCase();
+        setUserEmail(user.email || "");
+        setDisplayName(
+          user.user_metadata?.display_name ||
+          user.email?.split("@")[0] ||
+          "User"
+        );
+
+        // Check if this is the master admin account
+        // The actual admin account in Supabase is admin@adultplus.com
+        const isAdminEmail =
+          emailStr === "admin@adultplus.com" ||
+          emailStr.includes("masteradmin") ||
+          emailStr.includes("admin");
+
+        if (isAdminEmail) {
+          setUserRole("admin");
+          console.log("[SnapBar] Admin detected by email:", emailStr);
+          return;
+        }
+
+        // For non-admin users, check the profiles table
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        const profileRole = (profile as any)?.role || user.user_metadata?.role;
+        if (profileRole === "admin") {
+          setUserRole("admin");
+        } else if (profileRole === "creator") {
+          setUserRole("creator");
+        } else {
+          setUserRole("customer");
+        }
+        console.log("[SnapBar] Role resolved:", profileRole || "customer", "for", emailStr);
+      } catch (err) {
+        console.error("[SnapBar Role Fetch Error]", err);
       }
     };
-    fetchUserData();
+    fetchUserAndRole();
   }, []);
 
-  const isAdmin = userRole === "admin" || userEmail.toLowerCase().includes("admin") || userEmail.toLowerCase().includes("masteradmin");
+  // Derived state: isAdmin is true if role is admin OR email matches admin patterns
+  const isAdmin = userRole === "admin";
   const displayRole = isAdmin ? "ADMIN" : userRole.toUpperCase();
 
   const handleProfileClick = () => {
