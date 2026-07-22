@@ -16,12 +16,14 @@ export const WebApp: React.FC = () => {
         const creatorHandle = params.get("creator") || params.get("invite") || "hippygogo";
         const cleanHandle = creatorHandle.trim().toLowerCase();
 
-        // 1. Fetch exact creator profile by handle or ID
+        // 1. Fetch exact or fuzzy matching creator profile by handle or display name
         const { data: profile } = await supabase
           .from("profiles")
           .select("*")
           .eq("role", "creator")
-          .or(`username.ilike.${cleanHandle},id.eq.${creatorHandle}`)
+          .or(`username.ilike.%${cleanHandle}%,display_name.ilike.%${cleanHandle}%,id.eq.${creatorHandle}`)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         let effectiveCreator = profile;
