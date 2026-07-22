@@ -860,77 +860,81 @@ export const StoriesScreen: React.FC = () => {
               marginTop: "4px",
             }}
           >
-            {filteredDiscover.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  if (!isVipMember) {
-                    window.alert(
-                      "👑 VIP Membership Required\n\nRedirecting to checkout...",
-                    );
-                    // trigger stripe checkout here or open VIP Modal
-                    navigation.navigate("MainTabs", {
-                      screen: "VipMembers",
-                    } as any);
-                    return;
-                  }
-                  openStoryViewer([
-                    {
-                      id: item.id,
-                      user_id: item.creator_id,
-                      media_url: item.media_url || item.image,
-                      media_type: item.media_type || "image",
-                      user_profile: {
-                        display_name:
-                          item.creator_profile?.display_name ||
-                          item.creator_profile?.username ||
-                          item.publisher,
-                        avatar_url: item.creator_profile?.avatar_url,
+            {filteredDiscover.map((item) => {
+              const isOwner = currentUserId && (item.creator_id === currentUserId || activeCreatorId === currentUserId);
+              const canViewVip = isVipMember || isOwner;
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    if (!canViewVip) {
+                      window.alert(
+                        "👑 VIP Membership Required\n\nDirecting to VIP subscription checkout...",
+                      );
+                      navigation.navigate("MainTabs", {
+                        screen: "VipMembers",
+                      } as any);
+                      return;
+                    }
+                    openStoryViewer([
+                      {
+                        id: item.id,
+                        user_id: item.creator_id,
+                        media_url: item.media_url || item.image,
+                        media_type: item.media_type || "image",
+                        user_profile: {
+                          display_name:
+                            item.creator_profile?.display_name ||
+                            item.creator_profile?.username ||
+                            item.publisher,
+                          avatar_url: item.creator_profile?.avatar_url,
+                        },
                       },
-                    },
-                  ]);
-                }}
-                style={{
-                  border: "none",
-                  background: "none",
-                  padding: 0,
-                  margin: 0,
-                  cursor: "pointer",
-                  WebkitAppearance: "none" as any,
-                  appearance: "none" as any,
-                  touchAction: "manipulation",
-                  width: `${cardWidth}px`,
-                  height: `${cardWidth * 1.5}px`,
-                  borderRadius: "14px",
-                  overflow: "hidden",
-                  backgroundColor: "#1C1C1E",
-                  marginBottom: "12px",
-                  position: "relative" as any,
-                }}
-              >
-                <Image
-                  source={{ uri: item.media_url || item.image }}
-                  style={[
-                    styles.discoverImage,
-                    !isVipMember &&
-                      ({ opacity: 0.4, filter: "blur(8px)" } as any),
-                  ]}
-                />
-                {!isVipMember && (
-                  <View
-                    style={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)" as any,
-                    }}
-                  >
-                    <Text style={{ fontSize: 30 }}>🔒</Text>
-                  </View>
-                )}
-              </button>
-            ))}
+                    ]);
+                  }}
+                  style={{
+                    border: "none",
+                    background: "none",
+                    padding: 0,
+                    margin: 0,
+                    cursor: "pointer",
+                    WebkitAppearance: "none" as any,
+                    appearance: "none" as any,
+                    touchAction: "manipulation",
+                    width: `${cardWidth}px`,
+                    height: `${cardWidth * 1.5}px`,
+                    borderRadius: "14px",
+                    overflow: "hidden",
+                    backgroundColor: "#1C1C1E",
+                    marginBottom: "12px",
+                    position: "relative" as any,
+                  }}
+                >
+                  <Image
+                    source={{ uri: item.media_url || item.image }}
+                    style={[
+                      styles.discoverImage,
+                      !canViewVip &&
+                        ({ opacity: 0.4, filter: "blur(8px)" } as any),
+                    ]}
+                  />
+                  {!canViewVip && (
+                    <View
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)" as any,
+                      }}
+                    >
+                      <Text style={{ fontSize: 30 }}>🔒</Text>
+                    </View>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       ) : (
