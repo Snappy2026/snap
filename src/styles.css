@@ -34,7 +34,7 @@ body {
   flex-direction: column;
   box-shadow: 0 0 60px rgba(0, 0, 0, 0.85);
   position: relative;
-  padding-bottom: 80px;
+  padding-bottom: 110px;
 }
 
 /* Header Navbar */
@@ -362,14 +362,16 @@ body {
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  height: 70px;
-  background: rgba(12, 12, 14, 0.95);
-  backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  height: 76px;
+  padding-bottom: env(safe-area-inset-bottom, 12px);
+  background: rgba(12, 12, 14, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
   justify-content: space-around;
-  z-index: 200;
+  z-index: 2000;
 }
 
 .nav-item-btn {

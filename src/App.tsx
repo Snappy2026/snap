@@ -8,6 +8,7 @@ export const App: React.FC = () => {
   const [activeCreator, setActiveCreator] = useState<any>(null);
 
   const [storiesList, setStoriesList] = useState<any[]>([]);
+  const [featuredCreators, setFeaturedCreators] = useState<any[]>([]);
   const [galleryList, setGalleryList] = useState<any[]>([]);
   const [vipList, setVipList] = useState<any[]>([]);
 
@@ -84,6 +85,15 @@ export const App: React.FC = () => {
       } else {
         setActiveCreator(null);
       }
+
+      // Fetch Featured Creators
+      const { data: creatorsData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "creator")
+        .order("created_at", { ascending: false });
+
+      if (creatorsData) setFeaturedCreators(creatorsData);
 
       // Fetch all public media for Discover Feed
       const { data: dbStories } = await supabase
@@ -351,6 +361,47 @@ export const App: React.FC = () => {
                 👑 Subscribe to @{activeCreator?.username}'s VIP Lounge (${customVipPrice}/mo)
               </button>
             )}
+          </div>
+        </section>
+      )}
+
+      {/* Featured Creators Section (Renders on Home Page) */}
+      {!activeCreator && featuredCreators.length > 0 && (
+        <section style={{ padding: "16px 16px 4px 16px" }}>
+          <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#D4AF37", marginBottom: "12px" }}>
+            ⭐ Featured Creators
+          </h3>
+          <div style={{ display: "flex", gap: "12px", overflowX: "auto", paddingBottom: "8px", scrollbarWidth: "none" }}>
+            {featuredCreators.map((c) => (
+              <div
+                key={c.id}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "6px",
+                  cursor: "pointer",
+                  minWidth: "75px",
+                }}
+                onClick={() => {
+                  window.location.search = `?${c.username}`;
+                }}
+              >
+                <img
+                  src={c.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
+                  alt={c.display_name}
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: "2px solid #D4AF37",
+                    boxShadow: "0 0 12px rgba(212,175,55,0.4)",
+                  }}
+                />
+                <span style={{ fontSize: "11px", fontWeight: "bold", color: "#fff" }}>@{c.username}</span>
+              </div>
+            ))}
           </div>
         </section>
       )}
