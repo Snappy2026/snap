@@ -597,12 +597,12 @@ export const App: React.FC = () => {
                 />
                 <defs>
                   <linearGradient id="goldGradStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#FFD700" />
-                    <stop offset="50%" stopColor="#AA771C" />
-                    <stop offset="100%" stopColor="#FFD700" />
+                    <stop offset="0%" stopColor="#FFF59D" />
+                    <stop offset="50%" stopColor="#FFD700" />
+                    <stop offset="100%" stopColor="#FFE082" />
                   </linearGradient>
                   <linearGradient id="goldGradCover" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.8" />
+                    <stop offset="0%" stopColor="#FFD700" stopOpacity="0.9" />
                     <stop offset="100%" stopColor="#000000" stopOpacity="1" />
                   </linearGradient>
                 </defs>
