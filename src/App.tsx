@@ -1368,11 +1368,13 @@ export const App: React.FC = () => {
               >
                 {authMode === "signup" ? "🚀 Create Account" : "🔑 Sign In"}
               </button>
+            </form>
+
             <p style={{ textAlign: "center", fontSize: "12px", color: "#aaa", marginTop: "16px", cursor: "pointer" }} onClick={() => setAuthMode(authMode === "signup" ? "login" : "signup")}>
               {authMode === "signup" ? "Already have an account? Log In" : "Need an account? Sign Up"}
             </p>
 
-            {/* Quick Demo Creator Accounts 1-Tap Login */}
+            {/* Quick Demo Creator Accounts 1-Tap Login (Outside Form to avoid HTML validation) */}
             <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
               <p style={{ fontSize: "12px", color: "#FFD700", fontWeight: "bold", textAlign: "center", marginBottom: "10px" }}>
                 ⚡ Quick 1-Tap Login as Creator:
@@ -1408,9 +1410,8 @@ export const App: React.FC = () => {
                 </button>
               </div>
             </div>
-          </form>
+          </div>
         </div>
-      </div>
       )}
 
       {/* 5. FREE TRIAL VIP SUBSCRIBE POP-UP MODAL */}
