@@ -503,22 +503,6 @@ export const App: React.FC = () => {
       <header className="app-header">
         <h1 className="brand-logo">adultplus</h1>
         <div className="header-actions">
-          <button
-            className="btn-pill-gold"
-            onClick={async () => {
-              if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === "accepted") {
-                  setDeferredPrompt(null);
-                }
-              } else {
-                setShowBookmarkModal(true);
-              }
-            }}
-          >
-            📲 Add App to Mobile
-          </button>
           {userRole === "admin" && (
             <button className="btn-pill-gold" onClick={openAdminConsole}>
               🛡️ Admin
@@ -1199,52 +1183,6 @@ export const App: React.FC = () => {
             <p style={{ textAlign: "center", fontSize: "12px", color: "#aaa", marginTop: "16px", cursor: "pointer" }} onClick={() => setAuthMode(authMode === "signup" ? "login" : "signup")}>
               {authMode === "signup" ? "Already have an account? Log In" : "Need an account? Sign Up"}
             </p>
-          </div>
-        </div>
-      )}
-
-      {/* 5. ADD TO HOME SCREEN / BOOKMARK INSTRUCTIONS MODAL */}
-      {showBookmarkModal && (
-        <div className="modal-overlay">
-          <div className="modal-card" style={{ textAlign: "center" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: 900, color: "#FFD700" }}>📲 Add Adult+ to Home Screen</h3>
-              <button style={{ background: "none", border: "none", color: "#fff", fontSize: "20px", cursor: "pointer" }} onClick={() => setShowBookmarkModal(false)}>
-                ✕
-              </button>
-            </div>
-
-            <p style={{ fontSize: "13px", color: "#ddd", marginBottom: "16px", lineHeight: "1.5" }}>
-              Save <strong>Adult+</strong> as a native app icon directly on your mobile screen for instant 1-tap launch!
-            </p>
-
-            {/* Step by step guide */}
-            <div style={{ background: "#222", padding: "16px", borderRadius: "16px", textAlign: "left", marginBottom: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
-              <div>
-                <p style={{ fontSize: "13px", color: "#FFD700", fontWeight: "bold", marginBottom: "4px" }}>📱 iPhone (Safari):</p>
-                <p style={{ fontSize: "12px", color: "#ccc", margin: 0 }}>
-                  1. Tap the <strong>Share button (⎘)</strong> in Safari bottom bar.
-                  <br />
-                  2. Tap <strong>"Add to Home Screen" (➕)</strong>.
-                </p>
-              </div>
-              <hr style={{ borderColor: "#333" }} />
-              <div>
-                <p style={{ fontSize: "13px", color: "#00F2FE", fontWeight: "bold", marginBottom: "4px" }}>🤖 Android (Chrome):</p>
-                <p style={{ fontSize: "12px", color: "#ccc", margin: 0 }}>
-                  1. Tap the <strong>3 dots (⋮)</strong> menu upper right.
-                  <br />
-                  2. Tap <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong>.
-                </p>
-              </div>
-            </div>
-
-            <button
-              style={{ width: "100%", padding: "14px", borderRadius: "16px", border: "none", background: "var(--gold-gradient)", color: "#000", fontWeight: 800, fontSize: "15px", cursor: "pointer" }}
-              onClick={() => setShowBookmarkModal(false)}
-            >
-              Got it! 👍
-            </button>
           </div>
         </div>
       )}
