@@ -1258,10 +1258,26 @@ export const StoriesScreen: React.FC = () => {
                     ]);
                   }}
                 >
-                  <Image
-                    source={{ uri: sub.media_url || sub.image }}
-                    style={styles.subImage}
-                  />
+                  {Platform.OS === "web" ? (
+                    <img
+                      src={sub.media_url || sub.image}
+                      alt=""
+                      loading="eager"
+                      decoding="async"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        borderRadius: "16px",
+                      }}
+                    />
+                  ) : (
+                    <Image
+                      source={{ uri: sub.media_url || sub.image }}
+                      style={styles.subImage}
+                      resizeMode="cover"
+                    />
+                  )}
                 </WebTouchable>
               ))
             )}
@@ -1305,14 +1321,32 @@ export const StoriesScreen: React.FC = () => {
                   ]);
                 }}
               >
-                <Image
-                  source={{ uri: item.media_url || item.image }}
-                  style={[
-                    styles.discoverImage,
-                    !isVipMember && { opacity: 0.4 },
-                  ]}
-                  blurRadius={!isVipMember ? 10 : 0}
-                />
+                {Platform.OS === "web" ? (
+                  <img
+                    src={item.media_url || item.image}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      borderRadius: "16px",
+                      filter: !isVipMember ? "blur(10px) brightness(0.7)" : "none",
+                      transition: "filter 0.3s ease",
+                    }}
+                  />
+                ) : (
+                  <Image
+                    source={{ uri: item.media_url || item.image }}
+                    style={[
+                      styles.discoverImage,
+                      !isVipMember && { opacity: 0.4 },
+                    ]}
+                    resizeMode="cover"
+                    blurRadius={!isVipMember ? 10 : 0}
+                  />
+                )}
                 {!isVipMember && (
                   <View
                     style={{ position: "absolute", top: "40%", left: "45%" }}
