@@ -19,7 +19,31 @@ if (Platform.OS !== 'web') {
 export default function App() {
   // Inject global CSS on web to fix mobile touch issues
   useEffect(() => {
-    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+        if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.title = "ClubD";
+      
+      const setMeta = (name, content) => {
+        let el = document.querySelector(`meta[name="${name}"]`);
+        if (!el) {
+          el = document.createElement('meta');
+          el.setAttribute('name', name);
+          document.head.appendChild(el);
+        }
+        el.setAttribute('content', content);
+      };
+
+      setMeta("apple-mobile-web-app-title", "ClubD");
+      setMeta("application-name", "ClubD");
+      setMeta("apple-mobile-web-app-capable", "yes");
+      setMeta("apple-mobile-web-app-status-bar-style", "black-translucent");
+
+      let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+      if (!appleIcon) {
+        appleIcon = document.createElement('link');
+        appleIcon.setAttribute('rel', 'apple-touch-icon');
+        document.head.appendChild(appleIcon);
+      }
+      appleIcon.setAttribute('href', '/assets/icon.png');
       const style = document.createElement('style');
       style.textContent = `
                 html, body, #root {
