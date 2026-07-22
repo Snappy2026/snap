@@ -524,31 +524,6 @@ export const App: React.FC = () => {
         </div>
       </header>
 
-      {/* 24h Snap Stories Circle Bar */}
-      <section className="stories-bar-section">
-        <div className="stories-scroll">
-          {/* Add Snap Circle for Creators */}
-          {userRole !== "customer" && (
-            <div className="story-circle-item" onClick={() => setShowAddModal(true)}>
-              <div className="avatar-ring-story avatar-ring-add">
-                <span style={{ fontSize: "24px", color: "#D4AF37" }}>＋</span>
-              </div>
-              <span className="story-label">Add Snap</span>
-            </div>
-          )}
-
-          {/* Stories List */}
-          {storiesList.map((story) => (
-            <div key={story.id} className="story-circle-item" onClick={() => setActiveStoryModal(story)}>
-              <div className="avatar-ring-story">
-                <img src={story.media_url} alt="Snap Story" className="story-avatar-img" />
-              </div>
-              <span className="story-label">{story.user_profile?.display_name || "Snap"}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ========================================================================= */}
       {/* 2. DEDICATED CREATOR PROFILE PAGE VIEW (EXACT REFERENCE REPLICATION) */}
       {/* ========================================================================= */}
