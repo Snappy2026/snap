@@ -282,11 +282,12 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
             top: 0,
             left: 0,
             right: 0,
-            zIndex: 20,
+            zIndex: 50,
             padding: "12px 16px",
             paddingTop: "max(12px, env(safe-area-inset-top))",
             background:
               "linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)",
+            pointerEvents: "auto" as any,
           }}
         >
           {/* Progress segments */}
@@ -333,11 +334,20 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
               alignItems: "center",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", zIndex: 50 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", zIndex: 100, position: "relative" as any }}>
               {/* Creator Profile Link Button (Avatar + Name) */}
               <button
                 type="button"
                 onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (currentStory.user_id) {
+                    cancelAnimation(progress);
+                    setShowCreatorProfile(true);
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   if (currentStory.user_id) {
                     cancelAnimation(progress);
@@ -348,15 +358,16 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
-                  background: "rgba(0,0,0,0.4)",
-                  border: "1px solid rgba(255,255,255,0.25)",
+                  background: "rgba(0,0,0,0.5)",
+                  border: "1px solid rgba(255,255,255,0.35)",
                   borderRadius: "20px",
-                  padding: "4px 12px 4px 4px",
+                  padding: "6px 14px 6px 6px",
                   cursor: "pointer",
                   WebkitAppearance: "none" as any,
                   appearance: "none" as any,
                   touchAction: "manipulation",
-                  zIndex: 50,
+                  zIndex: 100,
+                  pointerEvents: "auto" as any,
                 }}
                 aria-label="View Creator Profile"
               >
