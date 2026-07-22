@@ -139,7 +139,6 @@ export const StoriesScreen: React.FC = () => {
         }
 
         // Handle invited creator routing from WhatsApp / SMS link (?creator=handle or ?invite=handle)
-        let targetCreatorId = activeCreatorId;
         let urlCreatorParam: string | null = null;
         if (Platform.OS === "web" && typeof window !== "undefined") {
           const params = new URLSearchParams(window.location.search);
@@ -147,21 +146,38 @@ export const StoriesScreen: React.FC = () => {
         }
         const effectiveParam = urlCreatorParam || invitedCreator;
 
+        let targetCreatorId: string | null = null;
         if (effectiveParam) {
           const cleanHandle = effectiveParam.trim().toLowerCase();
-          const { data: invProfile } = await supabase
+          // First attempt exact username or ID match
+          const { data: exactProfile } = await supabase
             .from("profiles")
             .select("*")
-            .eq("role", "creator")
-            .or(`username.ilike.%${cleanHandle}%,display_name.ilike.%${cleanHandle}%,id.eq.${effectiveParam}`)
-            .order("created_at", { ascending: false })
-            .limit(1)
+            .or(`username.ilike.${cleanHandle},id.eq.${effectiveParam}`)
             .maybeSingle();
+
+          let invProfile = exactProfile;
+          if (!invProfile) {
+            // Second attempt fuzzy search if exact match not found
+            const { data: fuzzyProfile } = await supabase
+              .from("profiles")
+              .select("*")
+              .or(`username.ilike.%${cleanHandle}%,display_name.ilike.%${cleanHandle}%`)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            invProfile = fuzzyProfile;
+          }
+
           if (invProfile) {
             targetCreatorId = (invProfile as any).id;
             setActiveCreatorProfile(invProfile);
             setActiveCreatorId((invProfile as any).id);
           }
+        }
+
+        if (!targetCreatorId) {
+          targetCreatorId = activeCreatorId;
         }
 
         // Determine effective creator profile ID:
