@@ -687,35 +687,84 @@ export const StoriesScreen: React.FC = () => {
             ))}
           </div>
 
-          {/* UNIFIED CREATOR PROFILE HEADER & ACTIONS */}
+          {/* UNIFIED LUXURY CREATOR PROFILE HEADER & ACTIONS */}
           <div
             style={{
-              padding: "16px",
-              backgroundColor: "rgba(255,255,255,0.04)",
-              borderTop: "1px solid rgba(255,255,255,0.08)",
-              borderBottom: "1px solid rgba(255,255,255,0.08)",
-              marginBottom: "12px",
+              margin: "12px 16px 16px 16px",
+              padding: "20px 16px",
+              background: "linear-gradient(180deg, rgba(212,175,55,0.12) 0%, rgba(20,20,22,0.85) 100%)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: "24px",
               display: "flex",
               flexDirection: "column" as any,
               alignItems: "center",
-              gap: "8px",
+              gap: "10px",
+              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4)",
             }}
           >
-            <img
-              src={activeCreatorProfile?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
-              alt=""
-              style={{ width: "70px", height: "70px", borderRadius: "50%", objectFit: "cover", border: "2px solid #D4AF37" }}
-            />
+            {/* Avatar with Animated Gold Ring & VIP Badge */}
+            <div style={{ position: "relative" as any }}>
+              <img
+                src={activeCreatorProfile?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
+                alt=""
+                style={{
+                  width: "82px",
+                  height: "82px",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "3px solid #D4AF37",
+                  boxShadow: "0 0 20px rgba(212, 175, 55, 0.4)",
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "-4px",
+                  right: "-4px",
+                  background: "#D4AF37",
+                  borderRadius: "50%",
+                  width: "26px",
+                  height: "26px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "13px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                }}
+              >
+                👑
+              </div>
+            </div>
+
             <div style={{ textAlign: "center" as any }}>
-              <h2 style={{ color: "#FFF", margin: 0, fontSize: "20px", fontWeight: "bold" }}>
-                {activeCreatorProfile?.display_name || "Featured Model"}
+              <h2
+                style={{
+                  color: "#FFF",
+                  margin: 0,
+                  fontSize: "22px",
+                  fontWeight: "800",
+                  letterSpacing: "-0.3px",
+                  fontFamily: "system-ui, -apple-system, sans-serif",
+                }}
+              >
+                {activeCreatorProfile?.display_name || "hippygogo"}
               </h2>
-              <p style={{ color: "#AAA", margin: "2px 0 0 0", fontSize: "13px" }}>
-                @{activeCreatorProfile?.username || "creator"}
+              <p
+                style={{
+                  color: "#D4AF37",
+                  margin: "3px 0 0 0",
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  letterSpacing: "0.2px",
+                }}
+              >
+                @{activeCreatorProfile?.username || "hippygogo"}
               </p>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column" as any, gap: "10px", width: "100%", maxWidth: "340px", marginTop: "8px" }}>
+            <div style={{ display: "flex", flexDirection: "column" as any, gap: "10px", width: "100%", maxWidth: "340px", marginTop: "4px" }}>
               <div style={{ display: "flex", gap: "10px", width: "100%" }}>
                 <button
                   type="button"
@@ -735,14 +784,15 @@ export const StoriesScreen: React.FC = () => {
                   }}
                   style={{
                     flex: 1,
-                    padding: "10px",
-                    borderRadius: "20px",
-                    border: "1px solid rgba(255,255,255,0.3)",
-                    background: "rgba(255,255,255,0.1)",
+                    padding: "11px",
+                    borderRadius: "22px",
+                    border: "1px solid rgba(255,255,255,0.25)",
+                    background: "rgba(255,255,255,0.08)",
                     color: "#FFF",
-                    fontWeight: "bold",
-                    fontSize: "14px",
+                    fontWeight: "700",
+                    fontSize: "13px",
                     cursor: "pointer",
+                    transition: "all 0.2s ease",
                   }}
                 >
                   + Follow Creator
@@ -774,14 +824,17 @@ export const StoriesScreen: React.FC = () => {
                   }}
                   style={{
                     flex: 1,
-                    padding: "10px",
-                    borderRadius: "20px",
-                    border: "none",
-                    background: isVipMember ? "#D4AF37" : "rgba(212, 175, 55, 0.25)",
+                    padding: "11px",
+                    borderRadius: "22px",
+                    border: isVipMember ? "none" : "1px solid rgba(212, 175, 55, 0.4)",
+                    background: isVipMember
+                      ? "linear-gradient(135deg, #D4AF37 0%, #AA7C11 100%)"
+                      : "rgba(212, 175, 55, 0.15)",
                     color: isVipMember ? "#000" : "#D4AF37",
-                    fontWeight: "bold",
-                    fontSize: "14px",
+                    fontWeight: "700",
+                    fontSize: "13px",
                     cursor: "pointer",
+                    transition: "all 0.2s ease",
                   }}
                 >
                   {isVipMember ? "💬 1-on-1 Chat" : "🔒 1-on-1 Chat"}
@@ -811,15 +864,16 @@ export const StoriesScreen: React.FC = () => {
                   }}
                   style={{
                     width: "100%",
-                    padding: "12px",
-                    borderRadius: "20px",
+                    padding: "13px",
+                    borderRadius: "22px",
                     border: "none",
                     background: "linear-gradient(135deg, #FFD700 0%, #FFA500 100%)",
                     color: "#000",
-                    fontWeight: "bold",
-                    fontSize: "15px",
+                    fontWeight: "800",
+                    fontSize: "14px",
                     cursor: "pointer",
-                    boxShadow: "0 4px 15px rgba(255, 215, 0, 0.3)",
+                    boxShadow: "0 4px 20px rgba(255, 215, 0, 0.35)",
+                    letterSpacing: "0.2px",
                   }}
                 >
                   👑 Subscribe to @{activeCreatorProfile?.username || "hippygogo"}'s VIP Lounge ($9.99/mo)
