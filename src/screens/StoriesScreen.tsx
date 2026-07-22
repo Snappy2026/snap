@@ -372,13 +372,14 @@ export const StoriesScreen: React.FC = () => {
 
           if (user) {
             if (uploadDestination === "story") {
-              await (supabase.from("stories") as any).insert({
+              const { error: insertErr } = await (supabase.from("stories") as any).insert({
                 user_id: user.id,
                 media_url: mediaUrl,
                 media_type: isVideo ? "video" : "image",
               });
+              if (insertErr) console.error("[Story DB Insert Error]", insertErr);
             } else {
-              await (supabase.from("vip_content") as any).insert({
+              const { error: insertErr } = await (supabase.from("vip_content") as any).insert({
                 creator_id: user.id,
                 media_url: mediaUrl,
                 media_type: isVideo ? "video" : "image",
@@ -387,6 +388,19 @@ export const StoriesScreen: React.FC = () => {
                 required_tier: uploadDestination === "vip" ? "vip" : "public",
                 is_public_gallery: uploadDestination === "gallery",
               });
+              if (insertErr) console.error("[VIP Content DB Insert Error]", insertErr);
+
+              // Instantly refetch DB VIP items so new uploads persist in local state immediately
+              const { data: updatedVip } = await supabase
+                .from("vip_content")
+                .select("*, creator_profile:profiles(*)")
+                .order("created_at", { ascending: false });
+
+              if (updatedVip) {
+                const activeId = activeCreatorId || user.id;
+                setGalleryItems(updatedVip.filter((v: any) => v.is_public_gallery === true && v.creator_id === activeId));
+                setVipItems(updatedVip.filter((v: any) => v.is_public_gallery !== true && v.creator_id === activeId));
+              }
             }
           }
 

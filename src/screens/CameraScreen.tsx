@@ -404,14 +404,16 @@ export const CameraScreen: React.FC = () => {
       sessionStore.addStory(newStoryItem);
 
       if (currentUser) {
-        await (supabase.from("vip_content") as any).insert({
+        const { error: vipErr } = await (supabase.from("vip_content") as any).insert({
           creator_id: currentUser.id,
           title: "VIP Exclusive Snap",
           description: "Exclusive snap for Gold/Platinum members",
           media_url: capturedMedia.url,
           media_type: capturedMedia.type,
           required_tier: "gold",
+          is_public_gallery: false,
         });
+        if (vipErr) console.error("[Camera VIP Insert Error]", vipErr);
       }
 
       const msg = "Posted to VIP Members! 👑 View in the Stories tab.";
