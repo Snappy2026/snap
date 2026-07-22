@@ -94,7 +94,18 @@ export const App: React.FC = () => {
         .order("created_at", { ascending: false });
 
       if (creatorsData) {
-        setFeaturedCreators(creatorsData.filter((c: any) => c.role === "creator"));
+        setFeaturedCreators(
+          creatorsData.filter((c: any) => {
+            const handle = (c.username || "").toLowerCase();
+            const name = (c.display_name || "").toLowerCase();
+            return (
+              c.role === "creator" &&
+              !handle.includes("katie") &&
+              !handle.includes("katigee") &&
+              !name.includes("katie")
+            );
+          })
+        );
       }
 
       // Fetch all public media for Discover Feed
