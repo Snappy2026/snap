@@ -25,6 +25,8 @@ import { supabase } from "../lib/supabase";
 
 import { VipContentItem } from "../types/database";
 
+import { useRoute } from "@react-navigation/native";
+
 const { width } = Dimensions.get("window");
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -32,6 +34,12 @@ const DEMO_VIP_STORIES: VipContentItem[] = [];
 
 export const VipMembersScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<any>();
+
+  const targetCreatorHandle = route.params?.creatorHandle || "hippygogo";
+  const targetCreatorName = route.params?.creatorName || "hippygogo";
+  const targetCreatorId = route.params?.creatorId;
+
   const [isVipMember, setIsVipMember] = useState(false);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
@@ -105,15 +113,14 @@ export const VipMembersScreen: React.FC = () => {
           /* Locked State: VIP Gold Paywall Card */
           <View style={styles.paywallCard}>
             <View style={styles.goldBadgeContainer}>
-              <Text style={styles.goldBadgeText}>👑 VIP GOLD ACCESS</Text>
+              <Text style={styles.goldBadgeText}>👑 VIP ACCESS FOR @{targetCreatorHandle.toUpperCase()}</Text>
             </View>
 
             <Text style={styles.paywallTitle}>
-              Unlock Private Member Lounge
+              Subscribe to @{targetCreatorHandle}'s Lounge
             </Text>
             <Text style={styles.paywallDescription}>
-              Get 100% unrestricted access to private stories, exclusive creator
-              snaps, gold avatar badges, and priority direct messaging.
+              Get 100% unrestricted access to @{targetCreatorName}'s private stories, exclusive media gallery, gold avatar badge, and direct 1-on-1 messaging.
             </Text>
 
             {/* Feature List */}

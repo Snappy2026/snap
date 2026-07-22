@@ -715,76 +715,116 @@ export const StoriesScreen: React.FC = () => {
               </p>
             </div>
 
-            <div style={{ display: "flex", gap: "10px", width: "100%", maxWidth: "340px", marginTop: "8px" }}>
-              <button
-                type="button"
-                onClick={async () => {
-                  const targetId = activeCreatorProfile?.id;
-                  if (!targetId || !currentUserId) return;
-                  try {
-                    await (supabase.from("friendships") as any).insert({
-                      requester_id: currentUserId,
-                      addressee_id: targetId,
-                      status: "accepted",
-                    });
-                    if (typeof window !== "undefined") window.alert(`✓ Following @${activeCreatorProfile?.username}`);
-                  } catch (e) {
-                    console.log(e);
-                  }
-                }}
-                style={{
-                  flex: 1,
-                  padding: "10px",
-                  borderRadius: "20px",
-                  border: "1px solid rgba(255,255,255,0.3)",
-                  background: "rgba(255,255,255,0.1)",
-                  color: "#FFF",
-                  fontWeight: "bold",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                }}
-              >
-                + Follow Creator
-              </button>
+            <div style={{ display: "flex", flexDirection: "column" as any, gap: "10px", width: "100%", maxWidth: "340px", marginTop: "8px" }}>
+              <div style={{ display: "flex", gap: "10px", width: "100%" }}>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const targetId = activeCreatorProfile?.id;
+                    if (!targetId || !currentUserId) return;
+                    try {
+                      await (supabase.from("friendships") as any).insert({
+                        requester_id: currentUserId,
+                        addressee_id: targetId,
+                        status: "accepted",
+                      });
+                      if (typeof window !== "undefined") window.alert(`✓ Following @${activeCreatorProfile?.username}`);
+                    } catch (e) {
+                      console.log(e);
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    borderRadius: "20px",
+                    border: "1px solid rgba(255,255,255,0.3)",
+                    background: "rgba(255,255,255,0.1)",
+                    color: "#FFF",
+                    fontWeight: "bold",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                  }}
+                >
+                  + Follow Creator
+                </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (!currentUserId) {
-                    if (typeof window !== "undefined") {
-                      window.alert(`🔒 Sign Up Required\n\nPlease create an account or sign in to start a 1-on-1 Chat with @${activeCreatorProfile?.username || "Creator"}`);
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!currentUserId) {
+                      if (typeof window !== "undefined") {
+                        window.alert(`🔒 Sign Up Required\n\nPlease create an account or sign in to start a 1-on-1 Chat with @${activeCreatorProfile?.username || "Creator"}`);
+                      }
+                      navigation.navigate("Auth" as any);
+                      return;
                     }
-                    navigation.navigate("Auth" as any);
-                    return;
-                  }
-                  if (!isVipMember) {
-                    if (typeof window !== "undefined") {
-                      window.alert(`🔒 VIP Subscription Required\n\nDirect 1-on-1 Chat with @${activeCreatorProfile?.username || "Creator"} is exclusively reserved for paid VIP subscribers ($9.99/mo).\n\nTap 👑 Join VIP to unlock!`);
+                    if (!isVipMember) {
+                      if (typeof window !== "undefined") {
+                        window.alert(`🔒 VIP Subscription Required\n\nDirect 1-on-1 Chat with @${activeCreatorProfile?.username || "Creator"} is exclusively reserved for paid VIP subscribers ($9.99/mo).\n\nTap 👑 Join VIP below to unlock!`);
+                      }
+                      return;
                     }
-                    return;
-                  }
-                  const targetId = activeCreatorProfile?.id;
-                  if (targetId) {
-                    navigation.navigate("DirectChat", {
-                      recipientId: targetId,
-                      recipientName: activeCreatorProfile?.display_name || activeCreatorProfile?.username || "Creator",
+                    const targetId = activeCreatorProfile?.id;
+                    if (targetId) {
+                      navigation.navigate("DirectChat", {
+                        recipientId: targetId,
+                        recipientName: activeCreatorProfile?.display_name || activeCreatorProfile?.username || "Creator",
+                      } as any);
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "10px",
+                    borderRadius: "20px",
+                    border: "none",
+                    background: isVipMember ? "#D4AF37" : "rgba(212, 175, 55, 0.25)",
+                    color: isVipMember ? "#000" : "#D4AF37",
+                    fontWeight: "bold",
+                    fontSize: "14px",
+                    cursor: "pointer",
+                  }}
+                >
+                  {isVipMember ? "💬 1-on-1 Chat" : "🔒 1-on-1 Chat"}
+                </button>
+              </div>
+
+              {/* Creator-Specific VIP Membership Button */}
+              {!isVipMember && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!currentUserId) {
+                      if (typeof window !== "undefined") {
+                        window.alert(`👑 Sign Up Required\n\nPlease sign up or log in to join @${activeCreatorProfile?.username || "hippygogo"}'s VIP Lounge ($9.99/mo)`);
+                      }
+                      navigation.navigate("Auth" as any);
+                      return;
+                    }
+                    navigation.navigate("MainTabs", {
+                      screen: "VipMembers",
+                      params: {
+                        creatorId: activeCreatorProfile?.id,
+                        creatorHandle: activeCreatorProfile?.username || "hippygogo",
+                        creatorName: activeCreatorProfile?.display_name || "hippygogo",
+                      },
                     } as any);
-                  }
-                }}
-                style={{
-                  flex: 1,
-                  padding: "10px",
-                  borderRadius: "20px",
-                  border: "none",
-                  background: isVipMember ? "#D4AF37" : "rgba(212, 175, 55, 0.25)",
-                  color: isVipMember ? "#000" : "#D4AF37",
-                  fontWeight: "bold",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                }}
-              >
-                {isVipMember ? "💬 1-on-1 Chat" : "🔒 1-on-1 Chat"}
-              </button>
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "20px",
+                    border: "none",
+                    background: "linear-gradient(135deg, #FFD700 0%, #FFA500 100%)",
+                    color: "#000",
+                    fontWeight: "bold",
+                    fontSize: "15px",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 15px rgba(255, 215, 0, 0.3)",
+                  }}
+                >
+                  👑 Subscribe to @{activeCreatorProfile?.username || "hippygogo"}'s VIP Lounge ($9.99/mo)
+                </button>
+              )}
             </div>
           </div>
 
