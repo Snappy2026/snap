@@ -607,34 +607,63 @@ export const App: React.FC = () => {
               VIP Creator • <strong>5.2K</strong> Followers
             </p>
 
-            {/* Action Buttons Stack */}
+            {/* Action Buttons Stack (Dynamic for Visitor vs Logged-In Creator Owner) */}
             <div className="profile-actions-stack">
-              <div className="row-actions">
-                <button className="btn-follow-glass" onClick={() => alert(`✓ Following @${activeCreator?.username}`)}>
-                  ＋ Follow
-                </button>
-                <button
-                  className="btn-chat-glass"
-                  onClick={() => {
-                    if (!currentUser) setShowAuthModal(true);
-                    else if (!isVipMember) alert(`🔒 Direct 1-on-1 Chat is reserved for VIP Subscribers ($${customVipPrice}/mo).`);
-                    else alert(`💬 Starting 1-on-1 Chat with @${activeCreator?.username}!`);
-                  }}
-                >
-                  🗨 1-on-1 Chat
-                </button>
-              </div>
+              {currentUser && currentUser.id === activeCreator.id ? (
+                // Logged-In Creator Owner Controls
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
+                  <button className="btn-subscribe-gold-bar" onClick={() => setShowAddModal(true)}>
+                    📸 + Upload New Snap / Gallery / VIP Post
+                  </button>
+                  <div className="row-actions">
+                    <button className="btn-follow-glass" onClick={() => setShowStudioModal(true)}>
+                      🎨 Creator Studio
+                    </button>
+                    <button
+                      className="btn-chat-glass"
+                      style={{ color: "#ff4444", borderColor: "#ff4444" }}
+                      onClick={async () => {
+                        await supabase.auth.signOut();
+                        setCurrentUser(null);
+                        setUserRole("customer");
+                        window.location.search = "";
+                      }}
+                    >
+                      🚪 Log Out
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // Visitor Controls
+                <>
+                  <div className="row-actions">
+                    <button className="btn-follow-glass" onClick={() => alert(`✓ Following @${activeCreator?.username}`)}>
+                      ＋ Follow
+                    </button>
+                    <button
+                      className="btn-chat-glass"
+                      onClick={() => {
+                        if (!currentUser) setShowAuthModal(true);
+                        else if (!isVipMember) alert(`🔒 Direct 1-on-1 Chat is reserved for VIP Subscribers ($${customVipPrice}/mo).`);
+                        else alert(`💬 Starting 1-on-1 Chat with @${activeCreator?.username}!`);
+                      }}
+                    >
+                      🗨 1-on-1 Chat
+                    </button>
+                  </div>
 
-              {!isVipMember && (
-                <button
-                  className="btn-subscribe-gold-bar"
-                  onClick={() => {
-                    if (!currentUser) setShowAuthModal(true);
-                    else alert(`👑 Subscribing to @${activeCreator?.username}'s VIP Lounge ($${customVipPrice}/mo)`);
-                  }}
-                >
-                  👑 Subscribe to VIP Lounge (${customVipPrice}/mo)
-                </button>
+                  {!isVipMember && (
+                    <button
+                      className="btn-subscribe-gold-bar"
+                      onClick={() => {
+                        if (!currentUser) setShowAuthModal(true);
+                        else alert(`👑 Subscribing to @${activeCreator?.username}'s VIP Lounge ($${customVipPrice}/mo)`);
+                      }}
+                    >
+                      👑 Subscribe to VIP Lounge (${customVipPrice}/mo)
+                    </button>
+                  )}
+                </>
               )}
             </div>
 
@@ -1146,19 +1175,58 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      {/* Bottom Nav */}
+      {/* Bottom Nav Bar matching reference design: Discover (Home), + (Add Snap), Messages, Profile (Log Out) */}
       <nav className="bottom-navigation">
-        <button className="nav-item-btn active">
-          <span style={{ fontSize: "22px" }}>👥</span>
-          <span>Stories</span>
+        <button
+          className={`nav-item-btn ${!activeCreator ? "active" : ""}`}
+          onClick={() => (window.location.search = "")}
+        >
+          <span style={{ fontSize: "22px" }}>🖤</span>
+          <span>Discover</span>
         </button>
-        <button className="nav-item-btn" onClick={() => alert("💬 Chat feature active!")}>
-          <span style={{ fontSize: "22px" }}>💬</span>
-          <span>Chat</span>
+        <button
+          className="nav-item-btn"
+          onClick={() => {
+            if (!currentUser) setShowAuthModal(true);
+            else setShowAddModal(true);
+          }}
+        >
+          <div
+            style={{
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              background: "var(--gold-gradient)",
+              color: "#000",
+              fontWeight: 900,
+              fontSize: "22px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 0 12px rgba(255,215,0,0.5)",
+            }}
+          >
+            ＋
+          </div>
+          <span>Add Snap</span>
         </button>
-        <button className="nav-item-btn" onClick={() => alert("👑 VIP Lounge feature active!")}>
-          <span style={{ fontSize: "22px" }}>👑</span>
-          <span>VIP Lounge</span>
+        <button className="nav-item-btn" onClick={() => alert("💬 Direct Messages feature active!")}>
+          <span style={{ fontSize: "22px" }}>🗨</span>
+          <span>Messages</span>
+        </button>
+        <button
+          className={`nav-item-btn ${activeCreator ? "active" : ""}`}
+          onClick={() => {
+            if (!currentUser) {
+              setShowAuthModal(true);
+            } else {
+              const username = currentUser.email?.split("@")[0] || "sophia";
+              window.location.search = `?${username}`;
+            }
+          }}
+        >
+          <span style={{ fontSize: "22px" }}>👤</span>
+          <span>{currentUser ? "Profile" : "Log In"}</span>
         </button>
       </nav>
     </div>
