@@ -39,38 +39,10 @@ export const CustomerSettingsModal: React.FC<CustomerSettingsModalProps> = ({
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
   );
 
-  // Customer Spending & Subscription Analytics State
-  const [totalSpent, setTotalSpent] = useState<number>(29.97);
-  const [activeSubscriptions, setActiveSubscriptions] = useState([
-    {
-      id: "sub-1",
-      creator_name: "Alex Vance",
-      tier: "Gold VIP",
-      price: "$9.99/mo",
-      renew_date: "2026-08-20",
-    },
-    {
-      id: "sub-2",
-      creator_name: "Sarah Connor",
-      tier: "Platinum VIP",
-      price: "$19.99/mo",
-      renew_date: "2026-08-15",
-    },
-  ]);
-  const [unlockedSnaps, setUnlockedSnaps] = useState([
-    {
-      id: "snap-1",
-      title: "Exclusive VIP Beach Snap",
-      price: "$1.99",
-      date: "2026-07-20",
-    },
-    {
-      id: "snap-2",
-      title: "Behind The Scenes Reel",
-      price: "$2.99",
-      date: "2026-07-18",
-    },
-  ]);
+  // Customer Spending & Subscription Analytics State (fetched from DB)
+  const [totalSpent, setTotalSpent] = useState<number>(0);
+  const [activeSubscriptions, setActiveSubscriptions] = useState<any[]>([]);
+  const [unlockedSnaps, setUnlockedSnaps] = useState<any[]>([]);
 
   const fileInputRef = React.useRef<any>(null);
 
@@ -82,14 +54,22 @@ export const CustomerSettingsModal: React.FC<CustomerSettingsModalProps> = ({
 
         if (user) {
           setEmail(user.email || "");
-          setUsername(
-            user.user_metadata?.username ||
-              user.email?.split("@")[0] ||
-              "member",
-          );
-          setDisplayName(user.user_metadata?.display_name || "Snap Member");
-          if (user.user_metadata?.avatar_url) {
-            setAvatarUrl(user.user_metadata.avatar_url);
+
+          // Fetch from profiles table (source of truth)
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .maybeSingle();
+
+          if (profile) {
+            const p = profile as any;
+            setUsername(p.username || user.email?.split("@")[0] || "member");
+            setDisplayName(p.display_name || "Member");
+            if (p.avatar_url) setAvatarUrl(p.avatar_url);
+          } else {
+            setUsername(user.user_metadata?.username || user.email?.split("@")[0] || "member");
+            setDisplayName(user.user_metadata?.display_name || "Member");
           }
         }
       } catch (err) {
@@ -108,18 +88,52 @@ export const CustomerSettingsModal: React.FC<CustomerSettingsModalProps> = ({
     }
   };
 
-  const handleFileChange = (event: any) => {
+  const handleFileChange = async (event: any) => {
     const file = event.target?.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          setAvatarUrl(e.target.result as string);
-          if (typeof window !== "undefined")
-            window.alert("📸 Profile picture updated!");
-        }
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) return;
+
+      const userId = userData.user.id;
+      const fileExt = file.name.split(".").pop() || "jpg";
+      const filePath = `avatars/${userId}/profile.${fileExt}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("snaps-media")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        console.error("[Avatar Upload Error]", uploadError);
+        if (typeof window !== "undefined")
+          window.alert("Upload failed: " + uploadError.message);
+        return;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("snaps-media")
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData?.publicUrl;
+      if (!publicUrl) return;
+
+      // Add cache-buster to force refresh
+      const avatarWithBust = `${publicUrl}?t=${Date.now()}`;
+
+      // Save to profiles table
+      await (supabase.from("profiles") as any)
+        .update({ avatar_url: avatarWithBust, updated_at: new Date().toISOString() })
+        .eq("id", userId);
+
+      setAvatarUrl(avatarWithBust);
+
+      if (typeof window !== "undefined")
+        window.alert("📸 Profile picture updated and saved!");
+    } catch (err) {
+      console.error("[Avatar Upload Error]", err);
     }
   };
 

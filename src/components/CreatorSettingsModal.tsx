@@ -66,18 +66,51 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
     }
   };
 
-  const handleFileChange = (event: any) => {
+  const handleFileChange = async (event: any) => {
     const file = event.target?.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          setAvatarUrl(e.target.result as string);
-          if (typeof window !== "undefined")
-            window.alert("📸 Profile picture updated from your device!");
-        }
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) return;
+
+      const userId = userData.user.id;
+      const fileExt = file.name.split(".").pop() || "jpg";
+      const filePath = `avatars/${userId}/profile.${fileExt}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("snaps-media")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        console.error("[Avatar Upload Error]", uploadError);
+        if (typeof window !== "undefined")
+          window.alert("Upload failed: " + uploadError.message);
+        return;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("snaps-media")
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData?.publicUrl;
+      if (!publicUrl) return;
+
+      const avatarWithBust = `${publicUrl}?t=${Date.now()}`;
+
+      // Save to profiles table
+      await (supabase.from("profiles") as any)
+        .update({ avatar_url: avatarWithBust, updated_at: new Date().toISOString() })
+        .eq("id", userId);
+
+      setAvatarUrl(avatarWithBust);
+
+      if (typeof window !== "undefined")
+        window.alert("📸 Profile picture uploaded and saved!");
+    } catch (err) {
+      console.error("[Avatar Upload Error]", err);
     }
   };
 
@@ -124,9 +157,7 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
   // Creator Membership Price & Stripe Connect Settings
   const [goldMonthlyPrice, setGoldMonthlyPrice] = useState("9.99");
   const [platinumYearlyPrice, setPlatinumYearlyPrice] = useState("99.00");
-  const [stripeAccountId, setStripeAccountId] = useState(
-    "acct_1N9X82F45B31K009",
-  );
+  const [stripeAccountId, setStripeAccountId] = useState("");
 
   // Snap & Privacy Control Settings
   const [defaultSnapTimer, setDefaultSnapTimer] = useState<number>(5);
@@ -136,22 +167,7 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
   const [autoPurgeEnabled, setAutoPurgeEnabled] = useState(true);
 
   // Active Snaps posted by current user
-  const [activeSnaps, setActiveSnaps] = useState<ActiveSnapItem[]>([
-    {
-      id: "s1",
-      media_url:
-        "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500",
-      created_at: "10 mins ago",
-      type: "story",
-    },
-    {
-      id: "s2",
-      media_url:
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500",
-      created_at: "1 hour ago",
-      type: "story",
-    },
-  ]);
+  const [activeSnaps, setActiveSnaps] = useState<ActiveSnapItem[]>([]);
 
   useEffect(() => {
     const loadCreatorProfile = async () => {
@@ -196,9 +212,11 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
           .update({
             username: username.trim(),
             display_name: displayName.trim(),
+            avatar_url: avatarUrl,
             stripe_account_id: stripeAccountId.trim(),
             custom_gold_price: parseFloat(goldMonthlyPrice) || 9.99,
             custom_yearly_price: parseFloat(platinumYearlyPrice) || 99.0,
+            updated_at: new Date().toISOString(),
           })
           .eq("id", userData.user.id);
       }
