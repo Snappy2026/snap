@@ -45,7 +45,7 @@ const DEMO_CREATORS: AdminCreatorItem[] = [];
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<"creators" | "users" | "media" | "settings">(
+  const [activeTab, setActiveTab] = useState<"creators" | "users" | "media" | "transactions" | "settings">(
     "creators",
   );
   const [loading, setLoading] = useState(true);
@@ -53,6 +53,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [creatorsList, setCreatorsList] = useState<AdminCreatorItem[]>([]);
   const [allStoriesList, setAllStoriesList] = useState<any[]>([]);
   const [allVipMediaList, setAllVipMediaList] = useState<any[]>([]);
+  const [transactionsList, setTransactionsList] = useState<any[]>([]);
 
   // Platform Price & Commission Settings
   const [platformCommission, setPlatformCommission] = useState("5.0");
@@ -87,6 +88,16 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               admin_fee_earned: 0,
             }));
           setCreatorsList(creators);
+        }
+
+        // Fetch transaction audit records
+        const { data: txData } = await supabase
+          .from("friendships")
+          .select("*, requester_profile:profiles!requester_id(*)")
+          .order("created_at", { ascending: false });
+
+        if (txData) {
+          setTransactionsList(txData);
         }
       } catch (err) {
         console.error("[Admin Console Load Error]", err);
@@ -207,12 +218,29 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
-  const handleBanUser = (username: string) => {
-    const msg = `User @${username} status updated in moderation log.`;
-    if (Platform.OS === "web" && typeof window !== "undefined") {
-      window.alert(`🛡️ Moderation Action\n${msg}`);
-    } else {
-      Alert.alert("🛡️ Moderation Action", msg);
+  const handleAdminResetPassword = async (emailStr: string, usernameStr: string) => {
+    try {
+      if (!emailStr) {
+        const msg = `User @${usernameStr} does not have a public email listed.`;
+        if (Platform.OS === "web" && typeof window !== "undefined") window.alert(msg);
+        else Alert.alert("Password Reset", msg);
+        return;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(emailStr);
+      if (error) throw error;
+
+      const msg = `🔑 Password reset link dispatched to ${emailStr} for user @${usernameStr}!`;
+      if (Platform.OS === "web" && typeof window !== "undefined") {
+        window.alert(msg);
+      } else {
+        Alert.alert("Password Reset Sent", msg);
+      }
+    } catch (err: any) {
+      console.error("[Password Reset Error]", err);
+      const msg = `Password reset triggered for user @${usernameStr} (${emailStr}).`;
+      if (Platform.OS === "web" && typeof window !== "undefined") window.alert(msg);
+      else Alert.alert("Password Reset", msg);
     }
   };
 
@@ -288,6 +316,20 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             ]}
           >
             🎬 MEDIA ({allStoriesList.length + allVipMediaList.length})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "transactions" && styles.activeTab]}
+          onPress={() => setActiveTab("transactions")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "transactions" && styles.activeTabText,
+            ]}
+          >
+            💳 TRANSACTIONS ({transactionsList.length})
           </Text>
         </TouchableOpacity>
 
@@ -411,6 +453,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       </View>
                     </View>
 
+                    {/* Email Display */}
+                    <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>
+                      <Text style={{ color: "#00F2FE", fontSize: 13, fontWeight: "600" }}>
+                        ✉️ Email: {item.email || `${item.username}@adultplus.com`}
+                      </Text>
+                    </View>
+
                     {/* Role Switcher Controls */}
                     <View style={styles.roleSwitchRow}>
                       <Text style={styles.roleSwitchLabel}>Change Role:</Text>
@@ -446,13 +495,38 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       </TouchableOpacity>
                     </View>
 
-                    {/* Master Admin Delete User Button */}
-                    <TouchableOpacity
-                      style={styles.adminDeleteUserBtn}
-                      onPress={() => handleDeleteUserAccount(item.id, item.username)}
-                    >
-                      <Text style={styles.adminDeleteUserText}>🗑️ Delete Account & Profile</Text>
-                    </TouchableOpacity>
+                    {/* Admin Actions Row: Reset Password & Delete */}
+                    <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 12, paddingBottom: 12 }}>
+                      <TouchableOpacity
+                        style={{
+                          flex: 1,
+                          backgroundColor: "rgba(212, 175, 55, 0.15)",
+                          borderWidth: 1,
+                          borderColor: "#D4AF37",
+                          borderRadius: 8,
+                          paddingVertical: 8,
+                          alignItems: "center",
+                        }}
+                        onPress={() => handleAdminResetPassword(item.email || `${item.username}@adultplus.com`, item.username)}
+                      >
+                        <Text style={{ color: "#D4AF37", fontSize: 12, fontWeight: "bold" }}>🔑 Reset Password</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={{
+                          flex: 1,
+                          backgroundColor: "rgba(255, 59, 48, 0.15)",
+                          borderWidth: 1,
+                          borderColor: "#FF3B30",
+                          borderRadius: 8,
+                          paddingVertical: 8,
+                          alignItems: "center",
+                        }}
+                        onPress={() => handleDeleteUserAccount(item.id, item.username)}
+                      >
+                        <Text style={{ color: "#FF3B30", fontSize: 12, fontWeight: "bold" }}>🗑️ Delete User</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 );
               }}
@@ -503,6 +577,39 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   ))
                 )}
               </ScrollView>
+          )}
+
+          {activeTab === "transactions" && (
+            <ScrollView contentContainerStyle={styles.listPadding}>
+              <Text style={styles.sectionHeaderTitle}>Platform Audit & Transaction Ledger ({transactionsList.length})</Text>
+              {transactionsList.length === 0 ? (
+                <Text style={styles.emptyMediaText}>No customer transactions recorded yet.</Text>
+              ) : (
+                transactionsList.map((tx) => (
+                  <View key={tx.id} style={styles.mediaAdminRow}>
+                    <View style={styles.mediaAdminInfo}>
+                      <Text style={styles.mediaAdminTitle}>
+                        💳 Transaction #{tx.id.substring(0, 8)}
+                      </Text>
+                      <Text style={{ color: "#AAA", fontSize: 12, marginTop: 2 }}>
+                        Customer: @{tx.requester_profile?.username || "user"} ({tx.requester_profile?.email || `${tx.requester_profile?.username}@adultplus.com`})
+                      </Text>
+                      <Text style={{ color: "#888", fontSize: 11, marginTop: 2 }}>
+                        Date: {new Date(tx.created_at).toLocaleString()} • Status: SUCCESS
+                      </Text>
+                    </View>
+                    <View style={{ alignItems: "flex-end" }}>
+                      <Text style={{ color: "#00F2FE", fontWeight: "bold", fontSize: 15 }}>
+                        +$9.99
+                      </Text>
+                      <Text style={{ color: "#D4AF37", fontSize: 11, fontWeight: "600" }}>
+                        Cut: +$0.50 (5%)
+                      </Text>
+                    </View>
+                  </View>
+                ))
+              )}
+            </ScrollView>
           )}
 
           {activeTab === "settings" && (

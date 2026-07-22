@@ -10,6 +10,7 @@ export interface Profile {
   id: string;
   username: string;
   display_name: string;
+  email?: string;
   avatar_url: string | null;
   role?: UserRole;
   stripe_account_id?: string | null;
