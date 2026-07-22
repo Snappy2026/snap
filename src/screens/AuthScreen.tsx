@@ -22,6 +22,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
 import { supabase } from "../lib/supabase";
+import { CreatorOnboardingModal } from "../components/CreatorOnboardingModal";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -49,6 +50,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showCreatorModal, setShowCreatorModal] = useState(false);
+  const [registeredUser, setRegisteredUser] = useState<any>(null);
 
   const handleAuth = async () => {
     if (!email || !password) {
@@ -56,65 +59,70 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
       return;
     }
 
+    if (!isLogin && (!username || !displayName)) {
+      showAlert("Missing Details", "Please enter a username handle and display name to create your account.");
+      return;
+    }
+
     setLoading(true);
     try {
       if (isLogin) {
-        let { error } = await supabase.auth.signInWithPassword({
+        // Strict Login: Must match existing credentials exactly
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password: password.trim(),
         });
 
         if (error) {
-          const { error: signUpErr } = await supabase.auth.signUp({
-            email: email.trim(),
-            password: password.trim(),
-            options: {
-              data: {
-                username: email.split("@")[0],
-                display_name: email.split("@")[0],
-                role: email.includes("admin") ? "admin" : selectedRole,
-              },
-            },
-          });
-          if (signUpErr) throw signUpErr;
+          showAlert("Login Failed", error.message || "Invalid email or password. Please create an account if you do not have one.");
+          setLoading(false);
+          return;
         }
 
         if (onEnableDemoMode) onEnableDemoMode();
         navigation.replace("MainTabs", { screen: "Camera" });
       } else {
+        // Strict Sign Up
         const { data: signUpData, error } = await supabase.auth.signUp({
           email: email.trim(),
           password: password.trim(),
           options: {
             data: {
-              username: username.trim() || email.split("@")[0],
-              display_name:
-                displayName.trim() || username.trim() || email.split("@")[0],
+              username: username.trim(),
+              display_name: displayName.trim(),
               role: selectedRole,
             },
           },
         });
-        if (error) throw error;
+
+        if (error) {
+          showAlert("Sign Up Error", error.message || "Could not register account. Email may already be registered.");
+          setLoading(false);
+          return;
+        }
 
         if (signUpData?.user) {
           await (supabase.from("profiles") as any).upsert({
             id: signUpData.user.id,
-            username: username.trim() || email.split("@")[0],
-            display_name:
-              displayName.trim() || username.trim() || email.split("@")[0],
+            username: username.trim(),
+            display_name: displayName.trim(),
             role: selectedRole,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           });
         }
 
-        if (onEnableDemoMode) onEnableDemoMode();
-        navigation.replace("MainTabs", { screen: "Camera" });
+        if (selectedRole === "creator") {
+          setRegisteredUser(signUpData?.user || { id: signUpData?.user?.id, email: email.trim() });
+          setShowCreatorModal(true);
+        } else {
+          if (onEnableDemoMode) onEnableDemoMode();
+          navigation.replace("MainTabs", { screen: "Camera" });
+        }
       }
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error("[Auth Exception]", err);
-      if (onEnableDemoMode) onEnableDemoMode();
-      navigation.replace("MainTabs", { screen: "Camera" });
+      showAlert("Authentication Error", err?.message || "An unexpected authentication error occurred.");
     } finally {
       setLoading(false);
     }
@@ -320,6 +328,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+          <CreatorOnboardingModal
+        visible={showCreatorModal}
+        userId={registeredUser?.id}
+        userEmail={registeredUser?.email}
+        onClose={() => {
+          setShowCreatorModal(false);
+          if (onEnableDemoMode) onEnableDemoMode();
+          navigation.replace("MainTabs", { screen: "Camera" });
+        }}
+      />
     </SafeAreaView>
   );
 };

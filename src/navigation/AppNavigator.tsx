@@ -17,6 +17,7 @@ import {
   Pressable,
   ActivityIndicator,
   ImageBackground,
+  Platform,
 } from "react-native";
 import { RootStackParamList, MainTabParamList } from "../types/navigation";
 import { supabase } from "../lib/supabase";
@@ -225,19 +226,19 @@ export const AppNavigator: React.FC = () => {
 
 const styles = StyleSheet.create({
   tabBarContainer: {
-    position: "absolute",
+    position: Platform.OS === "web" ? ("fixed" as any) : "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: 70,
-    backgroundColor: "#000000",
+    height: Platform.OS === "web" ? 76 : 70,
+    backgroundColor: "#0A0A0C",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
     borderTopWidth: 1,
-    borderTopColor: "#1A1A1A",
-    paddingBottom: 10,
-    zIndex: 100,
+    borderTopColor: "rgba(212, 175, 55, 0.3)",
+    paddingBottom: Platform.OS === "web" ? 14 : 10,
+    zIndex: 9999,
   },
   tabItem: {
     flex: 1,

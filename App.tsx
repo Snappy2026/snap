@@ -28,6 +28,18 @@ export default function App() {
           overflow: hidden;
           background-color: #000;
         }
+                html, body, #root {
+          height: 100%;
+          min-height: 100vh;
+          min-height: -webkit-fill-available;
+          overflow: hidden;
+          background-color: #000;
+        }
+        /* Lock root container to viewport on mobile web */
+        #root > div {
+          height: 100vh !important;
+          height: -webkit-fill-available !important;
+        }
         /* Fix React Native Web touch-action blocking on mobile Safari */
         #root div[style*="touch-action"] {
           touch-action: auto !important;

@@ -19,6 +19,7 @@ import ContactInviteModal from "./ContactInviteModal";
 import CreatorSettingsModal from "./CreatorSettingsModal";
 import AdminDashboardModal from "./AdminDashboardModal";
 import CustomerSettingsModal from "./CustomerSettingsModal";
+import CreatorContentStudioModal from "./CreatorContentStudioModal";
 import { supabase } from "../lib/supabase";
 
 interface SnapBarProps {
@@ -38,6 +39,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [showStudioModal, setShowStudioModal] = useState(false);
   const [userRole, setUserRole] = useState<"admin" | "creator" | "customer">(
     "customer",
   );
@@ -98,15 +100,9 @@ export const SnapBar: React.FC<SnapBarProps> = ({
           </View>
         </TouchableOpacity>
 
-        {/* Center: Responsive Search Bar */}
-        <View style={styles.searchBox}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            placeholder="Search"
-            placeholderTextColor="rgba(255, 255, 255, 0.6)"
-            style={styles.searchInput}
-            onChangeText={onSearchChange}
-          />
+        {/* Center: Clean Adult+ Title */}
+        <View style={styles.centerBrandContainer}>
+          <Text style={styles.brandTitleText}>{title || "Adult+"}</Text>
         </View>
 
         {/* Right Actions Group */}
@@ -122,13 +118,22 @@ export const SnapBar: React.FC<SnapBarProps> = ({
           )}
 
           {userRole === "creator" && (
-            <TouchableOpacity
-              style={styles.stripeBarBtn}
-              onPress={() => setShowSettingsModal(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.stripeBarText}>💳 Payouts</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                style={styles.studioBarBtn}
+                onPress={() => setShowStudioModal(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.studioBarText}>🎨 Studio</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.stripeBarBtn}
+                onPress={() => setShowSettingsModal(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.stripeBarText}>💳 Payouts</Text>
+              </TouchableOpacity>
+            </>
           )}
 
           {userRole === "customer" && (
@@ -162,6 +167,13 @@ export const SnapBar: React.FC<SnapBarProps> = ({
       </Modal>
 
       {/* Customer Account Dashboard Modal */}
+      {showStudioModal && (
+        <CreatorContentStudioModal
+          visible={showStudioModal}
+          onClose={() => setShowStudioModal(false)}
+        />
+      )}
+
       {showCustomerModal && (
         <CustomerSettingsModal
           onClose={() => setShowCustomerModal(false)}
@@ -204,6 +216,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     gap: 6,
     justifyContent: "space-between",
+  },
+  centerBrandContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  brandTitleText: {
+    color: "#D4AF37",
+    fontSize: 20,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+  studioBarBtn: {
+    backgroundColor: "rgba(212, 175, 55, 0.15)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#D4AF37",
+    marginRight: 6,
+  },
+  studioBarText: {
+    color: "#D4AF37",
+    fontSize: 12,
+    fontWeight: "800",
   },
   profileButton: {
     justifyContent: "center",
