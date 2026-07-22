@@ -325,13 +325,60 @@ export const StoriesScreen: React.FC = () => {
         const user = userData?.user;
         if (!user) return;
 
-        const fileExt = file.name.split(".").pop() || (isVideo ? "mp4" : "jpg");
+        let uploadFile: File | Blob = file;
+
+        // Auto-compress high-resolution photo uploads on client-side before sending to Supabase Storage
+        if (!isVideo && Platform.OS === "web" && typeof window !== "undefined") {
+          try {
+            uploadFile = await new Promise<Blob>((resolve) => {
+              const img = new window.Image();
+              const url = URL.createObjectURL(file);
+              img.onload = () => {
+                const canvas = document.createElement("canvas");
+                let { width, height } = img;
+                const maxDim = 1600;
+                if (width > maxDim || height > maxDim) {
+                  if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                  } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                  }
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                if (ctx) {
+                  ctx.drawImage(img, 0, 0, width, height);
+                  canvas.toBlob(
+                    (blob) => {
+                      URL.revokeObjectURL(url);
+                      resolve(blob || file);
+                    },
+                    "image/jpeg",
+                    0.82
+                  );
+                } else {
+                  URL.revokeObjectURL(url);
+                  resolve(file);
+                }
+              };
+              img.onerror = () => resolve(file);
+              img.src = url;
+            });
+          } catch (compressErr) {
+            console.log("[Image Compression Warning]", compressErr);
+          }
+        }
+
+        const fileExt = isVideo ? (file.name.split(".").pop() || "mp4") : "jpg";
         const fileName = `vip_content/${user.id}/${Date.now()}.${fileExt}`;
 
-        // 1. Upload to Supabase Storage Bucket
+        // 1. Upload compressed media to Supabase Storage Bucket
         const { error: storageErr } = await supabase.storage
           .from("snaps-media")
-          .upload(fileName, file, { upsert: true });
+          .upload(fileName, uploadFile, { upsert: true, contentType: isVideo ? "video/mp4" : "image/jpeg" });
 
         let publicUrl = "";
         if (!storageErr) {
