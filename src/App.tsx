@@ -544,10 +544,6 @@ export const App: React.FC = () => {
               <button className="hero-icon-btn" onClick={() => (window.location.search = "")}>
                 ‹
               </button>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button className="hero-icon-btn">⎘</button>
-                <button className="hero-icon-btn">•••</button>
-              </div>
             </div>
 
             {/* Liquid Gold Header Background Cover */}
