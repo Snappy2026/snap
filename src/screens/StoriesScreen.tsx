@@ -102,27 +102,43 @@ export const StoriesScreen: React.FC = () => {
         }
         const effectiveParam = urlCreatorParam || invitedCreator;
 
-        // Run user session fetch and creator invite resolution concurrently
-        const [userDataRes, invProfileRes] = await Promise.all([
-          supabase.auth.getUser(),
-          effectiveParam
-            ? supabase
-                .from("profiles")
-                .select("*")
-                .eq("role", "creator")
-                .or(`username.ilike.${effectiveParam.trim().toLowerCase()},id.eq.${effectiveParam}`)
-                .maybeSingle()
-            : Promise.resolve({ data: null }),
-        ]);
+        const userDataRes = await supabase.auth.getUser();
+
+        let invProfileData = null;
+        if (effectiveParam) {
+          const clean = effectiveParam.trim().toLowerCase();
+          // First try exact username match or ID match for creator role
+          const { data: exact } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("role", "creator")
+            .or(`username.ilike.${clean},id.eq.${effectiveParam}`)
+            .maybeSingle();
+
+          if (exact) {
+            invProfileData = exact;
+          } else {
+            // Second try fuzzy username/display_name match for creator role
+            const { data: fuzzy } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("role", "creator")
+              .or(`username.ilike.%${clean}%,display_name.ilike.%${clean}%`)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            invProfileData = fuzzy;
+          }
+        }
 
         const user = userDataRes.data?.user;
         setCurrentUserId(user?.id || null);
 
         let targetCreatorId = activeCreatorId;
-        if (invProfileRes.data) {
-          targetCreatorId = (invProfileRes.data as any).id;
-          setActiveCreatorProfile(invProfileRes.data);
-          setActiveCreatorId((invProfileRes.data as any).id);
+        if (invProfileData) {
+          targetCreatorId = (invProfileData as any).id;
+          setActiveCreatorProfile(invProfileData);
+          setActiveCreatorId((invProfileData as any).id);
         }
 
         if (!targetCreatorId) {
