@@ -150,18 +150,19 @@ export const StoriesScreen: React.FC = () => {
 
         const { data: vipData } = await supabase
           .from("vip_content")
-          .select("*, creator_profile:profiles(*)");
+          .select("*, creator_profile:profiles(*)")
+          .order("created_at", { ascending: false });
 
         if (vipData) {
-          const publicGallery = vipData.filter((v: any) => v.is_public_gallery === true);
-          // Strictly show ONLY gallery items belonging to the active creator
-          const filteredGallery = publicGallery.filter(
-            (v: any) => v.creator_id === (effectiveCreatorId || user?.id)
+          const activeId = targetCreatorId || activeCreatorId || user?.id;
+
+          const publicGallery = vipData.filter(
+            (v: any) => v.is_public_gallery === true && (activeId ? v.creator_id === activeId : true)
           );
-          setGalleryItems(filteredGallery);
+          setGalleryItems(publicGallery);
 
           const vipFiltered = vipData.filter(
-            (v: any) => v.is_public_gallery !== true && v.creator_id === (effectiveCreatorId || user?.id)
+            (v: any) => v.is_public_gallery !== true && (activeId ? v.creator_id === activeId : true)
           );
           setVipItems(vipFiltered);
         }
