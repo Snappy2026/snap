@@ -138,15 +138,22 @@ export const StoriesScreen: React.FC = () => {
           setUserRole(resolvedRole);
         }
 
-        // Handle invited creator routing from WhatsApp / SMS link (case-insensitive creator match)
+        // Handle invited creator routing from WhatsApp / SMS link (?creator=handle or ?invite=handle)
         let targetCreatorId = activeCreatorId;
-        if (!targetCreatorId && invitedCreator) {
-          const cleanHandle = invitedCreator.trim().toLowerCase();
+        let urlCreatorParam: string | null = null;
+        if (Platform.OS === "web" && typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          urlCreatorParam = params.get("creator") || params.get("invite") || params.get("ref");
+        }
+        const effectiveParam = urlCreatorParam || invitedCreator;
+
+        if (effectiveParam) {
+          const cleanHandle = effectiveParam.trim().toLowerCase();
           const { data: invProfile } = await supabase
             .from("profiles")
             .select("*")
             .eq("role", "creator")
-            .or(`username.ilike.%${cleanHandle}%,display_name.ilike.%${cleanHandle}%,id.eq.${invitedCreator}`)
+            .or(`username.ilike.%${cleanHandle}%,display_name.ilike.%${cleanHandle}%,id.eq.${effectiveParam}`)
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle();
@@ -158,10 +165,11 @@ export const StoriesScreen: React.FC = () => {
         }
 
         // Determine effective creator profile ID:
-        // Priority 1: Target Creator ID from WhatsApp/SMS invite link or tapped story profile
-        // Priority 2: If logged in as Creator and no invite link specified, show own creator profile
-        // Priority 3: Fallback to first active creator in system
-        let effectiveCreatorId = targetCreatorId || activeCreatorId;
+        // Priority 1: Target Creator ID from current URL query parameter or invite link
+        // Priority 2: Tapped story creator profile ID
+        // Priority 3: If logged in as Creator and no invite specified, show own profile
+        // Priority 4: Fallback to first active creator profile
+        let effectiveCreatorId = targetCreatorId;
         if (!effectiveCreatorId && userRole === "creator" && user?.id) {
           effectiveCreatorId = user.id;
         }

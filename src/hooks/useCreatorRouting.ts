@@ -16,11 +16,6 @@ export const useCreatorRouting = () => {
       const creatorParam = params.get("creator") || params.get("invite") || params.get("ref");
       if (creatorParam) {
         setInvitedCreator(creatorParam);
-        try {
-          localStorage.setItem("invited_creator_handle", creatorParam);
-        } catch (e) {
-          console.log("[useCreatorRouting] LocalStorage notice", e);
-        }
       }
     }
   }, []);
