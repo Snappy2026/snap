@@ -137,8 +137,15 @@ export const StoriesScreen: React.FC = () => {
           }
         }
 
-        // If no creator selected yet, default to the first available creator profile so followers always see creator content
-        let effectiveCreatorId = targetCreatorId || activeCreatorId || user?.id;
+        // Determine effective creator profile ID:
+        // 1. If logged in as Creator, show own profile by default unless explicitly viewing another creator
+        // 2. If logged in as Customer or Visitor, show targetCreatorId or default creator profile
+        let effectiveCreatorId = activeCreatorId;
+        if (!effectiveCreatorId && userRole === "creator" && user?.id) {
+          effectiveCreatorId = user.id;
+        } else if (!effectiveCreatorId) {
+          effectiveCreatorId = targetCreatorId || user?.id || null;
+        }
 
         if (!effectiveCreatorId) {
           const { data: defaultCreator } = await supabase
@@ -180,8 +187,8 @@ export const StoriesScreen: React.FC = () => {
 
         if (vipRes.data) {
           const vipData = vipRes.data;
-          setGalleryItems(vipData.filter((v: any) => v.is_public_gallery === true));
-          setVipItems(vipData.filter((v: any) => v.is_public_gallery !== true));
+          setGalleryItems(vipData.filter((v: any) => Boolean(v.is_public_gallery)));
+          setVipItems(vipData.filter((v: any) => !Boolean(v.is_public_gallery)));
         }
 
         if (storiesRes.data && storiesRes.data.length > 0) {
