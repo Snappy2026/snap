@@ -205,9 +205,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
           });
         }
 
-        // First time signup: Show payment / subscription options modal for both creators and followers
-        setRegisteredUser(signUpData?.user || { id: signUpData?.user?.id, email: email.trim() });
-        setShowCreatorModal(true);
+        // First-time signup: Show onboarding options for creators ONLY. Customers/followers skip modal and access Stories page directly.
+        if (selectedRole === "creator") {
+          setRegisteredUser(signUpData?.user || { id: signUpData?.user?.id, email: email.trim() });
+          setShowCreatorModal(true);
+        } else {
+          if (onEnableDemoMode) onEnableDemoMode();
+          navigation.replace("MainTabs", { screen: "Stories" });
+        }
       }
     } catch (err: any) {
       console.error("[Auth Exception]", err);
