@@ -720,6 +720,12 @@ export const StoriesScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
+                  if (!isVipMember) {
+                    if (typeof window !== "undefined") {
+                      window.alert(`🔒 VIP Subscription Required\n\nDirect 1-on-1 Chat with @${activeCreatorProfile?.username || "Creator"} is exclusively reserved for paid VIP subscribers ($9.99/mo).\n\nTap 👑 Join VIP to unlock!`);
+                    }
+                    return;
+                  }
                   const targetId = activeCreatorProfile?.id;
                   if (targetId) {
                     navigation.navigate("DirectChat", {
@@ -733,14 +739,14 @@ export const StoriesScreen: React.FC = () => {
                   padding: "10px",
                   borderRadius: "20px",
                   border: "none",
-                  background: "#D4AF37",
-                  color: "#000",
+                  background: isVipMember ? "#D4AF37" : "rgba(212, 175, 55, 0.25)",
+                  color: isVipMember ? "#000" : "#D4AF37",
                   fontWeight: "bold",
                   fontSize: "14px",
                   cursor: "pointer",
                 }}
               >
-                💬 1-on-1 Chat
+                {isVipMember ? "💬 1-on-1 Chat" : "🔒 1-on-1 Chat"}
               </button>
             </div>
           </div>
