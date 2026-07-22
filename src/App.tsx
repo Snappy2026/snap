@@ -18,6 +18,8 @@ export const App: React.FC = () => {
   const [showStudioModal, setShowStudioModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [activeStoryModal, setActiveStoryModal] = useState<any>(null);
+  const [storyProgress, setStoryProgress] = useState<number>(0);
 
   const [uploadDestination, setUploadDestination] = useState<"story" | "gallery" | "vip">("story");
   const [customVipPrice, setCustomVipPrice] = useState<number>(9.99);
@@ -33,6 +35,26 @@ export const App: React.FC = () => {
   const [adminUsers, setAdminUsers] = useState<any[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const timerRef = useRef<any>(null);
+
+  // Auto-progress Story Viewer Timer (5 Seconds)
+  useEffect(() => {
+    if (activeStoryModal) {
+      setStoryProgress(0);
+      const interval = setInterval(() => {
+        setStoryProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setActiveStoryModal(null);
+            return 100;
+          }
+          return prev + 2;
+        });
+      }, 100);
+      timerRef.current = interval;
+      return () => clearInterval(interval);
+    }
+  }, [activeStoryModal]);
 
   useEffect(() => {
     const initApp = async () => {
@@ -517,7 +539,7 @@ export const App: React.FC = () => {
 
           {/* Stories List */}
           {storiesList.map((story) => (
-            <div key={story.id} className="story-circle-item" onClick={() => alert(`Viewing Snap Story!`)}>
+            <div key={story.id} className="story-circle-item" onClick={() => setActiveStoryModal(story)}>
               <div className="avatar-ring-story">
                 <img src={story.media_url} alt="Snap Story" className="story-avatar-img" />
               </div>
@@ -711,7 +733,68 @@ export const App: React.FC = () => {
         </section>
       )}
 
-      {/* Hidden File Input */}
+      {/* FULL SCREEN SNAP STORY VIEWER MODAL WITH TIMER BAR */}
+      {activeStoryModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "#000",
+            zIndex: 999999,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {/* Top Progress Timer Bar */}
+          <div style={{ position: "absolute", top: "12px", left: "16px", right: "16px", zIndex: 100, display: "flex", gap: "6px" }}>
+            <div style={{ flex: 1, height: "4px", background: "rgba(255,255,255,0.3)", borderRadius: "2px", overflow: "hidden" }}>
+              <div
+                style={{
+                  height: "100%",
+                  background: "#FFD700",
+                  width: `${storyProgress}%`,
+                  transition: "width 0.1s linear",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Story Creator Header Info */}
+          <div style={{ position: "absolute", top: "24px", left: "16px", right: "16px", zIndex: 100, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <img
+                src={activeStoryModal.media_url}
+                alt=""
+                style={{ width: "36px", height: "36px", borderRadius: "50%", border: "2px solid #FFD700", objectFit: "cover" }}
+              />
+              <div>
+                <h4 style={{ fontSize: "14px", fontWeight: "bold", color: "#fff", margin: 0 }}>
+                  {activeStoryModal.user_profile?.display_name || "Snap Story"}
+                </h4>
+                <p style={{ fontSize: "11px", color: "#FFD700", margin: 0 }}>24h Quick Snap 👻</p>
+              </div>
+            </div>
+            <button
+              style={{ background: "rgba(0,0,0,0.5)", border: "none", color: "#fff", fontSize: "20px", width: "36px", height: "36px", borderRadius: "50%", cursor: "pointer" }}
+              onClick={() => setActiveStoryModal(null)}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Full Screen Story Image Display */}
+          <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <img
+              src={activeStoryModal.media_url}
+              alt="Snap Story"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </div>
+        </div>
+      )}
       <input type="file" ref={fileInputRef} accept="image/*,video/*" style={{ display: "none" }} onChange={handleFileUpload} />
 
       {/* 1. ADD CONTENT MODAL */}
