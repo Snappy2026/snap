@@ -121,13 +121,14 @@ export const StoriesScreen: React.FC = () => {
           setUserRole(profileData?.role || "customer");
         }
 
-        // Handle invited creator routing from WhatsApp / SMS link
+        // Handle invited creator routing from WhatsApp / SMS link (case-insensitive)
         let targetCreatorId = activeCreatorId;
         if (!targetCreatorId && invitedCreator) {
+          const cleanHandle = invitedCreator.trim().toLowerCase();
           const { data: invProfile } = await supabase
             .from("profiles")
             .select("*")
-            .or(`username.eq.${invitedCreator},id.eq.${invitedCreator}`)
+            .or(`username.ilike.${cleanHandle},id.eq.${invitedCreator}`)
             .maybeSingle();
           if (invProfile) {
             targetCreatorId = (invProfile as any).id;
@@ -136,18 +137,38 @@ export const StoriesScreen: React.FC = () => {
           }
         }
 
-        const effectiveCreatorId = targetCreatorId || user?.id;
+        // If no creator selected yet, default to the first available creator profile so followers always see creator content
+        let effectiveCreatorId = targetCreatorId || activeCreatorId || user?.id;
+
+        if (!effectiveCreatorId) {
+          const { data: defaultCreator } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("role", "creator")
+            .limit(1)
+            .maybeSingle();
+          if (defaultCreator) {
+            effectiveCreatorId = (defaultCreator as any).id;
+            setActiveCreatorProfile(defaultCreator);
+          }
+        }
 
         // Run ALL database queries in PARALLEL via Promise.all for instant page load!
         const [cProfileRes, vipRes, storiesRes] = await Promise.all([
           effectiveCreatorId
             ? supabase.from("profiles").select("*").eq("id", effectiveCreatorId).maybeSingle()
             : Promise.resolve({ data: null }),
-          supabase
-            .from("vip_content")
-            .select("id, creator_id, title, media_url, media_type, is_public_gallery, required_tier, created_at")
-            .eq("creator_id", effectiveCreatorId || user?.id || "")
-            .order("created_at", { ascending: false }),
+          effectiveCreatorId
+            ? supabase
+                .from("vip_content")
+                .select("id, creator_id, title, media_url, media_type, is_public_gallery, required_tier, created_at")
+                .eq("creator_id", effectiveCreatorId)
+                .order("created_at", { ascending: false })
+            : supabase
+                .from("vip_content")
+                .select("id, creator_id, title, media_url, media_type, is_public_gallery, required_tier, created_at")
+                .order("created_at", { ascending: false })
+                .limit(30),
           supabase
             .from("stories")
             .select("*, user_profile:profiles(display_name, username, avatar_url)")
