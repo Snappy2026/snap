@@ -47,11 +47,10 @@ export const SnapBar: React.FC<SnapBarProps> = ({
   // Declare ALL state before useEffects to avoid ordering issues
   const navigation = useNavigation<any>();
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [userEmail, setUserEmail] = useState("");
+  const [userRole, setUserRole] = useState<"admin" | "creator" | "customer">("customer");
   const [displayName, setDisplayName] = useState("User");
-  const [userRole, setUserRole] = useState<"admin" | "creator" | "customer">(
-    "customer",
-  );
+  const [userEmail, setUserEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150");
 
   // Single consolidated useEffect that fetches user data and role
   React.useEffect(() => {
@@ -93,9 +92,15 @@ export const SnapBar: React.FC<SnapBarProps> = ({
         // For non-admin users, check the profiles table
         const { data: profile } = await supabase
           .from("profiles")
-          .select("role")
+          .select("role, display_name, avatar_url")
           .eq("id", user.id)
           .maybeSingle();
+
+        if (profile) {
+          const p = profile as any;
+          if (p.avatar_url) setAvatarUrl(p.avatar_url);
+          if (p.display_name) setDisplayName(p.display_name);
+        }
 
         const profileRole = (profile as any)?.role || user.user_metadata?.role;
         if (profileRole === "admin") {
@@ -159,7 +164,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
           <View style={styles.yellowRing}>
             <Image
               source={{
-                uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+                uri: avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
               }}
               style={styles.avatar}
             />
@@ -243,7 +248,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
             <View style={styles.profileMenuBox}>
               <View style={styles.profileMenuHeader}>
                 <Image
-                  source={{ uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" }}
+                  source={{ uri: avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" }}
                   style={styles.menuAvatar}
                 />
                 <Text style={styles.menuDisplayName}>{displayName}</Text>

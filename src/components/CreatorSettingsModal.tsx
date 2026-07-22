@@ -385,6 +385,16 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
           </View>
 
 
+          {/* Hidden File Input for Device Photo Selection */}
+          {Platform.OS === "web" && (
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleFileChange}
+            />
+          )}
         </ScrollView>
       )}
 

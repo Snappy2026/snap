@@ -211,6 +211,15 @@ export const CustomerSettingsModal: React.FC<CustomerSettingsModalProps> = ({
                   📁 Change Profile Photo
                 </Text>
               </TouchableOpacity>
+              {Platform.OS === "web" && (
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleFileChange}
+                />
+              )}
             </View>
 
             {/* CUSTOMER SPENDING SUMMARY CARD */}
