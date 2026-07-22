@@ -451,6 +451,49 @@ export const App: React.FC = () => {
     }
   };
 
+  // Quick Demo Creator Login Handler
+  const handleQuickDemoLogin = async (demoUsername: string, displayName: string, avatarUrl: string) => {
+    const demoEmail = `${demoUsername}@adultplus.vip`;
+    const demoPassword = `AdultPlus2026!`;
+
+    // Try signing in
+    const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+      email: demoEmail,
+      password: demoPassword,
+    });
+
+    let userObj = signInData?.user;
+
+    if (signInErr || !userObj) {
+      // Create user via signUp if doesn't exist
+      const { data: signUpData } = await supabase.auth.signUp({
+        email: demoEmail,
+        password: demoPassword,
+      });
+      userObj = signUpData?.user;
+    }
+
+    if (userObj) {
+      const demoProfile = {
+        id: userObj.id,
+        username: demoUsername,
+        display_name: displayName,
+        email: demoEmail,
+        role: "creator",
+        avatar_url: avatarUrl,
+      };
+
+      await supabase.from("profiles").upsert(demoProfile);
+
+      setCurrentUser(userObj);
+      setUserRole("creator");
+      setActiveCreator(demoProfile);
+      setShowAuthModal(false);
+      window.location.search = `?${demoUsername}`;
+      alert(`👑 Logged in successfully as Creator @${demoUsername}!`);
+    }
+  };
+
   // Delete Media Item
   const handleDeleteMedia = async (id: string, table: "vip_content" | "stories") => {
     setGalleryList((prev) => prev.filter((item) => item.id !== id));
@@ -1247,10 +1290,49 @@ export const App: React.FC = () => {
               >
                 {authMode === "signup" ? "🚀 Create Account" : "🔑 Sign In"}
               </button>
-            </form>
+            <p style={{ textAlign: "center", fontSize: "12px", color: "#aaa", marginTop: "16px", cursor: "pointer" }} onClick={() => setAuthMode(authMode === "signup" ? "login" : "signup")}>
+              {authMode === "signup" ? "Already have an account? Log In" : "Need an account? Sign Up"}
+            </p>
 
-          </div>
+            {/* Quick Demo Creator Accounts 1-Tap Login */}
+            <div style={{ marginTop: "20px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+              <p style={{ fontSize: "12px", color: "#FFD700", fontWeight: "bold", textAlign: "center", marginBottom: "10px" }}>
+                ⚡ Quick 1-Tap Login as Creator:
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
+                <button
+                  type="button"
+                  style={{ padding: "10px", borderRadius: "12px", border: "1px solid #FFD700", background: "rgba(255,215,0,0.15)", color: "#FFD700", fontWeight: "bold", fontSize: "12px", cursor: "pointer" }}
+                  onClick={() => handleQuickDemoLogin("victoria", "Victoria Chic 👑", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400")}
+                >
+                  👑 @victoria
+                </button>
+                <button
+                  type="button"
+                  style={{ padding: "10px", borderRadius: "12px", border: "1px solid #FFD700", background: "rgba(255,215,0,0.15)", color: "#FFD700", fontWeight: "bold", fontSize: "12px", cursor: "pointer" }}
+                  onClick={() => handleQuickDemoLogin("sophia", "Sophia Rose 👑", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400")}
+                >
+                  👑 @sophia
+                </button>
+                <button
+                  type="button"
+                  style={{ padding: "10px", borderRadius: "12px", border: "1px solid #FFD700", background: "rgba(255,215,0,0.15)", color: "#FFD700", fontWeight: "bold", fontSize: "12px", cursor: "pointer" }}
+                  onClick={() => handleQuickDemoLogin("isabella", "Isabella VIP 💎", "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400")}
+                >
+                  👑 @isabella
+                </button>
+                <button
+                  type="button"
+                  style={{ padding: "10px", borderRadius: "12px", border: "1px solid #FFD700", background: "rgba(255,215,0,0.15)", color: "#FFD700", fontWeight: "bold", fontSize: "12px", cursor: "pointer" }}
+                  onClick={() => handleQuickDemoLogin("elena", "Elena Adult+ 💋", "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400")}
+                >
+                  👑 @elena
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
+      </div>
       )}
 
       {/* 5. FREE TRIAL VIP SUBSCRIBE POP-UP MODAL */}
