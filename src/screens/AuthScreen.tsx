@@ -93,7 +93,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
           navigation.replace("MainTabs", { screen: "Camera" });
         }
       } else {
-        // Strict Sign Up
+        // Pre-check if username handle is already registered in profiles
+        const { data: existingUser } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("username", username.trim())
+          .maybeSingle();
+
+        if (existingUser) {
+          showAlert("Username Taken", "This username handle is already taken. Please choose a different username.");
+          setLoading(false);
+          return;
+        }
+
+        // Strict Sign Up via Supabase Auth
         const { data: signUpData, error } = await supabase.auth.signUp({
           email: email.trim(),
           password: password.trim(),
@@ -107,7 +120,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
         });
 
         if (error) {
-          showAlert("Sign Up Error", error.message || "Could not register account. Email may already be registered.");
+          if (error.message.toLowerCase().includes("rate limit") || error.status === 429) {
+            showAlert("Email Already Submitted", "This email address is already registered or submitted. Please log in with your email and password.");
+          } else {
+            showAlert("Sign Up Notice", error.message || "Could not register account. Email may already be registered.");
+          }
+          setLoading(false);
+          return;
+        }
+
+        // Check if user already exists (Supabase returns empty identities array for existing emails)
+        if (signUpData?.user && signUpData.user.identities && signUpData.user.identities.length === 0) {
+          showAlert("Email Already Registered", "An account with this email address already exists. Please tap LOG IN above.");
           setLoading(false);
           return;
         }
