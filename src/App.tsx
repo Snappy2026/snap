@@ -71,45 +71,39 @@ export const App: React.FC = () => {
 
       const cleanHandle = (linkHandle || "hippygogo").toLowerCase();
 
-      // Fetch creator profile
-      const { data: creatorProf } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("role", "creator")
-        .or(`username.ilike.${cleanHandle},id.eq.${cleanHandle}`)
-        .maybeSingle();
-
-      let targetCreator = creatorProf;
-      if (!targetCreator) {
-        const { data: latestCreator } = await supabase
+      // Only set active creator profile if a link parameter is present in URL
+      if (linkHandle) {
+        const { data: creatorProf } = await supabase
           .from("profiles")
           .select("*")
-          .eq("role", "creator")
-          .order("created_at", { ascending: false })
-          .limit(1)
+          .filter("role", "eq", "creator")
+          .or(`username.ilike.${cleanHandle},id.eq.${cleanHandle}`)
           .maybeSingle();
-        targetCreator = latestCreator;
+
+        setActiveCreator(creatorProf || null);
+      } else {
+        setActiveCreator(null);
       }
 
-      setActiveCreator(targetCreator);
+      // Fetch all public media for Discover Feed
+      const { data: dbStories } = await supabase
+        .from("stories")
+        .select("*, user_profile:profiles(display_name, username, avatar_url)")
+        .order("created_at", { ascending: false });
 
-      if (targetCreator) {
-        // Fetch 24h Stories
-        const { data: dbStories } = await supabase
-          .from("stories")
-          .select("*, user_profile:profiles(display_name, username, avatar_url)")
-          .order("created_at", { ascending: false });
+      if (dbStories) setStoriesList(dbStories);
 
-        if (dbStories) setStoriesList(dbStories);
+      const { data: media } = await supabase
+        .from("vip_content")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-        // Fetch Gallery & VIP media
-        const { data: media } = await supabase
-          .from("vip_content")
-          .select("*")
-          .eq("creator_id", targetCreator.id)
-          .order("created_at", { ascending: false });
-
-        if (media) {
+      if (media) {
+        if (linkHandle && activeCreator) {
+          const creatorMedia = media.filter((m: any) => m.creator_id === activeCreator.id);
+          setGalleryList(creatorMedia.filter((item: any) => Boolean(item.is_public_gallery)));
+          setVipList(creatorMedia.filter((item: any) => !Boolean(item.is_public_gallery)));
+        } else {
           setGalleryList(media.filter((item: any) => Boolean(item.is_public_gallery)));
           setVipList(media.filter((item: any) => !Boolean(item.is_public_gallery)));
         }
@@ -314,50 +308,52 @@ export const App: React.FC = () => {
         </div>
       </section>
 
-      {/* Dedicated Creator Profile Banner Card */}
-      <section className="creator-banner-card">
-        <div className="profile-avatar-wrapper">
-          <img
-            src={activeCreator?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
-            alt="Profile Avatar"
-            className="profile-avatar-img"
-          />
-          <div className="profile-crown-badge">👑</div>
-        </div>
-
-        <h2 className="profile-name">{activeCreator?.display_name || "hippygogo"}</h2>
-        <p className="profile-handle">@{activeCreator?.username || "hippygogo"}</p>
-
-        <div className="profile-actions-stack">
-          <div className="row-actions">
-            <button className="btn-follow" onClick={() => alert(`✓ Following @${activeCreator?.username || "creator"}`)}>
-              + Follow Creator
-            </button>
-            <button
-              className="btn-chat-locked"
-              onClick={() => {
-                if (!currentUser) setShowAuthModal(true);
-                else if (!isVipMember) alert(`🔒 Direct 1-on-1 Chat is reserved for VIP Subscribers ($${customVipPrice}/mo).`);
-                else alert(`💬 Starting 1-on-1 Chat with @${activeCreator?.username}!`);
-              }}
-            >
-              {isVipMember ? "💬 1-on-1 Chat" : "🔒 1-on-1 Chat"}
-            </button>
+      {/* Dedicated Creator Profile Banner Card (Only renders when visiting a creator's link) */}
+      {activeCreator && activeCreator.role === "creator" && (
+        <section className="creator-banner-card">
+          <div className="profile-avatar-wrapper">
+            <img
+              src={activeCreator?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
+              alt="Profile Avatar"
+              className="profile-avatar-img"
+            />
+            <div className="profile-crown-badge">👑</div>
           </div>
 
-          {!isVipMember && (
-            <button
-              className="btn-subscribe-vip"
-              onClick={() => {
-                if (!currentUser) setShowAuthModal(true);
-                else alert(`👑 Subscribing to @${activeCreator?.username || "hippygogo"}'s VIP Lounge ($${customVipPrice}/mo)`);
-              }}
-            >
-              👑 Subscribe to @{activeCreator?.username || "hippygogo"}'s VIP Lounge (${customVipPrice}/mo)
-            </button>
-          )}
-        </div>
-      </section>
+          <h2 className="profile-name">{activeCreator?.display_name || activeCreator?.username}</h2>
+          <p className="profile-handle">@{activeCreator?.username}</p>
+
+          <div className="profile-actions-stack">
+            <div className="row-actions">
+              <button className="btn-follow" onClick={() => alert(`✓ Following @${activeCreator?.username}`)}>
+                + Follow Creator
+              </button>
+              <button
+                className="btn-chat-locked"
+                onClick={() => {
+                  if (!currentUser) setShowAuthModal(true);
+                  else if (!isVipMember) alert(`🔒 Direct 1-on-1 Chat is reserved for VIP Subscribers ($${customVipPrice}/mo).`);
+                  else alert(`💬 Starting 1-on-1 Chat with @${activeCreator?.username}!`);
+                }}
+              >
+                {isVipMember ? "💬 1-on-1 Chat" : "🔒 1-on-1 Chat"}
+              </button>
+            </div>
+
+            {!isVipMember && (
+              <button
+                className="btn-subscribe-vip"
+                onClick={() => {
+                  if (!currentUser) setShowAuthModal(true);
+                  else alert(`👑 Subscribing to @${activeCreator?.username}'s VIP Lounge ($${customVipPrice}/mo)`);
+                }}
+              >
+                👑 Subscribe to @{activeCreator?.username}'s VIP Lounge (${customVipPrice}/mo)
+              </button>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Public Gallery Section */}
       <h3 className="section-header-title">🖼️ Gallery</h3>
