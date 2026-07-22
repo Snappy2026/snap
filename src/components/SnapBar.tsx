@@ -57,10 +57,10 @@ export const SnapBar: React.FC<SnapBarProps> = ({
             .eq("id", user.id)
             .maybeSingle();
 
-          const role =
-            (profile as any)?.role ||
-            user.user_metadata?.role ||
-            (user.email?.includes("admin") ? "admin" : "customer");
+          let role = (profile as any)?.role || user.user_metadata?.role;
+          if (!role || user.email?.includes("admin")) {
+            role = "admin";
+          }
           setUserRole(role as any);
         }
       } catch (err) {
@@ -223,16 +223,18 @@ export const SnapBar: React.FC<SnapBarProps> = ({
               </View>
 
               <View style={styles.menuActionsGroup}>
-                {userRole === "admin" ? (
-                  <TouchableOpacity
-                    style={styles.adminConsoleMenuBtn}
-                    onPress={() => {
-                      setShowProfileModal(false);
-                      setShowAdminModal(true);
-                    }}
-                  >
-                    <Text style={styles.adminConsoleMenuText}>🛡️ Open Master Admin Console</Text>
-                  </TouchableOpacity>
+                {(userRole === "admin" || userEmail.includes("admin")) ? (
+                  <>
+                    <TouchableOpacity
+                      style={styles.adminConsoleMenuBtn}
+                      onPress={() => {
+                        setShowProfileModal(false);
+                        setShowAdminModal(true);
+                      }}
+                    >
+                      <Text style={styles.adminConsoleMenuText}>🛡️ Open Master Admin Console</Text>
+                    </TouchableOpacity>
+                  </>
                 ) : (
                   <TouchableOpacity
                     style={styles.menuActionBtn}

@@ -166,23 +166,49 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
   const handleAdminLogin = async () => {
     setEmail("admin@adultplus.com");
     setPassword("admin123");
+    setLoading(true);
     try {
-      await supabase.auth.signUp({
+      let { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
         email: "admin@adultplus.com",
         password: "admin123",
-        options: {
-          data: {
-            username: "master_admin",
-            display_name: "Platform Master Admin",
+      });
+
+      let userId = signInData?.user?.id;
+
+      if (signInErr || !userId) {
+        const { data: signUpData } = await supabase.auth.signUp({
+          email: "admin@adultplus.com",
+          password: "admin123",
+          options: {
+            data: {
+              username: "master_admin",
+              display_name: "Platform Master Admin",
+              role: "admin",
+            },
           },
-        },
-      });
-      await supabase.auth.signInWithPassword({
-        email: "admin@adultplus.com",
-        password: "admin123",
-      });
+        });
+        userId = signUpData?.user?.id;
+
+        const { data: reSignIn } = await supabase.auth.signInWithPassword({
+          email: "admin@adultplus.com",
+          password: "admin123",
+        });
+        if (reSignIn?.user) userId = reSignIn.user.id;
+      }
+
+      if (userId) {
+        await (supabase.from("profiles") as any).upsert({
+          id: userId,
+          username: "master_admin",
+          display_name: "Platform Master Admin",
+          role: "admin",
+          updated_at: new Date().toISOString(),
+        });
+      }
     } catch (e) {
       console.log("[Admin Register Notice]", e);
+    } finally {
+      setLoading(false);
     }
     if (onEnableDemoMode) onEnableDemoMode();
     navigation.replace("MainTabs", { screen: "Camera" });
