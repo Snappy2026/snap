@@ -14,6 +14,7 @@ import {
   SafeAreaView,
   Image,
   Modal,
+  Platform,
 } from "react-native";
 import ContactInviteModal from "./ContactInviteModal";
 import CreatorSettingsModal from "./CreatorSettingsModal";
