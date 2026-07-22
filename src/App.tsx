@@ -18,6 +18,8 @@ export const App: React.FC = () => {
   const [showStudioModal, setShowStudioModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [activeLightboxImg, setActiveLightboxImg] = useState<string | null>(null);
   const [showBookmarkModal, setShowBookmarkModal] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [activeStoryModal, setActiveStoryModal] = useState<any>(null);
@@ -651,24 +653,28 @@ export const App: React.FC = () => {
                     <button
                       className="btn-chat-glass"
                       onClick={() => {
-                        if (!currentUser) setShowAuthModal(true);
-                        else if (!isVipMember) alert(`🔒 Direct 1-on-1 Chat is reserved for VIP Subscribers ($${customVipPrice}/mo).`);
-                        else alert(`💬 Starting 1-on-1 Chat with @${activeCreator?.username}!`);
+                        if (!currentUser) {
+                          setShowAuthModal(true);
+                        } else if (!isVipMember && currentUser.id !== activeCreator.id) {
+                          setShowSubscribeModal(true);
+                        } else {
+                          alert(`💬 Starting 1-on-1 Chat with @${activeCreator?.username}!`);
+                        }
                       }}
                     >
                       🗨 1-on-1 Chat
                     </button>
                   </div>
 
-                  {!isVipMember && (
+                  {!isVipMember && currentUser?.id !== activeCreator.id && (
                     <button
                       className="btn-subscribe-gold-bar"
                       onClick={() => {
                         if (!currentUser) setShowAuthModal(true);
-                        else alert(`👑 Subscribing to @${activeCreator?.username}'s VIP Lounge ($${customVipPrice}/mo)`);
+                        else setShowSubscribeModal(true);
                       }}
                     >
-                      👑 Subscribe to VIP Lounge (${customVipPrice}/mo)
+                      👑 Subscribe to VIP Lounge (7-Day Free Trial)
                     </button>
                   )}
                 </>
@@ -696,7 +702,15 @@ export const App: React.FC = () => {
                 </p>
               ) : (
                 galleryList.map((item) => (
-                  <img key={item.id} src={item.media_url} alt="Gallery Post" className="gallery-grid-img" loading="eager" />
+                  <img
+                    key={item.id}
+                    src={item.media_url}
+                    alt="Gallery Post"
+                    className="gallery-grid-img"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setActiveLightboxImg(item.media_url)}
+                    loading="eager"
+                  />
                 ))
               )}
             </div>
@@ -714,10 +728,18 @@ export const App: React.FC = () => {
                 </p>
               ) : (
                 vipList.map((item) => {
-                  const canViewUnblurred = isVipMember || userRole === "creator" || userRole === "admin" || (currentUser && item.creator_id === currentUser.id);
+                  const canViewUnblurred = isVipMember || userRole === "admin" || (currentUser && item.creator_id === currentUser.id);
 
                   return (
-                    <div key={item.id} className="vip-card-wrapper" onClick={() => !canViewUnblurred && setShowAuthModal(true)}>
+                    <div
+                      key={item.id}
+                      className="vip-card-wrapper"
+                      onClick={() => {
+                        if (!currentUser) setShowAuthModal(true);
+                        else if (!canViewUnblurred) setShowSubscribeModal(true);
+                        else setActiveLightboxImg(item.media_url);
+                      }}
+                    >
                       <img
                         src={item.media_url}
                         alt="VIP Content"
@@ -727,7 +749,7 @@ export const App: React.FC = () => {
                       {!canViewUnblurred && (
                         <div className="vip-lock-overlay">
                           <span style={{ fontSize: "28px" }}>🔒</span>
-                          <span style={{ fontSize: "11px", fontWeight: "bold", color: "#FFD700" }}>VIP GOLD</span>
+                          <span style={{ fontSize: "11px", fontWeight: "bold", color: "#FFD700" }}>UNLOCK VIP</span>
                         </div>
                       )}
                     </div>
@@ -1176,10 +1198,108 @@ export const App: React.FC = () => {
               </button>
             </form>
 
-            <p style={{ textAlign: "center", fontSize: "12px", color: "#aaa", marginTop: "16px", cursor: "pointer" }} onClick={() => setAuthMode(authMode === "signup" ? "login" : "signup")}>
-              {authMode === "signup" ? "Already have an account? Log In" : "Need an account? Sign Up"}
-            </p>
           </div>
+        </div>
+      )}
+
+      {/* 5. FREE TRIAL VIP SUBSCRIBE POP-UP MODAL */}
+      {showSubscribeModal && (
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ textAlign: "center", maxWidth: "420px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+              <span style={{ fontSize: "28px" }}>👑</span>
+              <button style={{ background: "none", border: "none", color: "#fff", fontSize: "20px", cursor: "pointer" }} onClick={() => setShowSubscribeModal(false)}>
+                ✕
+              </button>
+            </div>
+
+            <h3 style={{ fontSize: "22px", fontWeight: 900, color: "#FFD700", marginBottom: "6px" }}>
+              Unlock @{activeCreator?.username}'s VIP Lounge
+            </h3>
+            <p style={{ fontSize: "13px", color: "#aaa", marginBottom: "20px" }}>
+              Get instant unblurred access to exclusive VIP photos, 1-on-1 direct chat, and private stories!
+            </p>
+
+            <div style={{ background: "linear-gradient(180deg, rgba(255,215,0,0.15) 0%, rgba(20,20,25,0.9) 100%)", border: "1px solid rgba(255,215,0,0.4)", padding: "18px", borderRadius: "20px", marginBottom: "20px" }}>
+              <div style={{ fontSize: "26px", fontWeight: 900, color: "#fff", marginBottom: "4px" }}>
+                $0.00 <span style={{ fontSize: "14px", color: "#FFD700", fontWeight: "bold" }}>(7-Day Free Trial)</span>
+              </div>
+              <p style={{ fontSize: "12px", color: "#888", margin: 0 }}>Then ${customVipPrice}/month • Cancel anytime</p>
+            </div>
+
+            <button
+              style={{
+                width: "100%",
+                padding: "16px",
+                borderRadius: "20px",
+                border: "none",
+                background: "linear-gradient(180deg, #FFD700 0%, #AA771C 100%)",
+                color: "#000",
+                fontWeight: 900,
+                fontSize: "16px",
+                cursor: "pointer",
+                boxShadow: "0 8px 24px rgba(255,215,0,0.4)",
+              }}
+              onClick={() => {
+                setIsVipMember(true);
+                setShowSubscribeModal(false);
+                alert(`🎉 Congratulations! 7-Day Free Trial Activated! VIP Lounge & 1-on-1 Chat Unlocked!`);
+              }}
+            >
+              🚀 Start 7-Day Free Trial Now
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 6. FULL-SCREEN LIGHTBOX GALLERY IMAGE PREVIEW */}
+      {activeLightboxImg && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.92)",
+            backdropFilter: "blur(12px)",
+            zIndex: 9999999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+          onClick={() => setActiveLightboxImg(null)}
+        >
+          <button
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              background: "rgba(255,255,255,0.2)",
+              border: "none",
+              color: "#fff",
+              fontSize: "24px",
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              cursor: "pointer",
+            }}
+            onClick={() => setActiveLightboxImg(null)}
+          >
+            ✕
+          </button>
+          <img
+            src={activeLightboxImg}
+            alt="Enlarged Lightbox"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "85vh",
+              borderRadius: "16px",
+              objectFit: "contain",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.9)",
+            }}
+          />
         </div>
       )}
 
