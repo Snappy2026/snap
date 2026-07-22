@@ -303,7 +303,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         </View>
       ) : (
         <View style={{ flex: 1 }}>
-          {activeTab === "creators" ? (
+          {activeTab === "creators" && (
             /* TAB 1: Creators Selling Content */
             <FlatList
               data={creatorsList}
@@ -359,7 +359,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 </View>
               )}
             />
-          ) : activeTab === "users" ? (
+          )}
+
+          {activeTab === "users" && (
             /* TAB 2: All Signed-Up Users & Role Management */
             <FlatList
               data={usersList}
@@ -446,9 +448,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 );
               }}
             />
-          ) : (
-            /* TAB 3: Media & Content Moderation */
-            activeTab === "media" ? (
+          )}
+
+          {activeTab === "media" && (
               <ScrollView contentContainerStyle={styles.listPadding}>
                 <Text style={styles.sectionHeaderTitle}>Stories ({allStoriesList.length})</Text>
                 {allStoriesList.length === 0 ? (
@@ -492,8 +494,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   ))
                 )}
               </ScrollView>
-            ) : (
-            /* TAB 3: Platform Prices & Commission Settings */
+          )}
+
+          {activeTab === "settings" && (
             <ScrollView contentContainerStyle={styles.listPadding}>
               <View style={styles.settingsCard}>
                 <Text style={styles.settingsTitle}>
@@ -559,7 +562,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 </TouchableOpacity>
               </View>
             </ScrollView>
-          ))
+          )}
         </View>
       )}
     </SafeAreaView>
