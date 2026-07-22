@@ -11,6 +11,7 @@ export const App: React.FC = () => {
   const [featuredCreators, setFeaturedCreators] = useState<any[]>([]);
   const [galleryList, setGalleryList] = useState<any[]>([]);
   const [vipList, setVipList] = useState<any[]>([]);
+  const [allAdminMedia, setAllAdminMedia] = useState<any[]>([]);
 
   const [isVipMember, setIsVipMember] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -282,11 +283,45 @@ export const App: React.FC = () => {
     alert("🗑️ Deleted permanently!");
   };
 
-  // Fetch Admin Users List
+  // Fetch Admin Users & Media List
   const openAdminConsole = async () => {
     setShowAdminModal(true);
-    const { data: users } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
-    if (users) setAdminUsers(users);
+    const [usersRes, storiesRes, mediaRes] = await Promise.all([
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.from("stories").select("*").order("created_at", { ascending: false }),
+      supabase.from("vip_content").select("*").order("created_at", { ascending: false }),
+    ]);
+
+    if (usersRes.data) setAdminUsers(usersRes.data);
+    if (mediaRes.data) setAllAdminMedia(mediaRes.data);
+  };
+
+  // Change User Role (Admin Control)
+  const handleChangeUserRole = async (userId: string, newRole: string) => {
+    setAdminUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
+    await supabase.from("profiles").update({ role: newRole }).eq("id", userId);
+    alert(`✓ Role updated to ${newRole.toUpperCase()}`);
+  };
+
+  // Admin Delete User Account
+  const handleAdminDeleteUser = async (userId: string) => {
+    setAdminUsers((prev) => prev.filter((u) => u.id !== userId));
+    await supabase.from("profiles").delete().eq("id", userId);
+    alert(`🗑️ User account deleted permanently!`);
+  };
+
+  // Admin Purge All Platform Data
+  const handleMasterWipe = async () => {
+    if (confirm("⚠️ WARNING: This will permanently wipe all users, stories, and media across the platform. Continue?")) {
+      await supabase.from("profiles").delete().gt("created_at", "1970-01-01T00:00:00Z");
+      await supabase.from("stories").delete().gt("created_at", "1970-01-01T00:00:00Z");
+      await supabase.from("vip_content").delete().gt("created_at", "1970-01-01T00:00:00Z");
+      setAdminUsers([]);
+      setGalleryList([]);
+      setVipList([]);
+      setStoriesList([]);
+      alert("🔥 Platform database wiped 100% clean!");
+    }
   };
 
   return (
@@ -657,27 +692,102 @@ export const App: React.FC = () => {
       {/* 3. MASTER ADMIN CONSOLE MODAL */}
       {showAdminModal && (
         <div className="modal-overlay">
-          <div className="modal-card" style={{ maxWidth: "520px" }}>
+          <div className="modal-card" style={{ maxWidth: "560px", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
-              <h3 style={{ fontSize: "18px", fontWeight: 800 }}>🛡️ Master Admin Console</h3>
-              <button style={{ background: "none", border: "none", color: "#fff", fontSize: "18px", cursor: "pointer" }} onClick={() => setShowAdminModal(false)}>
+              <div>
+                <h3 style={{ fontSize: "20px", fontWeight: 900, color: "#FFD700" }}>🛡️ Master Admin Console</h3>
+                <p style={{ fontSize: "12px", color: "#aaa" }}>Full Platform Control & User Management</p>
+              </div>
+              <button style={{ background: "none", border: "none", color: "#fff", fontSize: "20px", cursor: "pointer" }} onClick={() => setShowAdminModal(false)}>
                 ✕
               </button>
             </div>
 
-            <h4 style={{ fontSize: "14px", marginBottom: "10px", color: "#00F2FE" }}>User Accounts ({adminUsers.length})</h4>
-            <div style={{ maxHeight: "300px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px" }}>
-              {adminUsers.map((u) => (
-                <div key={u.id} style={{ background: "#222", padding: "10px 14px", borderRadius: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <p style={{ fontSize: "13px", fontWeight: "bold", margin: 0 }}>@{u.username} ({u.role.toUpperCase()})</p>
-                    <p style={{ fontSize: "12px", color: "#00F2FE", margin: "2px 0 0 0" }}>✉️ {u.email || `${u.username}@gmail.com`}</p>
+            {/* Platform Stats Header */}
+            <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+              <div style={{ flex: 1, background: "#222", padding: "12px", borderRadius: "14px", textAlign: "center" }}>
+                <span style={{ fontSize: "18px", fontWeight: "bold", color: "#00F2FE" }}>{adminUsers.length}</span>
+                <p style={{ fontSize: "11px", color: "#aaa", margin: 0 }}>Registered Users</p>
+              </div>
+              <div style={{ flex: 1, background: "#222", padding: "12px", borderRadius: "14px", textAlign: "center" }}>
+                <span style={{ fontSize: "18px", fontWeight: "bold", color: "#FFD700" }}>{adminUsers.filter(u => u.role === "creator").length}</span>
+                <p style={{ fontSize: "11px", color: "#aaa", margin: 0 }}>Creators</p>
+              </div>
+              <div style={{ flex: 1, background: "#222", padding: "12px", borderRadius: "14px", textAlign: "center" }}>
+                <span style={{ fontSize: "18px", fontWeight: "bold", color: "#FF5555" }}>{galleryList.length + vipList.length}</span>
+                <p style={{ fontSize: "11px", color: "#aaa", margin: 0 }}>Total Media Posts</p>
+              </div>
+            </div>
+
+            {/* Emergency Platform Wipe Button */}
+            <button
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: "14px",
+                border: "1px solid #ff4444",
+                background: "rgba(255, 68, 68, 0.15)",
+                color: "#ff4444",
+                fontWeight: "bold",
+                fontSize: "13px",
+                cursor: "pointer",
+                marginBottom: "20px",
+              }}
+              onClick={handleMasterWipe}
+            >
+              🔥 Emergency Master Database Wipe
+            </button>
+
+            {/* User Account Controls */}
+            <h4 style={{ fontSize: "15px", marginBottom: "12px", color: "#00F2FE" }}>User Accounts ({adminUsers.length})</h4>
+            <div style={{ maxHeight: "280px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
+              {adminUsers.length === 0 ? (
+                <p style={{ fontSize: "13px", color: "#888", fontStyle: "italic" }}>No accounts registered yet.</p>
+              ) : (
+                adminUsers.map((u) => (
+                  <div key={u.id} style={{ background: "#222", padding: "12px", borderRadius: "14px", border: "1px solid #333" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                      <div>
+                        <span style={{ fontSize: "14px", fontWeight: 800, color: "#fff" }}>@{u.username}</span>
+                        <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "10px", background: u.role === "creator" ? "#D4AF37" : u.role === "admin" ? "#ff4444" : "#00F2FE", color: "#000", fontWeight: "bold", marginLeft: "8px" }}>
+                          {u.role.toUpperCase()}
+                        </span>
+                      </div>
+                      <button
+                        style={{ background: "#ff4444", border: "none", color: "#fff", padding: "6px 10px", borderRadius: "8px", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}
+                        onClick={() => handleAdminDeleteUser(u.id)}
+                      >
+                        🗑️ Delete User
+                      </button>
+                    </div>
+
+                    <p style={{ fontSize: "12px", color: "#00F2FE", margin: "0 0 10px 0" }}>✉️ {u.email || `${u.username}@gmail.com`}</p>
+
+                    {/* Role Switcher */}
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                      <span style={{ fontSize: "11px", color: "#aaa" }}>Switch Role:</span>
+                      <button
+                        style={{ padding: "4px 8px", borderRadius: "8px", border: "none", background: u.role === "customer" ? "#00F2FE" : "#333", color: u.role === "customer" ? "#000" : "#fff", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}
+                        onClick={() => handleChangeUserRole(u.id, "customer")}
+                      >
+                        Customer
+                      </button>
+                      <button
+                        style={{ padding: "4px 8px", borderRadius: "8px", border: "none", background: u.role === "creator" ? "#D4AF37" : "#333", color: u.role === "creator" ? "#000" : "#fff", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}
+                        onClick={() => handleChangeUserRole(u.id, "creator")}
+                      >
+                        Creator
+                      </button>
+                      <button
+                        style={{ padding: "4px 8px", borderRadius: "8px", border: "none", background: u.role === "admin" ? "#ff4444" : "#333", color: "#fff", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}
+                        onClick={() => handleChangeUserRole(u.id, "admin")}
+                      >
+                        Admin
+                      </button>
+                    </div>
                   </div>
-                  <button style={{ background: "#ff4444", border: "none", color: "#fff", padding: "6px 10px", borderRadius: "8px", fontSize: "12px", fontWeight: "bold", cursor: "pointer" }} onClick={() => handleDeleteMedia(u.id, "stories")}>
-                    🗑️ Delete
-                  </button>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
