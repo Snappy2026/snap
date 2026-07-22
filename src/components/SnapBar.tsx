@@ -81,11 +81,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
         );
 
         // Check if this is the master admin account
-        // The actual admin account in Supabase is admin@adultplus.com
-        const isAdminEmail =
-          emailStr === "admin@adultplus.com" ||
-          emailStr.includes("masteradmin") ||
-          emailStr.includes("admin");
+        const isAdminEmail = emailStr === "admin@clubdior.com";
 
         if (isAdminEmail) {
           setUserRole("admin");

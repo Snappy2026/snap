@@ -67,14 +67,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
     setLoading(true);
     try {
       const trimmedEmail = email.trim().toLowerCase();
-      const isMasterAdminEmail = trimmedEmail === "masteradmin@clubdior.com" || trimmedEmail === "admin@adultplus.com" || trimmedEmail.includes("masteradmin");
+      const isMasterAdminEmail = trimmedEmail === "admin@clubdior.com";
 
-      // Master Admin credentials that actually exist in Supabase
-      const ADMIN_EMAIL = "admin@adultplus.com";
-      const ADMIN_PASS = "admin123";
+      // Master Admin credentials on the fresh Supabase project
+      const ADMIN_EMAIL = "admin@clubdior.com";
+      const ADMIN_PASS = "ClubDior2026!";
 
       if (isLogin) {
-        // For master admin emails, use the real admin credentials stored in Supabase
+        // For master admin, use the known credentials; for everyone else, use what they typed
         const loginEmail = isMasterAdminEmail ? ADMIN_EMAIL : email.trim();
         const loginPass = isMasterAdminEmail ? ADMIN_PASS : password.trim();
 
