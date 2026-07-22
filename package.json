@@ -6,7 +6,8 @@
     "start": "expo start --port 8098",
     "android": "expo start --android --port 8098",
     "ios": "expo start --ios --port 8098",
-    "web": "expo start --web --port 8098",
+    "web": "vite",
+    "build:web": "vite build",
     "ts:check": "tsc --noEmit"
   },
   "dependencies": {
@@ -37,7 +38,10 @@
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "@types/react": "~18.2.45",
-    "typescript": "~5.3.3"
+    "@vitejs/plugin-react": "^6.0.4",
+    "lucide-react": "^1.25.0",
+    "typescript": "~5.3.3",
+    "vite": "^8.1.5"
   },
   "private": true
 }
