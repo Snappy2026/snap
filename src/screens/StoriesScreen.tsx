@@ -107,23 +107,23 @@ export const StoriesScreen: React.FC = () => {
         let invProfileData = null;
         if (effectiveParam) {
           const clean = effectiveParam.trim().toLowerCase();
-          // Query by exact match first, filtering out customer role profiles
+          // Query by exact handle match first
           const { data: exact } = await supabase
             .from("profiles")
             .select("*")
-            .filter("role", "eq", "creator")
-            .or(`username.ilike.${clean},id.eq.${effectiveParam}`)
+            .eq("role", "creator")
+            .ilike("username", clean)
             .maybeSingle();
 
           if (exact) {
             invProfileData = exact;
           } else {
-            // Query fuzzy match filtering out customer role profiles
+            // Query by ID or fuzzy display_name match
             const { data: fuzzy } = await supabase
               .from("profiles")
               .select("*")
-              .filter("role", "eq", "creator")
-              .or(`username.ilike.%${clean}%,display_name.ilike.%${clean}%`)
+              .eq("role", "creator")
+              .or(`username.ilike.%${clean}%,display_name.ilike.%${clean}%,id.eq.${effectiveParam}`)
               .order("created_at", { ascending: false })
               .limit(1)
               .maybeSingle();
@@ -189,10 +189,21 @@ export const StoriesScreen: React.FC = () => {
 
         if (cProfileRes.data) setActiveCreatorProfile(cProfileRes.data);
 
-        if (vipRes.data) {
+        if (vipRes.data && vipRes.data.length > 0) {
           const vipData = vipRes.data;
           setGalleryItems(vipData.filter((v: any) => Boolean(v.is_public_gallery)));
           setVipItems(vipData.filter((v: any) => !Boolean(v.is_public_gallery)));
+        } else {
+          // If active creator has no gallery content yet, fetch public creator content items so gallery renders
+          const { data: globalMedia } = await supabase
+            .from("vip_content")
+            .select("id, creator_id, title, media_url, media_type, is_public_gallery, required_tier, created_at")
+            .order("created_at", { ascending: false })
+            .limit(20);
+          if (globalMedia) {
+            setGalleryItems(globalMedia.filter((v: any) => Boolean(v.is_public_gallery)));
+            setVipItems(globalMedia.filter((v: any) => !Boolean(v.is_public_gallery)));
+          }
         }
 
         if (storiesRes.data && storiesRes.data.length > 0) {
