@@ -51,6 +51,10 @@ export const SnapBar: React.FC<SnapBarProps> = ({
         const { data: userData } = await supabase.auth.getUser();
         const user = userData?.user;
         if (user) {
+          const emailStr = (user.email || "").toLowerCase();
+          setUserEmail(user.email || "");
+          setDisplayName(user.user_metadata?.display_name || user.email?.split("@")[0] || "User");
+
           const { data: profile } = await supabase
             .from("profiles")
             .select("role")
@@ -58,8 +62,10 @@ export const SnapBar: React.FC<SnapBarProps> = ({
             .maybeSingle();
 
           let role = (profile as any)?.role || user.user_metadata?.role;
-          if (!role || user.email?.includes("admin")) {
+          if (emailStr.includes("admin") || role === "admin") {
             role = "admin";
+          } else if (!role) {
+            role = "customer";
           }
           setUserRole(role as any);
         }
@@ -85,6 +91,9 @@ export const SnapBar: React.FC<SnapBarProps> = ({
     };
     fetchUserData();
   }, []);
+
+  const isAdmin = userRole === "admin" || userEmail.toLowerCase().includes("admin");
+  const displayRole = isAdmin ? "ADMIN" : userRole.toUpperCase();
 
   const handleProfileClick = () => {
     if (onProfilePress) {
@@ -218,12 +227,12 @@ export const SnapBar: React.FC<SnapBarProps> = ({
                 <Text style={styles.menuDisplayName}>{displayName}</Text>
                 <Text style={styles.menuEmail}>{userEmail}</Text>
                 <View style={styles.roleTag}>
-                  <Text style={styles.roleTagText}>{userRole.toUpperCase()}</Text>
+                  <Text style={styles.roleTagText}>{displayRole}</Text>
                 </View>
               </View>
 
               <View style={styles.menuActionsGroup}>
-                {(userRole === "admin" || userEmail.includes("admin")) ? (
+                {isAdmin ? (
                   <>
                     <TouchableOpacity
                       style={styles.adminConsoleMenuBtn}
