@@ -584,9 +584,9 @@ export const App: React.FC = () => {
               </svg>
             </div>
 
-            {/* Double-Ring Glowing Gold Avatar Frame */}
-            <div className="hero-avatar-center">
-              <div className="avatar-gold-double-ring">
+            {/* Double-Ring Glowing Gold Avatar Frame (Tap avatar to view Creator's 24h Snap Story!) */}
+            <div className="hero-avatar-center" onClick={() => setActiveStoryModal({ media_url: activeCreator?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800", user_profile: { display_name: activeCreator?.display_name || activeCreator?.username } })}>
+              <div className="avatar-gold-double-ring" style={{ cursor: "pointer" }}>
                 <img
                   src={activeCreator?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400"}
                   alt="Profile Avatar"
@@ -707,7 +707,7 @@ export const App: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* 3. FRONT HOME PAGE VIEW (MAX 6 FEATURED CREATORS GRID) */}
+      {/* 3. FRONT HOME PAGE VIEW (FEATURED CREATORS GRID) */}
       {/* ========================================================================= */}
       {!activeCreator && (
         <section style={{ padding: "16px" }}>
