@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "expo start --port 8098",
-    "android": "expo start --android --port 8098",
-    "ios": "expo start --ios --port 8098",
+    "build": "vite build",
     "web": "vite",
     "build:web": "vite build",
     "ts:check": "tsc --noEmit"
