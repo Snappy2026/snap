@@ -119,9 +119,12 @@ export const StoriesScreen: React.FC = () => {
           .select("*, creator_profile:profiles(*)");
 
         if (vipData) {
-          setGalleryItems(
-            vipData.filter((v: any) => v.is_public_gallery === true),
+          const publicGallery = vipData.filter((v: any) => v.is_public_gallery === true);
+          // Show gallery items for creators the user follows, or items posted by the user themselves
+          const filteredGallery = publicGallery.filter(
+            (v: any) => v.creator_id === user?.id || localFollowedIds.includes(v.creator_id)
           );
+          setGalleryItems(filteredGallery.length > 0 ? filteredGallery : publicGallery);
           setVipItems(vipData.filter((v: any) => v.is_public_gallery !== true));
         }
 
