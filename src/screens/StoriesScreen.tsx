@@ -130,9 +130,9 @@ export const StoriesScreen: React.FC = () => {
             .or(`username.eq.${invitedCreator},id.eq.${invitedCreator}`)
             .maybeSingle();
           if (invProfile) {
-            targetCreatorId = invProfile.id;
+            targetCreatorId = (invProfile as any).id;
             setActiveCreatorProfile(invProfile);
-            setActiveCreatorId(invProfile.id);
+            setActiveCreatorId((invProfile as any).id);
           }
         }
 
