@@ -750,15 +750,50 @@ export const App: React.FC = () => {
                 </p>
               ) : (
                 galleryList.map((item) => (
-                  <img
-                    key={item.id}
-                    src={item.media_url}
-                    alt="Gallery Post"
-                    className="gallery-grid-img"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setActiveLightboxImg(item.media_url)}
-                    loading="eager"
-                  />
+                  <div key={item.id} style={{ position: "relative", width: "100%", aspectRatio: "1" }}>
+                    <img
+                      src={item.media_url}
+                      alt="Gallery Post"
+                      className="gallery-grid-img"
+                      style={{ cursor: "pointer", width: "100%", height: "100%", objectFit: "cover" }}
+                      onClick={() => setActiveLightboxImg(item.media_url)}
+                      loading="eager"
+                    />
+
+                    {/* Top-Right ✕ Delete Button for Creator Owner / Admin */}
+                    {(userRole === "admin" || (currentUser && currentUser.id === activeCreator.id)) && (
+                      <button
+                        title="Delete Image"
+                        style={{
+                          position: "absolute",
+                          top: "6px",
+                          right: "6px",
+                          width: "26px",
+                          height: "26px",
+                          borderRadius: "50%",
+                          background: "rgba(255, 68, 68, 0.9)",
+                          border: "1.5px solid #fff",
+                          color: "#fff",
+                          fontSize: "13px",
+                          fontWeight: 900,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          zIndex: 30,
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm("Delete this gallery image permanently?")) {
+                            handleDeleteMedia(item.id, "vip_content");
+                          }
+                        }}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
                 ))
               )}
             </div>
@@ -782,6 +817,7 @@ export const App: React.FC = () => {
                     <div
                       key={item.id}
                       className="vip-card-wrapper"
+                      style={{ position: "relative" }}
                       onClick={() => {
                         if (!currentUser) setShowAuthModal(true);
                         else if (!canViewUnblurred) setShowSubscribeModal(true);
@@ -794,6 +830,41 @@ export const App: React.FC = () => {
                         className={`vip-card-img ${!canViewUnblurred ? "vip-card-blur" : ""}`}
                         loading="lazy"
                       />
+
+                      {/* Top-Right ✕ Delete Button for Creator Owner / Admin */}
+                      {(userRole === "admin" || (currentUser && currentUser.id === activeCreator.id)) && (
+                        <button
+                          title="Delete VIP Image"
+                          style={{
+                            position: "absolute",
+                            top: "6px",
+                            right: "6px",
+                            width: "26px",
+                            height: "26px",
+                            borderRadius: "50%",
+                            background: "rgba(255, 68, 68, 0.9)",
+                            border: "1.5px solid #fff",
+                            color: "#fff",
+                            fontSize: "13px",
+                            fontWeight: 900,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            zIndex: 30,
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.6)",
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm("Delete this VIP image permanently?")) {
+                              handleDeleteMedia(item.id, "vip_content");
+                            }
+                          }}
+                        >
+                          ✕
+                        </button>
+                      )}
+
                       {!canViewUnblurred && (
                         <div className="vip-lock-overlay">
                           <span style={{ fontSize: "28px" }}>🔒</span>
