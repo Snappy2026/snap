@@ -130,16 +130,16 @@ const CreatorProfileModal: React.FC<CreatorProfileModalProps> = ({
     }
   };
 
-  const handleStoryTap = (index: number) => {
-    const viewerStories: StoryViewerItem[] = stories.map((s: any) => ({
+  const handleMediaTap = (items: any[], index: number) => {
+    const viewerStories: StoryViewerItem[] = items.map((s: any) => ({
       id: s.id,
-      user_id: s.user_id,
+      user_id: s.creator_id || s.user_id || creatorId,
       media_url: s.media_url,
       media_type: s.media_type || "image",
       user_profile: {
         display_name: profile?.display_name || "Creator",
         username: profile?.username,
-        avatar_url: profile?.avatar_url,
+        avatar_url: profile?.avatar_url || undefined,
       },
     }));
     onClose();
@@ -171,7 +171,7 @@ const CreatorProfileModal: React.FC<CreatorProfileModalProps> = ({
           <TouchableOpacity
             key={item.id || idx}
             style={styles.gridItem}
-            onPress={() => type === "stories" ? handleStoryTap(idx) : undefined}
+            onPress={() => handleMediaTap(items, idx)}
             activeOpacity={0.7}
           >
             <Image
@@ -186,7 +186,7 @@ const CreatorProfileModal: React.FC<CreatorProfileModalProps> = ({
             )}
             {type === "vip" && (
               <View style={styles.vipBadge}>
-                <Text style={styles.vipBadgeText}>VIP</Text>
+                <Text style={styles.vipBadgeText}>VIP 🔒</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -253,17 +253,40 @@ const CreatorProfileModal: React.FC<CreatorProfileModalProps> = ({
                 </View>
               </View>
 
-              {/* Follow Button */}
+              {/* Follow & Subscribe Actions */}
               {currentUserId && currentUserId !== creatorId && (
-                <TouchableOpacity
-                  style={[styles.followBtn, isFollowing && styles.followingBtn]}
-                  onPress={isFollowing ? undefined : handleFollow}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
-                    {isFollowing ? "✓ Following" : "+ Follow"}
-                  </Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
+                  <TouchableOpacity
+                    style={[styles.followBtn, isFollowing && styles.followingBtn, { flex: 1 }]}
+                    onPress={isFollowing ? undefined : handleFollow}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.followBtnText, isFollowing && styles.followingBtnText]}>
+                      {isFollowing ? "✓ Following" : "+ Follow"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      backgroundColor: "#D4AF37",
+                      borderRadius: 20,
+                      paddingVertical: 10,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    onPress={() => {
+                      if (typeof window !== "undefined") {
+                        window.alert(`👑 Subscribe to ${displayName}\n\nJoin @${username}'s VIP Membership for $9.99/mo to unlock all exclusive media posts!`);
+                      }
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{ color: "#000", fontWeight: "bold", fontSize: 14 }}>
+                      👑 VIP ($9.99/mo)
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
 
