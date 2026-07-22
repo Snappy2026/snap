@@ -28,43 +28,24 @@ import { VipContentItem } from "../types/database";
 const { width } = Dimensions.get("window");
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const DEMO_VIP_STORIES: VipContentItem[] = [
-  {
-    id: "v1",
-    creator_id: "c1",
-    title: "🔒 Behind the Scenes: Private Paris Studio Session",
-    description:
-      "Exclusive unreleased footage & raw studio tracks for VIP Gold members.",
-    media_url:
-      "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800",
-    media_type: "image",
-    required_tier: "vip_gold",
-    created_at: new Date().toISOString(),
-    creator_profile: { display_name: "Elena Rostova", username: "elena_vip" },
-  },
-  {
-    id: "v2",
-    creator_id: "c2",
-    title: "👑 Private Q&A & Unfiltered Q2 Travel Vlog",
-    description:
-      "Direct 1-on-1 questions answered live for active subscribers.",
-    media_url:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
-    media_type: "image",
-    required_tier: "vip_gold",
-    created_at: new Date().toISOString(),
-    creator_profile: {
-      display_name: "Marcus Sterling",
-      username: "marcus_gold",
-    },
-  },
-];
+const DEMO_VIP_STORIES: VipContentItem[] = [];
 
 export const VipMembersScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const [isVipMember, setIsVipMember] = useState(false);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
+  const [vipStories, setVipStories] = useState<VipContentItem[]>([]);
+
+  useEffect(() => {
+    const fetchVip = async () => {
+      const { data } = await supabase
+        .from("vip_content")
+        .select("*, creator_profile:profiles(*)");
+      if (data) setVipStories(data as VipContentItem[]);
+    };
+    fetchVip();
+  }, []);
 
   useEffect(() => {
     const checkVipStatus = async () => {
@@ -225,7 +206,7 @@ export const VipMembersScreen: React.FC = () => {
 
             <Text style={styles.sectionTitle}>Exclusive Member Content</Text>
 
-            {DEMO_VIP_STORIES.map((item) => (
+            {vipStories.map((item) => (
               <View key={item.id} style={styles.vipStoryCard}>
                 <Image
                   source={{ uri: item.media_url }}

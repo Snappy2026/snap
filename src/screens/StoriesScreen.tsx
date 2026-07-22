@@ -55,119 +55,11 @@ interface DiscoverItem {
   category: string;
 }
 
-const FRIEND_STORIES: FriendStoryItem[] = [
-  {
-    id: "1",
-    name: "Sarah",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-    hasUnseen: true,
-    storyMedia:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800",
-  },
-  {
-    id: "2",
-    name: "Alex",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-    hasUnseen: true,
-    storyMedia:
-      "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800",
-  },
-  {
-    id: "3",
-    name: "Maya",
-    avatar:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150",
-    hasUnseen: false,
-    storyMedia:
-      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800",
-  },
-  {
-    id: "4",
-    name: "Jordan",
-    avatar:
-      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150",
-    hasUnseen: true,
-    storyMedia:
-      "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800",
-  },
-  {
-    id: "5",
-    name: "Emma",
-    avatar:
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150",
-    hasUnseen: false,
-    storyMedia:
-      "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800",
-  },
-];
+const FRIEND_STORIES: FriendStoryItem[] = [];
 
-const SUBSCRIPTIONS: Subscription[] = [
-  {
-    id: "s1",
-    title: "10 Mind-Blowing AI Innovations of 2026",
-    author: "Tech Daily",
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400",
-  },
-  {
-    id: "s2",
-    title: "Secret Street Food Spots in Tokyo 🍜",
-    author: "Foodie Travel",
-    image: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=400",
-  },
-  {
-    id: "s3",
-    title: "Ultimate 15-Min Workout Routine",
-    author: "FitLife",
-    image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400",
-  },
-];
+const SUBSCRIPTIONS: Subscription[] = [];
 
-const FOR_YOU: DiscoverItem[] = [
-  {
-    id: "f1",
-    title: "What Happens When You Fly Through Saturn Rings?",
-    publisher: "Cosmos Mag",
-    category: "SCIENCE",
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400",
-  },
-  {
-    id: "f2",
-    title: "Inside the World Most Exclusive Cyber Supercars",
-    publisher: "Motor Trend",
-    category: "AUTO",
-    image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400",
-  },
-  {
-    id: "f3",
-    title: "Next Gen Gaming Specs & Unreal Engine 5.5",
-    publisher: "IGN Snap",
-    category: "GAMING",
-    image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400",
-  },
-  {
-    id: "f4",
-    title: "5 Aesthetic Room Makeovers You Can Do Under $100",
-    publisher: "Design Digest",
-    category: "LIFESTYLE",
-    image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=400",
-  },
-  {
-    id: "f5",
-    title: "Quantum Computing Break-Through in Silicon Valley",
-    publisher: "Tech Crunch",
-    category: "TECH",
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400",
-  },
-  {
-    id: "f6",
-    title: "Top 10 Hidden Ramen Joints in Kyoto",
-    publisher: "Food & Wine",
-    category: "FOOD",
-    image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400",
-  },
-];
+const FOR_YOU: DiscoverItem[] = [];
 
 import { sessionStore } from "../lib/sessionStore";
 import { StoryViewerItem } from "../components/StoryViewerModal";
@@ -349,7 +241,9 @@ export const StoriesScreen: React.FC = () => {
 
           let localFollowedIds: string[] = [];
           if (userData?.user) {
-            const { data: follows } = await (supabase.from("friendships") as any)
+            const { data: follows } = await (
+              supabase.from("friendships") as any
+            )
               .select("addressee_id")
               .eq("requester_id", userData.user.id)
               .eq("status", "accepted");
@@ -498,54 +392,6 @@ export const StoriesScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <SnapBar title="Discover" />
-
-      {/* DEBUG TOGGLE UI FOR TESTING */}
-      {Platform.OS === "web" && (
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            padding: "8px 16px",
-            backgroundColor: "#1C1C1E",
-            borderBottom: "1px solid #333",
-          }}
-        >
-          <button
-            type="button"
-            onClick={() =>
-              setUserRole(userRole === "creator" ? "customer" : "creator")
-            }
-            style={{
-              flex: 1,
-              padding: "8px",
-              borderRadius: "8px",
-              border: "none",
-              backgroundColor: userRole === "creator" ? "#00F2FE" : "#333",
-              color: userRole === "creator" ? "#000" : "#FFF",
-              fontWeight: "bold",
-              cursor: "pointer",
-            }}
-          >
-            {userRole === "creator" ? "✅ Role: Creator" : "❌ Role: Customer"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsVipMember(!isVipMember)}
-            style={{
-              flex: 1,
-              padding: "8px",
-              borderRadius: "8px",
-              border: "none",
-              backgroundColor: isVipMember ? "#FFD700" : "#333",
-              color: isVipMember ? "#000" : "#FFF",
-              fontWeight: "bold",
-              cursor: "pointer",
-            }}
-          >
-            {isVipMember ? "✅ VIP Active" : "❌ VIP Inactive"}
-          </button>
-        </div>
-      )}
 
       {/* On web: use native HTML scroll containers to fix iOS Safari touch blocking */}
       {/* On native: use React Native ScrollView */}

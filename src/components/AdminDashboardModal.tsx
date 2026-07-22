@@ -38,79 +38,9 @@ interface AdminCreatorItem {
   admin_fee_earned: number;
 }
 
-const DEMO_USERS: Profile[] = [
-  {
-    id: "u1",
-    username: "elena_vip",
-    display_name: "Elena Rostova",
-    avatar_url:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-    is_vip_member: true,
-    vip_tier: "gold",
-    created_at: "2026-07-20T10:00:00Z",
-    updated_at: "2026-07-21T12:00:00Z",
-  },
-  {
-    id: "u2",
-    username: "marcus_gold",
-    display_name: "Marcus Sterling",
-    avatar_url:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-    is_vip_member: true,
-    vip_tier: "platinum",
-    created_at: "2026-07-19T14:30:00Z",
-    updated_at: "2026-07-21T12:00:00Z",
-  },
-  {
-    id: "u3",
-    username: "sarah_c",
-    display_name: "Sarah Connor",
-    avatar_url:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-    is_vip_member: false,
-    vip_tier: "free",
-    created_at: "2026-07-21T09:15:00Z",
-    updated_at: "2026-07-21T09:15:00Z",
-  },
-  {
-    id: "u4",
-    username: "jordan_b",
-    display_name: "Jordan Belfort",
-    avatar_url:
-      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150",
-    is_vip_member: false,
-    vip_tier: "free",
-    created_at: "2026-07-21T11:45:00Z",
-    updated_at: "2026-07-21T11:45:00Z",
-  },
-];
+const DEMO_USERS: Profile[] = [];
 
-const DEMO_CREATORS: AdminCreatorItem[] = [
-  {
-    id: "u1",
-    display_name: "Elena Rostova",
-    username: "elena_vip",
-    avatar_url:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-    stripe_account_id: "acct_1N9X82F45B31K009",
-    custom_gold_price: 9.99,
-    total_subscribers: 142,
-    total_revenue: 1418.58,
-    admin_fee_earned: 70.93,
-  },
-  {
-    id: "u2",
-    display_name: "Marcus Sterling",
-    username: "marcus_gold",
-    avatar_url:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-    stripe_account_id: "acct_1M83Y21980AAX901",
-    custom_gold_price: 14.99,
-    total_subscribers: 88,
-    total_revenue: 1319.12,
-    admin_fee_earned: 65.96,
-  },
-];
+const DEMO_CREATORS: AdminCreatorItem[] = [];
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   onClose,
@@ -139,16 +69,25 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           .select("*")
           .order("created_at", { ascending: false });
 
-        if (profilesData && profilesData.length > 0) {
+        if (profilesData) {
           setUsersList(profilesData as Profile[]);
-        } else {
-          setUsersList(DEMO_USERS);
+          const creators = profilesData
+            .filter((p: any) => p.role === "creator")
+            .map((p: any) => ({
+              id: p.id,
+              display_name: p.display_name,
+              username: p.username,
+              avatar_url: p.avatar_url,
+              stripe_account_id: p.stripe_account_id,
+              custom_gold_price: p.custom_gold_price,
+              total_subscribers: 0,
+              total_revenue: 0,
+              admin_fee_earned: 0,
+            }));
+          setCreatorsList(creators);
         }
-        setCreatorsList(DEMO_CREATORS);
       } catch (err) {
         console.error("[Admin Console Load Error]", err);
-        setUsersList(DEMO_USERS);
-        setCreatorsList(DEMO_CREATORS);
       } finally {
         setLoading(false);
       }
