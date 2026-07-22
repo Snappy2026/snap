@@ -331,120 +331,77 @@ export const App: React.FC = () => {
         </div>
       </section>
 
-      {/* Dedicated Creator Profile Banner Card (Only renders when visiting a creator's link) */}
+      {/* ========================================================================= */}
+      {/* 2. DEDICATED CREATOR PROFILE PAGE VIEW */}
+      {/* ========================================================================= */}
       {activeCreator && activeCreator.role === "creator" && (
-        <section className="creator-banner-card">
-          <div className="profile-avatar-wrapper">
-            <img
-              src={activeCreator?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
-              alt="Profile Avatar"
-              className="profile-avatar-img"
-            />
-            <div className="profile-crown-badge">👑</div>
+        <div style={{ paddingBottom: "40px" }}>
+          {/* Top Back Navigation */}
+          <div style={{ padding: "12px 16px 4px 16px" }}>
+            <button
+              style={{
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                color: "#FFF",
+                padding: "6px 14px",
+                borderRadius: "16px",
+                fontWeight: "bold",
+                fontSize: "12px",
+                cursor: "pointer",
+              }}
+              onClick={() => {
+                window.location.search = "";
+              }}
+            >
+              ← Back to All Creators
+            </button>
           </div>
 
-          <h2 className="profile-name">{activeCreator?.display_name || activeCreator?.username}</h2>
-          <p className="profile-handle">@{activeCreator?.username}</p>
-
-          <div className="profile-actions-stack">
-            <div className="row-actions">
-              <button className="btn-follow" onClick={() => alert(`✓ Following @${activeCreator?.username}`)}>
-                + Follow Creator
-              </button>
-              <button
-                className="btn-chat-locked"
-                onClick={() => {
-                  if (!currentUser) setShowAuthModal(true);
-                  else if (!isVipMember) alert(`🔒 Direct 1-on-1 Chat is reserved for VIP Subscribers ($${customVipPrice}/mo).`);
-                  else alert(`💬 Starting 1-on-1 Chat with @${activeCreator?.username}!`);
-                }}
-              >
-                {isVipMember ? "💬 1-on-1 Chat" : "🔒 1-on-1 Chat"}
-              </button>
+          {/* Dedicated Creator Profile Banner Card */}
+          <section className="creator-banner-card">
+            <div className="profile-avatar-wrapper">
+              <img
+                src={activeCreator?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
+                alt="Profile Avatar"
+                className="profile-avatar-img"
+              />
+              <div className="profile-crown-badge">👑</div>
             </div>
 
-            {!isVipMember && (
-              <button
-                className="btn-subscribe-vip"
-                onClick={() => {
-                  if (!currentUser) setShowAuthModal(true);
-                  else alert(`👑 Subscribing to @${activeCreator?.username}'s VIP Lounge ($${customVipPrice}/mo)`);
-                }}
-              >
-                👑 Subscribe to @{activeCreator?.username}'s VIP Lounge (${customVipPrice}/mo)
-              </button>
-            )}
-          </div>
-        </section>
-      )}
+            <h2 className="profile-name">{activeCreator?.display_name || activeCreator?.username}</h2>
+            <p className="profile-handle">@{activeCreator?.username}</p>
 
-      {/* FEATURED CREATORS SECTION (Only on Home Page) */}
-      {!activeCreator && (
-        <section style={{ padding: "16px" }}>
-          <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#D4AF37", marginBottom: "14px" }}>
-            ⭐ Featured Creators
-          </h3>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "14px" }}>
-            {featuredCreators.map((c) => (
-              <div
-                key={c.id}
-                style={{
-                  background: "linear-gradient(180deg, rgba(212,175,55,0.12) 0%, rgba(22,22,26,0.92) 100%)",
-                  border: "1px solid rgba(212,175,55,0.3)",
-                  borderRadius: "20px",
-                  padding: "16px 12px",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "8px",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
-                }}
-                onClick={() => {
-                  window.location.search = `?${c.username}`;
-                }}
-              >
-                <img
-                  src={c.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
-                  alt={c.display_name}
-                  style={{
-                    width: "68px",
-                    height: "68px",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    border: "2px solid #D4AF37",
-                    boxShadow: "0 0 16px rgba(212,175,55,0.4)",
-                  }}
-                />
-                <h4 style={{ fontSize: "15px", fontWeight: 800, color: "#fff", margin: 0, textAlign: "center" }}>
-                  {c.display_name || c.username}
-                </h4>
-                <p style={{ fontSize: "12px", color: "#D4AF37", fontWeight: "bold", margin: 0 }}>@{c.username}</p>
+            <div className="profile-actions-stack">
+              <div className="row-actions">
+                <button className="btn-follow" onClick={() => alert(`✓ Following @${activeCreator?.username}`)}>
+                  + Follow Creator
+                </button>
                 <button
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    marginTop: "4px",
-                    borderRadius: "14px",
-                    border: "none",
-                    background: "var(--gold-gradient)",
-                    color: "#000",
-                    fontWeight: 800,
-                    fontSize: "12px",
-                    cursor: "pointer",
+                  className="btn-chat-locked"
+                  onClick={() => {
+                    if (!currentUser) setShowAuthModal(true);
+                    else if (!isVipMember) alert(`🔒 Direct 1-on-1 Chat is reserved for VIP Subscribers ($${customVipPrice}/mo).`);
+                    else alert(`💬 Starting 1-on-1 Chat with @${activeCreator?.username}!`);
                   }}
                 >
-                  View Profile 👑
+                  {isVipMember ? "💬 1-on-1 Chat" : "🔒 1-on-1 Chat"}
                 </button>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
 
-      {/* GALLERY & VIP SECTIONS (Only on Dedicated Creator Profile Page) */}
-      {activeCreator && (
-        <>
+              {!isVipMember && (
+                <button
+                  className="btn-subscribe-vip"
+                  onClick={() => {
+                    if (!currentUser) setShowAuthModal(true);
+                    else alert(`👑 Subscribing to @${activeCreator?.username}'s VIP Lounge ($${customVipPrice}/mo)`);
+                  }}
+                >
+                  👑 Subscribe to @{activeCreator?.username}'s VIP Lounge (${customVipPrice}/mo)
+                </button>
+              )}
+            </div>
+          </section>
+
           {/* Public Gallery Section */}
           <h3 className="section-header-title">🖼️ Gallery</h3>
           <div className="gallery-grid-carousel">
@@ -489,7 +446,7 @@ export const App: React.FC = () => {
               })
             )}
           </div>
-        </>
+        </div>
       )}
 
       {/* Hidden File Input */}
