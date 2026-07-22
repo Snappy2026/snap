@@ -116,9 +116,10 @@ export const StoriesScreen: React.FC = () => {
             .from("profiles")
             .select("role, is_vip_member")
             .eq("id", user.id)
-            .single()) as any;
+            .maybeSingle()) as any;
+          const resolvedRole = profileData?.role || user.user_metadata?.role || "creator";
           setIsVipMember(profileData?.is_vip_member || false);
-          setUserRole(profileData?.role || "customer");
+          setUserRole(resolvedRole);
         }
 
         // Handle invited creator routing from WhatsApp / SMS link (case-insensitive)
@@ -1341,46 +1342,40 @@ export const StoriesScreen: React.FC = () => {
                   Story (24h)
                 </Text>
               </Pressable>
-              {userRole === "creator" && (
-                <>
-                  <Pressable
-                    onPress={() => setUploadDestination("gallery")}
-                    style={{
-                      padding: 8,
-                      borderBottomWidth:
-                        uploadDestination === "gallery" ? 2 : 0,
-                      borderColor: "#00F2FE",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color:
-                          uploadDestination === "gallery" ? "#00F2FE" : "#888",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Gallery
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => setUploadDestination("vip")}
-                    style={{
-                      padding: 8,
-                      borderBottomWidth: uploadDestination === "vip" ? 2 : 0,
-                      borderColor: "#FFD700",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: uploadDestination === "vip" ? "#FFD700" : "#888",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      VIP 🔒
-                    </Text>
-                  </Pressable>
-                </>
-              )}
+              <Pressable
+                onPress={() => setUploadDestination("gallery")}
+                style={{
+                  padding: 8,
+                  borderBottomWidth: uploadDestination === "gallery" ? 2 : 0,
+                  borderColor: "#00F2FE",
+                }}
+              >
+                <Text
+                  style={{
+                    color: uploadDestination === "gallery" ? "#00F2FE" : "#888",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Gallery
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setUploadDestination("vip")}
+                style={{
+                  padding: 8,
+                  borderBottomWidth: uploadDestination === "vip" ? 2 : 0,
+                  borderColor: "#FFD700",
+                }}
+              >
+                <Text
+                  style={{
+                    color: uploadDestination === "vip" ? "#FFD700" : "#888",
+                    fontWeight: "bold",
+                  }}
+                >
+                  VIP 🔒
+                </Text>
+              </Pressable>
             </View>
 
             <Pressable
