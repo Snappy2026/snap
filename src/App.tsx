@@ -464,7 +464,7 @@ export const App: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* 3. FRONT HOME PAGE VIEW (FEATURED CREATORS GRID) */}
+      {/* 3. FRONT HOME PAGE VIEW (MAX 6 FEATURED CREATORS GRID) */}
       {/* ========================================================================= */}
       {!activeCreator && (
         <section style={{ padding: "16px" }}>
@@ -472,7 +472,7 @@ export const App: React.FC = () => {
             ⭐ Featured Creators
           </h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "14px" }}>
-            {featuredCreators.map((c) => (
+            {featuredCreators.slice(0, 6).map((c) => (
               <div
                 key={c.id}
                 style={{
