@@ -19,6 +19,7 @@ export const App: React.FC = () => {
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showBookmarkModal, setShowBookmarkModal] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [activeStoryModal, setActiveStoryModal] = useState<any>(null);
   const [storyProgress, setStoryProgress] = useState<number>(0);
 
@@ -56,6 +57,16 @@ export const App: React.FC = () => {
       return () => clearInterval(interval);
     }
   }, [activeStoryModal]);
+
+  // Listen for native PWA 1-click install prompt event (Android / Chrome)
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+  }, []);
 
   useEffect(() => {
     const initApp = async () => {
@@ -492,8 +503,21 @@ export const App: React.FC = () => {
       <header className="app-header">
         <h1 className="brand-logo">adultplus</h1>
         <div className="header-actions">
-          <button className="btn-pill-gold" onClick={() => setShowBookmarkModal(true)}>
-            📲 Add to Home Screen
+          <button
+            className="btn-pill-gold"
+            onClick={async () => {
+              if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === "accepted") {
+                  setDeferredPrompt(null);
+                }
+              } else {
+                setShowBookmarkModal(true);
+              }
+            }}
+          >
+            📲 Add App to Mobile
           </button>
           {userRole === "admin" && (
             <button className="btn-pill-gold" onClick={openAdminConsole}>
