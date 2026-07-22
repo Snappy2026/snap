@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-around",
     borderTopWidth: 1,
-    borderTopColor: "rgba(212, 175, 55, 0.3)",
+    borderTopColor: "rgba(255, 255, 255, 0.12)",
     paddingBottom: Platform.OS === "web" ? 14 : 10,
     zIndex: 9999,
   },

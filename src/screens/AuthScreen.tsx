@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.2)",
+    borderColor: "rgba(255, 255, 255, 0.15)",
   },
   tab: {
     flex: 1,
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.35)",
+    borderColor: "rgba(255, 255, 255, 0.18)",
     shadowColor: "#D4AF37",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.15,
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
   submitBtn: {
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "#D4AF37",
+    borderColor: "rgba(255, 255, 255, 0.22)",
     height: 50,
     borderRadius: 14,
     justifyContent: "center",
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 14,
     borderWidth: 1,
-    borderColor: "#D4AF37",
+    borderColor: "rgba(255, 255, 255, 0.22)",
   },
   adminLoginBtnText: {
     color: "#D4AF37",
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 14,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.15)",
+    borderColor: "rgba(255, 255, 255, 0.12)",
   },
   adminCredsTitle: {
     color: "#8E8E93",
