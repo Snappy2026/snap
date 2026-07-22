@@ -449,6 +449,72 @@ export const App: React.FC = () => {
         </div>
       )}
 
+      {/* ========================================================================= */}
+      {/* 3. FRONT HOME PAGE VIEW (FEATURED CREATORS GRID) */}
+      {/* ========================================================================= */}
+      {!activeCreator && (
+        <section style={{ padding: "16px" }}>
+          <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#D4AF37", marginBottom: "14px" }}>
+            ⭐ Featured Creators
+          </h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "14px" }}>
+            {featuredCreators.map((c) => (
+              <div
+                key={c.id}
+                style={{
+                  background: "linear-gradient(180deg, rgba(212,175,55,0.12) 0%, rgba(22,22,26,0.92) 100%)",
+                  border: "1px solid rgba(212,175,55,0.3)",
+                  borderRadius: "20px",
+                  padding: "16px 12px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+                }}
+                onClick={() => {
+                  window.location.search = `?${c.username}`;
+                }}
+              >
+                <img
+                  src={c.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
+                  alt={c.display_name}
+                  style={{
+                    width: "68px",
+                    height: "68px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: "2px solid #D4AF37",
+                    boxShadow: "0 0 16px rgba(212,175,55,0.4)",
+                  }}
+                />
+                <h4 style={{ fontSize: "15px", fontWeight: 800, color: "#fff", margin: 0, textAlign: "center" }}>
+                  {c.display_name || c.username}
+                </h4>
+                <p style={{ fontSize: "12px", color: "#D4AF37", fontWeight: "bold", margin: 0 }}>@{c.username}</p>
+                <button
+                  style={{
+                    width: "100%",
+                    padding: "8px",
+                    marginTop: "4px",
+                    borderRadius: "14px",
+                    border: "none",
+                    background: "var(--gold-gradient)",
+                    color: "#000",
+                    fontWeight: 800,
+                    fontSize: "12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  View Profile 👑
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Hidden File Input */}
       <input type="file" ref={fileInputRef} accept="image/*,video/*" style={{ display: "none" }} onChange={handleFileUpload} />
 
