@@ -575,6 +575,38 @@ export const App: React.FC = () => {
                 className="hero-cover-img"
               />
               <div className="hero-cover-overlay" />
+
+              {/* Exact Golden Arch Wave Swooshes SVG Overlay */}
+              <svg className="hero-golden-arches" viewBox="0 0 400 240" preserveAspectRatio="none" fill="none">
+                <path
+                  d="M0,0 Q200,210 400,0 L400,240 L0,240 Z"
+                  fill="url(#goldGradCover)"
+                  opacity="0.25"
+                />
+                <path
+                  d="M-50,-20 Q200,230 450,-20"
+                  stroke="url(#goldGradStroke)"
+                  strokeWidth="8"
+                  opacity="0.85"
+                />
+                <path
+                  d="M-50,10 Q200,260 450,10"
+                  stroke="url(#goldGradStroke)"
+                  strokeWidth="3"
+                  opacity="0.6"
+                />
+                <defs>
+                  <linearGradient id="goldGradStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FFD700" />
+                    <stop offset="50%" stopColor="#AA771C" />
+                    <stop offset="100%" stopColor="#FFD700" />
+                  </linearGradient>
+                  <linearGradient id="goldGradCover" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor="#000000" stopOpacity="1" />
+                  </linearGradient>
+                </defs>
+              </svg>
             </div>
 
             {/* Double-Ring Glowing Gold Avatar Frame */}
