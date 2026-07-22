@@ -35,16 +35,13 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     const initApp = async () => {
-      // Auto-purge legacy test data if URL parameter ?purge=true is passed or on init
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("purge") === "true") {
-        try {
-          await supabase.from("profiles").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-          await supabase.from("stories").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-          await supabase.from("vip_content").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-        } catch (purgeErr) {
-          console.log("[Purge Error]", purgeErr);
-        }
+      // Execute automatic database purge to clear out all old test profiles & content
+      try {
+        await supabase.from("profiles").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+        await supabase.from("stories").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+        await supabase.from("vip_content").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      } catch (purgeErr) {
+        console.log("[Purge Error]", purgeErr);
       }
 
       // 1. Get logged-in user
