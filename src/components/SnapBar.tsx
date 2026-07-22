@@ -21,6 +21,7 @@ import CreatorSettingsModal from "./CreatorSettingsModal";
 import AdminDashboardModal from "./AdminDashboardModal";
 import CustomerSettingsModal from "./CustomerSettingsModal";
 import CreatorContentStudioModal from "./CreatorContentStudioModal";
+import CreatorOnboardingModal from "./CreatorOnboardingModal";
 import { useNavigation } from "@react-navigation/native";
 import { supabase } from "../lib/supabase";
 
@@ -307,7 +308,10 @@ export const SnapBar: React.FC<SnapBarProps> = ({
       {showCustomerModal && (
         <CustomerSettingsModal
           onClose={() => setShowCustomerModal(false)}
-          onUpgradeToCreator={() => setShowSettingsModal(true)}
+          onUpgradeToCreator={() => {
+            setUserRole("creator");
+            setShowSettingsModal(true);
+          }}
         />
       )}
 

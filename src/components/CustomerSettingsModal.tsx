@@ -262,7 +262,17 @@ export const CustomerSettingsModal: React.FC<CustomerSettingsModalProps> = ({
               </Text>
               <TouchableOpacity
                 style={styles.upgradeBtn}
-                onPress={() => {
+                onPress={async () => {
+                  try {
+                    const { data: userData } = await supabase.auth.getUser();
+                    if (userData?.user) {
+                      await (supabase.from("profiles") as any)
+                        .update({ role: "creator", updated_at: new Date().toISOString() })
+                        .eq("id", userData.user.id);
+                    }
+                  } catch (err) {
+                    console.error("[Upgrade Error]", err);
+                  }
                   onClose();
                   if (onUpgradeToCreator) onUpgradeToCreator();
                 }}
