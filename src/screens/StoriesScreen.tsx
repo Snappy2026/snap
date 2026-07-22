@@ -120,11 +120,11 @@ export const StoriesScreen: React.FC = () => {
 
         if (vipData) {
           const publicGallery = vipData.filter((v: any) => v.is_public_gallery === true);
-          // Show gallery items for creators the user follows, or items posted by the user themselves
+          // Only show gallery items created by the logged-in user, or creators they explicitly follow
           const filteredGallery = publicGallery.filter(
-            (v: any) => v.creator_id === user?.id || localFollowedIds.includes(v.creator_id)
+            (v: any) => v.creator_id === user?.id || (localFollowedIds.length > 0 && localFollowedIds.includes(v.creator_id))
           );
-          setGalleryItems(filteredGallery.length > 0 ? filteredGallery : publicGallery);
+          setGalleryItems(filteredGallery);
           setVipItems(vipData.filter((v: any) => v.is_public_gallery !== true));
         }
 
