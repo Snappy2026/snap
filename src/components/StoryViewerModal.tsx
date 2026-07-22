@@ -333,59 +333,54 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
               alignItems: "center",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              {/* Creator Profile Avatar Button */}
-              {currentStory.user_id && currentStory.user_id !== currentUserId && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    cancelAnimation(progress);
-                    setShowCreatorProfile(true);
-                  }}
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "50%",
-                    border: "2px solid rgba(255,255,255,0.6)",
-                    background: "rgba(0,0,0,0.3)",
-                    cursor: "pointer",
-                    padding: 0,
-                    overflow: "hidden",
-                    WebkitAppearance: "none" as any,
-                    appearance: "none" as any,
-                    touchAction: "manipulation",
-                    flexShrink: 0,
-                  }}
-                  aria-label="View Creator Profile"
-                >
-                  <img
-                    src={currentStory.user_profile?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80"}
-                    alt=""
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      borderRadius: "50%",
-                    }}
-                  />
-                </button>
-              )}
-              <span
-                style={{
-                  color: "#FFF",
-                  fontSize: "15px",
-                  fontWeight: "bold",
-                  cursor: currentStory.user_id && currentStory.user_id !== currentUserId ? "pointer" : "default",
-                }}
-                onClick={() => {
-                  if (currentStory.user_id && currentStory.user_id !== currentUserId) {
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", zIndex: 50 }}>
+              {/* Creator Profile Link Button (Avatar + Name) */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (currentStory.user_id) {
                     cancelAnimation(progress);
                     setShowCreatorProfile(true);
                   }
                 }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  borderRadius: "20px",
+                  padding: "4px 12px 4px 4px",
+                  cursor: "pointer",
+                  WebkitAppearance: "none" as any,
+                  appearance: "none" as any,
+                  touchAction: "manipulation",
+                  zIndex: 50,
+                }}
+                aria-label="View Creator Profile"
               >
-                {currentStory.user_profile?.display_name || "Adult+ Story"}
-              </span>
+                <img
+                  src={currentStory.user_profile?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80"}
+                  alt=""
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                  }}
+                />
+                <span
+                  style={{
+                    color: "#FFF",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {currentStory.user_profile?.display_name || "Adult+ Creator"} ➔
+                </span>
+              </button>
               {userRole === "customer" &&
                 !isFollowing &&
                 currentStory.user_id &&
@@ -489,9 +484,25 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
           </View>
 
           <View style={nativeStyles.authorHeader}>
-            <Text style={nativeStyles.authorName}>
-              {currentStory.user_profile?.display_name || "Adult+ Story"}
-            </Text>
+            <Pressable
+              onPress={() => {
+                if (currentStory.user_id) {
+                  cancelAnimation(progress);
+                  setShowCreatorProfile(true);
+                }
+              }}
+              style={nativeStyles.profileBadge}
+            >
+              <Image
+                source={{
+                  uri: currentStory.user_profile?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80",
+                }}
+                style={nativeStyles.badgeAvatar}
+              />
+              <Text style={nativeStyles.authorName}>
+                {currentStory.user_profile?.display_name || "Adult+ Creator"} ➔
+              </Text>
+            </Pressable>
             <Pressable onPress={handleClose} style={nativeStyles.closeBtn}>
               <Text style={nativeStyles.closeIcon}>✕</Text>
             </Pressable>
@@ -573,10 +584,27 @@ const nativeStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    zIndex: 50,
+  },
+  profileBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.4)",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.25)",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    gap: 8,
+  },
+  badgeAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
   },
   authorName: {
     color: "#FFF",
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "bold",
   },
   closeBtn: {
