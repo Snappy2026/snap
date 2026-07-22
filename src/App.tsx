@@ -19,7 +19,12 @@ export const App: React.FC = () => {
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [showChatModal, setShowChatModal] = useState(false);
   const [activeLightboxImg, setActiveLightboxImg] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<any[]>([
+    { id: "1", sender: "creator", text: "Hey love! Welcome to my VIP Lounge 🔥 What are you up to today?", time: "Just now" }
+  ]);
+  const [chatInputText, setChatInputText] = useState("");
   const [showBookmarkModal, setShowBookmarkModal] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [activeStoryModal, setActiveStoryModal] = useState<any>(null);
@@ -658,7 +663,7 @@ export const App: React.FC = () => {
                         } else if (!isVipMember && currentUser.id !== activeCreator.id) {
                           setShowSubscribeModal(true);
                         } else {
-                          alert(`💬 Starting 1-on-1 Chat with @${activeCreator?.username}!`);
+                          setShowChatModal(true);
                         }
                       }}
                     >
@@ -1303,6 +1308,114 @@ export const App: React.FC = () => {
         </div>
       )}
 
+      {/* 7. INTERACTIVE 1-ON-1 DIRECT MESSENGER CHAT MODAL */}
+      {showChatModal && (
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ maxWidth: "480px", height: "80vh", display: "flex", flexDirection: "column", padding: "0", overflow: "hidden" }}>
+            {/* Chat Room Header */}
+            <div style={{ padding: "16px", background: "linear-gradient(180deg, #1f1d19 0%, #121214 100%)", borderBottom: "1px solid rgba(255,215,0,0.25)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <img
+                  src={activeCreator?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
+                  alt=""
+                  style={{ width: "42px", height: "42px", borderRadius: "50%", border: "2px solid #FFD700", objectFit: "cover" }}
+                />
+                <div>
+                  <h4 style={{ fontSize: "15px", fontWeight: "bold", color: "#fff", margin: 0, display: "flex", alignItems: "center", gap: "4px" }}>
+                    {activeCreator?.display_name || activeCreator?.username || "Creator"}
+                    <span style={{ fontSize: "11px", color: "#FFD700" }}>👑 VIP</span>
+                  </h4>
+                  <p style={{ fontSize: "11px", color: "#00F2FE", margin: 0 }}>● Online 1-on-1 Private Chat</p>
+                </div>
+              </div>
+              <button style={{ background: "none", border: "none", color: "#fff", fontSize: "22px", cursor: "pointer", padding: "4px" }} onClick={() => setShowChatModal(false)}>
+                ✕
+              </button>
+            </div>
+
+            {/* Message History Feed */}
+            <div style={{ flex: 1, padding: "16px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px", background: "#0d0d0f" }}>
+              <div style={{ textAlign: "center", margin: "8px 0" }}>
+                <span style={{ fontSize: "11px", background: "rgba(255,255,255,0.08)", padding: "4px 12px", borderRadius: "12px", color: "#888" }}>
+                  🔒 End-to-End Encrypted Private Chat
+                </span>
+              </div>
+
+              {chatMessages.map((msg) => {
+                const isMe = msg.sender === "user";
+                return (
+                  <div
+                    key={msg.id}
+                    style={{
+                      alignSelf: isMe ? "flex-end" : "flex-start",
+                      maxWidth: "80%",
+                      background: isMe ? "linear-gradient(135deg, #FFD700 0%, #AA771C 100%)" : "rgba(45, 45, 52, 0.9)",
+                      color: isMe ? "#000" : "#fff",
+                      padding: "12px 16px",
+                      borderRadius: isMe ? "20px 20px 4px 20px" : "20px 20px 20px 4px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                    }}
+                  >
+                    <p style={{ fontSize: "13.5px", margin: 0, fontWeight: isMe ? "700" : "500", lineHeight: "1.4" }}>{msg.text}</p>
+                    <span style={{ fontSize: "10px", opacity: 0.7, marginTop: "4px", display: "block", textAlign: "right" }}>{msg.time}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Input Send Bar */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!chatInputText.trim()) return;
+
+                const userMsg = { id: Date.now().toString(), sender: "user", text: chatInputText, time: "Just now" };
+                setChatMessages((prev) => [...prev, userMsg]);
+                const sentText = chatInputText;
+                setChatInputText("");
+
+                // Simulated Creator Auto Reply
+                setTimeout(() => {
+                  setChatMessages((prev) => [
+                    ...prev,
+                    {
+                      id: (Date.now() + 1).toString(),
+                      sender: "creator",
+                      text: `Aww thank you! 😘 I loved reading your message "${sentText}". Check out my latest VIP photo! 💋`,
+                      time: "Just now",
+                    },
+                  ]);
+                }, 1200);
+              }}
+              style={{ padding: "12px 16px", background: "#16161a", borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", gap: "10px", alignItems: "center" }}
+            >
+              <input
+                type="text"
+                placeholder={`Message @${activeCreator?.username || "Creator"}...`}
+                value={chatInputText}
+                onChange={(e) => setChatInputText(e.target.value)}
+                style={{ flex: 1, padding: "12px 16px", borderRadius: "24px", border: "1px solid rgba(255,215,0,0.3)", background: "#0a0a0c", color: "#fff", fontSize: "13.5px", outline: "none" }}
+              />
+              <button
+                type="submit"
+                style={{
+                  padding: "12px 20px",
+                  borderRadius: "24px",
+                  border: "none",
+                  background: "linear-gradient(180deg, #FFD700 0%, #AA771C 100%)",
+                  color: "#000",
+                  fontWeight: 900,
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                Send 🚀
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Nav Bar matching reference design: Discover (Home), + (Add Snap), Messages, Profile (Log Out) */}
       <nav className="bottom-navigation">
         <button
@@ -1338,7 +1451,18 @@ export const App: React.FC = () => {
           </div>
           <span>Add Snap</span>
         </button>
-        <button className="nav-item-btn" onClick={() => alert("💬 Direct Messages feature active!")}>
+        <button
+          className="nav-item-btn"
+          onClick={() => {
+            if (!currentUser) {
+              setShowAuthModal(true);
+            } else if (!isVipMember) {
+              setShowSubscribeModal(true);
+            } else {
+              setShowChatModal(true);
+            }
+          }}
+        >
           <span style={{ fontSize: "22px" }}>🗨</span>
           <span>Messages</span>
         </button>
