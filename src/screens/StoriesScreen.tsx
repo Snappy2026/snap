@@ -134,6 +134,21 @@ export const StoriesScreen: React.FC = () => {
         const user = userDataRes.data?.user;
         setCurrentUserId(user?.id || null);
 
+        if (user?.id) {
+          const { data: myProfile } = await supabase
+            .from("profiles")
+            .select("role, is_vip_member")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (myProfile) {
+            const roleVal = (myProfile as any).role || user.user_metadata?.role || "creator";
+            setUserRole(roleVal);
+            setIsVipMember((myProfile as any).is_vip_member || false);
+          } else {
+            setUserRole("creator");
+          }
+        }
+
         let targetCreatorId: string | null = null;
         if (invProfileData) {
           targetCreatorId = (invProfileData as any).id;
