@@ -138,42 +138,33 @@ export const StoriesScreen: React.FC = () => {
 
         const effectiveCreatorId = targetCreatorId || user?.id;
 
-        // Fetch active creator profile details
-        if (effectiveCreatorId) {
-          const { data: cProfile } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", effectiveCreatorId)
-            .maybeSingle();
-          if (cProfile) setActiveCreatorProfile(cProfile);
+        // Run ALL database queries in PARALLEL via Promise.all for instant page load!
+        const [cProfileRes, vipRes, storiesRes] = await Promise.all([
+          effectiveCreatorId
+            ? supabase.from("profiles").select("*").eq("id", effectiveCreatorId).maybeSingle()
+            : Promise.resolve({ data: null }),
+          supabase
+            .from("vip_content")
+            .select("id, creator_id, title, media_url, media_type, is_public_gallery, required_tier, created_at")
+            .eq("creator_id", effectiveCreatorId || user?.id || "")
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("stories")
+            .select("*, user_profile:profiles(display_name, username, avatar_url)")
+            .order("created_at", { ascending: false })
+            .limit(20),
+        ]);
+
+        if (cProfileRes.data) setActiveCreatorProfile(cProfileRes.data);
+
+        if (vipRes.data) {
+          const vipData = vipRes.data;
+          setGalleryItems(vipData.filter((v: any) => v.is_public_gallery === true));
+          setVipItems(vipData.filter((v: any) => v.is_public_gallery !== true));
         }
 
-        const { data: vipData } = await supabase
-          .from("vip_content")
-          .select("*, creator_profile:profiles(*)")
-          .order("created_at", { ascending: false });
-
-        if (vipData) {
-          const activeId = targetCreatorId || activeCreatorId || user?.id;
-
-          const publicGallery = vipData.filter(
-            (v: any) => v.is_public_gallery === true && (activeId ? v.creator_id === activeId : true)
-          );
-          setGalleryItems(publicGallery);
-
-          const vipFiltered = vipData.filter(
-            (v: any) => v.is_public_gallery !== true && (activeId ? v.creator_id === activeId : true)
-          );
-          setVipItems(vipFiltered);
-        }
-
-        const { data } = await supabase
-          .from("stories")
-          .select("*, user_profile:profiles(*)")
-          .order("created_at", { ascending: false });
-
-        if (data && data.length > 0) {
-          setDbStories(data as Story[]);
+        if (storiesRes.data && storiesRes.data.length > 0) {
+          setDbStories(storiesRes.data as Story[]);
         }
       } catch (err) {
         console.error("[Fetch Stories Error]", err);
