@@ -149,19 +149,21 @@ export const StoriesScreen: React.FC = () => {
         let targetCreatorId: string | null = null;
         if (effectiveParam) {
           const cleanHandle = effectiveParam.trim().toLowerCase();
-          // First attempt exact username or ID match
+          // First attempt exact username or ID match for role=creator
           const { data: exactProfile } = await supabase
             .from("profiles")
             .select("*")
+            .eq("role", "creator")
             .or(`username.ilike.${cleanHandle},id.eq.${effectiveParam}`)
             .maybeSingle();
 
           let invProfile = exactProfile;
           if (!invProfile) {
-            // Second attempt fuzzy search if exact match not found
+            // Second attempt fuzzy search for role=creator if exact match not found
             const { data: fuzzyProfile } = await supabase
               .from("profiles")
               .select("*")
+              .eq("role", "creator")
               .or(`username.ilike.%${cleanHandle}%,display_name.ilike.%${cleanHandle}%`)
               .order("created_at", { ascending: false })
               .limit(1)
