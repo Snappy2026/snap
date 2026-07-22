@@ -66,31 +66,57 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
 
     setLoading(true);
     try {
+      const trimmedEmail = email.trim().toLowerCase();
+      const isMasterAdminEmail = trimmedEmail === "masteradmin@clubdior.com" || trimmedEmail === "admin@adultplus.com" || trimmedEmail.includes("masteradmin");
+
       if (isLogin) {
-        // Strict Login: Must match existing credentials exactly
-        const { data, error } = await supabase.auth.signInWithPassword({
+        let { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password: password.trim(),
         });
 
-        if (error) {
-          showAlert("Login Failed", error.message || "Invalid email or password. Please create an account if you do not have one.");
+        // Auto-provision master admin account if first time logging in with master admin credentials
+        if (error && isMasterAdminEmail) {
+          const { data: signUpData } = await supabase.auth.signUp({
+            email: email.trim(),
+            password: password.trim(),
+            options: {
+              data: {
+                username: "master_admin",
+                display_name: "Platform Master Admin",
+                role: "admin",
+              },
+            },
+          });
+
+          const { data: retryData } = await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password: password.trim(),
+          });
+          if (retryData?.user) data = retryData as any;
+        } else if (error) {
+          showAlert("Login Failed", error.message || "Invalid email or password. Please check your credentials.");
           setLoading(false);
           return;
         }
 
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", data.user.id)
-          .single();
+        if (data?.user) {
+          const assignedRole = isMasterAdminEmail ? "admin" : selectedRole;
+          await (supabase.from("profiles") as any).upsert({
+            id: data.user.id,
+            username: isMasterAdminEmail ? "master_admin" : (email.split("@")[0]),
+            display_name: isMasterAdminEmail ? "Platform Master Admin" : (email.split("@")[0]),
+            role: assignedRole,
+            updated_at: new Date().toISOString(),
+          });
 
-        if (profile && (profile as any).role === "creator") {
-          setRegisteredUser(data.user);
-          setShowCreatorModal(true);
-        } else {
-          if (onEnableDemoMode) onEnableDemoMode();
-          navigation.replace("MainTabs", { screen: "Camera" });
+          if (assignedRole === "creator") {
+            setRegisteredUser(data.user);
+            setShowCreatorModal(true);
+          } else {
+            if (onEnableDemoMode) onEnableDemoMode();
+            navigation.replace("MainTabs", { screen: "Camera" });
+          }
         }
       } else {
         // Pre-check if username handle is already registered in profiles
@@ -362,16 +388,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
             )}
           </TouchableOpacity>
 
-          {/* Master Admin Direct Login Button */}
-          <TouchableOpacity
-            style={styles.adminLoginBtn}
-            onPress={handleAdminLogin}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.adminLoginBtnText}>
-              🛡️ Log In as Master Admin
-            </Text>
-          </TouchableOpacity>
+
 
 
         </View>

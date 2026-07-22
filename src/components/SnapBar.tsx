@@ -92,7 +92,7 @@ export const SnapBar: React.FC<SnapBarProps> = ({
     fetchUserData();
   }, []);
 
-  const isAdmin = userRole === "admin" || userEmail.toLowerCase().includes("admin");
+  const isAdmin = userRole === "admin" || userEmail.toLowerCase().includes("admin") || userEmail.toLowerCase().includes("masteradmin");
   const displayRole = isAdmin ? "ADMIN" : userRole.toUpperCase();
 
   const handleProfileClick = () => {
