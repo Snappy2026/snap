@@ -217,13 +217,46 @@ export const App: React.FC = () => {
         }
       }
 
+      // Sample 24h Snap Stories Avatar Circles
+      const sampleStoriesList = [
+        {
+          id: "sample-story-1",
+          media_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
+          user_profile: { display_name: "Sophia Rose" },
+        },
+        {
+          id: "sample-story-2",
+          media_url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300",
+          user_profile: { display_name: "Isabella" },
+        },
+        {
+          id: "sample-story-3",
+          media_url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=300",
+          user_profile: { display_name: "Maya Gold" },
+        },
+        {
+          id: "sample-story-4",
+          media_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300",
+          user_profile: { display_name: "Chloe Luxe" },
+        },
+        {
+          id: "sample-story-5",
+          media_url: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300",
+          user_profile: { display_name: "Elena Adult+" },
+        },
+      ];
+
       // Fetch all public media for Discover Feed
       const { data: dbStories } = await supabase
         .from("stories")
         .select("*, user_profile:profiles(display_name, username, avatar_url)")
         .order("created_at", { ascending: false });
 
-      if (dbStories) setStoriesList(dbStories);
+      if (dbStories && dbStories.length > 0) {
+        setStoriesList(dbStories);
+      } else {
+        setStoriesList(sampleStoriesList);
+      }
 
       const { data: media } = await supabase
         .from("vip_content")
