@@ -17,6 +17,7 @@ import {
   Platform,
   Modal,
   Pressable,
+  Alert,
 } from "react-native";
 import WebTouchable from "../components/WebTouchable";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
@@ -236,6 +237,30 @@ export const StoriesScreen: React.FC = () => {
     const file = event.target?.files?.[0];
     if (file) {
       const isVideo = file.type.startsWith("video");
+      const sizeInMB = file.size / (1024 * 1024);
+      const maxPhotoMB = 15;
+      const maxVideoMB = 50;
+
+      if (isVideo && sizeInMB > maxVideoMB) {
+        const msg = `⚠️ Video size (${sizeInMB.toFixed(1)}MB) exceeds the maximum allowed limit of ${maxVideoMB}MB. Please select a smaller video.`;
+        if (Platform.OS === "web" && typeof window !== "undefined") {
+          window.alert(msg);
+        } else {
+          Alert.alert("File Size Limit Exceeded", msg);
+        }
+        return;
+      }
+
+      if (!isVideo && sizeInMB > maxPhotoMB) {
+        const msg = `⚠️ Photo size (${sizeInMB.toFixed(1)}MB) exceeds the maximum allowed limit of ${maxPhotoMB}MB. Please select a smaller photo.`;
+        if (Platform.OS === "web" && typeof window !== "undefined") {
+          window.alert(msg);
+        } else {
+          Alert.alert("File Size Limit Exceeded", msg);
+        }
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = async (e) => {
         if (e.target?.result) {

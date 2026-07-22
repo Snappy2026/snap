@@ -92,6 +92,14 @@ export const CustomerSettingsModal: React.FC<CustomerSettingsModalProps> = ({
     const file = event.target?.files?.[0];
     if (!file) return;
 
+    const sizeInMB = file.size / (1024 * 1024);
+    if (sizeInMB > 10) {
+      if (typeof window !== "undefined") {
+        window.alert(`⚠️ Profile picture size (${sizeInMB.toFixed(1)}MB) exceeds 10MB limit. Please choose a smaller image.`);
+      }
+      return;
+    }
+
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) return;
