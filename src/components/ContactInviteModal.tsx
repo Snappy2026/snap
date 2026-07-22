@@ -17,6 +17,7 @@ import {
   Platform,
   Linking,
 } from "react-native";
+import { supabase } from "../lib/supabase";
 
 export interface PhoneContact {
   id: string;
@@ -38,6 +39,26 @@ export const ContactInviteModal: React.FC<ContactInviteModalProps> = ({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [sending, setSending] = useState(false);
+  const [creatorUsername, setCreatorUsername] = useState("");
+
+  React.useEffect(() => {
+    const fetchUser = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData?.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", userData.user.id)
+          .maybeSingle();
+        if ((profile as any)?.username) {
+          setCreatorUsername((profile as any).username);
+        } else {
+          setCreatorUsername(userData.user.email?.split("@")[0] || "");
+        }
+      }
+    };
+    fetchUser();
+  }, []);
 
   const toggleSelect = (id: string) => {
     if (selectedIds.includes(id)) {
@@ -54,15 +75,23 @@ export const ContactInviteModal: React.FC<ContactInviteModalProps> = ({
     setSelectedIds(unregisteredIds);
   };
 
+  // Get dynamic site origin URL + creator invite parameter
+  const getSiteInviteUrl = () => {
+    const baseUrl = Platform.OS === "web" && typeof window !== "undefined"
+      ? window.location.origin
+      : "https://clubdior.com";
+    return creatorUsername ? `${baseUrl}/?creator=${encodeURIComponent(creatorUsername)}` : baseUrl;
+  };
+
   // 1-Tap Invite via WhatsApp Deep Link
   const handleWhatsAppInvite = async (contact?: PhoneContact) => {
+    const siteUrl = getSiteInviteUrl();
     const inviteMessage = encodeURIComponent(
-      "Hey! Join me on Adult+ 👻 Download the app here: https://snap.app/download/join",
+      `Hey! Check out my profile & stories on ClubDior 👻 Tap here to join: ${siteUrl}`,
     );
 
     let whatsappUrl = `https://wa.me/?text=${inviteMessage}`;
     if (contact) {
-      // Clean phone number format for WhatsApp E.164 (digits only)
       const cleanPhone = contact.phoneNumber.replace(/[^0-9]/g, "");
       whatsappUrl = `https://wa.me/${cleanPhone}?text=${inviteMessage}`;
     }
@@ -87,8 +116,9 @@ export const ContactInviteModal: React.FC<ContactInviteModalProps> = ({
 
   // 1-Tap Invite via SMS Deep Link
   const handleSmsInvite = async (contact?: PhoneContact) => {
+    const siteUrl = getSiteInviteUrl();
     const inviteMessage = encodeURIComponent(
-      "Hey! Join me on Adult+ 👻 Download the app here: https://snap.app/download/join",
+      `Hey! Check out my profile & stories on ClubDior 👻 Tap here to join: ${siteUrl}`,
     );
 
     let smsUrl = `sms:?body=${inviteMessage}`;
@@ -123,8 +153,9 @@ export const ContactInviteModal: React.FC<ContactInviteModalProps> = ({
       .filter((c) => selectedIds.includes(c.id))
       .map((c) => c.phoneNumber);
 
+    const siteUrl = getSiteInviteUrl();
     const inviteMessage = encodeURIComponent(
-      "Hey! Join me on Adult+ 👻 Download the app here: https://snap.app/download/join",
+      `Hey! Check out my profile & stories on ClubDior 👻 Tap here to join: ${siteUrl}`,
     );
     const cleanPhones = selectedPhoneNumbers.map((p) =>
       p.replace(/[^0-9]/g, ""),
