@@ -347,20 +347,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
             </Text>
           </TouchableOpacity>
 
-          <View style={styles.adminCredsBox}>
-            <Text style={styles.adminCredsTitle}>🔑 Admin Login Details:</Text>
-            <Text style={styles.adminCredsText}>
-              Email:{" "}
-              <Text style={{ color: "#D4AF37" }}>admin@adultplus.com</Text>
-            </Text>
-            <Text style={styles.adminCredsText}>
-              Password: <Text style={{ color: "#D4AF37" }}>admin123</Text>
-            </Text>
-          </View>
 
-          <TouchableOpacity style={styles.skipBtn} onPress={handleSkipDemo}>
-            <Text style={styles.skipBtnText}>Continue as Guest ⚡️</Text>
-          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
           <CreatorOnboardingModal
@@ -421,7 +408,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   activeTabText: {
-    color: "#D4AF37",
+    color: "#FFFFFF",
   },
   form: {
     backgroundColor: "rgba(10, 10, 10, 0.75)",
@@ -469,7 +456,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
   selectedRoleTextCreator: {
-    color: "#D4AF37",
+    color: "#FFFFFF",
     fontWeight: "900",
   },
   label: {
@@ -501,7 +488,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   submitBtnText: {
-    color: "#D4AF37",
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "800",
     letterSpacing: 0.5,
@@ -517,7 +504,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.22)",
   },
   adminLoginBtnText: {
-    color: "#D4AF37",
+    color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "700",
   },
