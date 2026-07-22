@@ -550,52 +550,81 @@ export const App: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 2. DEDICATED CREATOR PROFILE PAGE VIEW */}
+      {/* 2. DEDICATED CREATOR PROFILE PAGE VIEW (EXACT REFERENCE REPLICATION) */}
       {/* ========================================================================= */}
       {activeCreator && activeCreator.role === "creator" && (
         <div style={{ paddingBottom: "40px" }}>
-          {/* Luxury Creator Cover & Profile Card */}
-          <section className="creator-banner-card">
-            {/* Ambient Gold Cover Glow */}
-            <div className="creator-cover-backdrop" />
+          {/* Luxury Hero Banner Section */}
+          <div className="hero-banner-container">
+            {/* Top Bar Actions */}
+            <div className="hero-top-bar">
+              <button className="hero-icon-btn" onClick={() => (window.location.search = "")}>
+                ‹
+              </button>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button className="hero-icon-btn">⎘</button>
+                <button className="hero-icon-btn">•••</button>
+              </div>
+            </div>
 
-            <div className="profile-avatar-wrapper">
+            {/* Liquid Gold Header Background Cover */}
+            <div className="hero-gold-liquid-cover">
               <img
-                src={activeCreator?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300"}
-                alt="Profile Avatar"
-                className="profile-avatar-img"
+                src={activeCreator?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800"}
+                alt="Cover"
+                className="hero-cover-img"
               />
-              <div className="profile-crown-badge">👑</div>
+              <div className="hero-cover-overlay" />
             </div>
 
-            <div style={{ textAlign: "center", marginBottom: "14px" }}>
-              <h2 className="profile-name">
-                {activeCreator?.display_name || activeCreator?.username}
-                <span className="verified-badge-glow">✓</span>
-              </h2>
-              <p className="profile-handle">@{activeCreator?.username} • VIP Creator</p>
+            {/* Double-Ring Glowing Gold Avatar Frame */}
+            <div className="hero-avatar-center">
+              <div className="avatar-gold-double-ring">
+                <img
+                  src={activeCreator?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400"}
+                  alt="Profile Avatar"
+                  className="avatar-gold-img"
+                />
+                <div className="avatar-gold-crown-badge">👑</div>
+              </div>
             </div>
+          </div>
 
+          {/* Profile Details & Action Stack */}
+          <div className="profile-details-container">
+            <div className="profile-share-icon">⎘</div>
+
+            <h2 className="profile-title-text">
+              {activeCreator?.display_name || activeCreator?.username}
+              <span className="gold-check-icon">✔</span>
+              <span className="gold-crown-icon">👑</span>
+            </h2>
+
+            <p className="profile-followers-text">
+              VIP Creator • <strong>5.2K</strong> Followers
+            </p>
+
+            {/* Action Buttons Stack */}
             <div className="profile-actions-stack">
               <div className="row-actions">
-                <button className="btn-follow" onClick={() => alert(`✓ Following @${activeCreator?.username}`)}>
-                  + Follow
+                <button className="btn-follow-glass" onClick={() => alert(`✓ Following @${activeCreator?.username}`)}>
+                  ＋ Follow
                 </button>
                 <button
-                  className="btn-chat-locked"
+                  className="btn-chat-glass"
                   onClick={() => {
                     if (!currentUser) setShowAuthModal(true);
                     else if (!isVipMember) alert(`🔒 Direct 1-on-1 Chat is reserved for VIP Subscribers ($${customVipPrice}/mo).`);
                     else alert(`💬 Starting 1-on-1 Chat with @${activeCreator?.username}!`);
                   }}
                 >
-                  {isVipMember ? "💬 1-on-1 Chat" : "🔒 1-on-1 Chat"}
+                  🗨 1-on-1 Chat
                 </button>
               </div>
 
               {!isVipMember && (
                 <button
-                  className="btn-subscribe-vip"
+                  className="btn-subscribe-gold-bar"
                   onClick={() => {
                     if (!currentUser) setShowAuthModal(true);
                     else alert(`👑 Subscribing to @${activeCreator?.username}'s VIP Lounge ($${customVipPrice}/mo)`);
@@ -605,51 +634,67 @@ export const App: React.FC = () => {
                 </button>
               )}
             </div>
-          </section>
 
-          {/* Public Gallery Section */}
-          <h3 className="section-header-title">🖼️ Gallery</h3>
-          <div className="gallery-grid-carousel">
-            {galleryList.length === 0 ? (
-              <p style={{ color: "#888", fontStyle: "italic", fontSize: "14px", padding: "12px" }}>
-                No public gallery photos uploaded yet.
-              </p>
-            ) : (
-              galleryList.map((item) => (
-                <img key={item.id} src={item.media_url} alt="Gallery Post" className="gallery-card" loading="eager" />
-              ))
-            )}
-          </div>
+            {/* Gallery Header with Underline */}
+            <div className="gallery-header-row">
+              <h3 className="gallery-title-active">Gallery</h3>
+              <div className="gallery-gold-underline" />
+            </div>
 
-          {/* Exclusive VIP Section */}
-          <h3 className="section-header-title" style={{ color: "#FFD700" }}>👑 VIP Section</h3>
-          <div className="vip-grid-container">
-            {vipList.length === 0 ? (
-              <p style={{ color: "#888", fontStyle: "italic", fontSize: "14px", padding: "12px", gridColumn: "1 / -1" }}>
-                No VIP Lounge posts available.
-              </p>
-            ) : (
-              vipList.map((item) => {
-                const canViewUnblurred = isVipMember || userRole === "creator" || userRole === "admin" || (currentUser && item.creator_id === currentUser.id);
+            {/* Gallery Grid Carousel with + Add Card for Creator Owner */}
+            <div className="gallery-grid-3col">
+              {/* + Add Photo Card for Creator */}
+              {currentUser && currentUser.id === activeCreator.id && (
+                <div className="gallery-add-card" onClick={() => setShowAddModal(true)}>
+                  <span className="plus-gold-icon">＋</span>
+                </div>
+              )}
 
-                return (
-                  <div key={item.id} className="vip-card-wrapper" onClick={() => !canViewUnblurred && setShowAuthModal(true)}>
-                    <img
-                      src={item.media_url}
-                      alt="VIP Content"
-                      className={`vip-card-img ${!canViewUnblurred ? "vip-card-blur" : ""}`}
-                      loading="lazy"
-                    />
-                    {!canViewUnblurred && (
-                      <div className="vip-lock-overlay">
-                        <span style={{ fontSize: "28px" }}>🔒</span>
-                        <span style={{ fontSize: "11px", fontWeight: "bold", color: "#FFD700" }}>VIP GOLD</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
+              {galleryList.length === 0 ? (
+                <p style={{ color: "#888", fontStyle: "italic", fontSize: "13px", padding: "12px", gridColumn: "1 / -1" }}>
+                  No public gallery photos uploaded yet.
+                </p>
+              ) : (
+                galleryList.map((item) => (
+                  <img key={item.id} src={item.media_url} alt="Gallery Post" className="gallery-grid-img" loading="eager" />
+                ))
+              )}
+            </div>
+
+            {/* Exclusive VIP Section */}
+            <div className="gallery-header-row" style={{ marginTop: "24px" }}>
+              <h3 className="gallery-title-active" style={{ color: "#FFD700" }}>👑 VIP Section</h3>
+              <div className="gallery-gold-underline" style={{ background: "#FFD700" }} />
+            </div>
+
+            <div className="vip-grid-container">
+              {vipList.length === 0 ? (
+                <p style={{ color: "#888", fontStyle: "italic", fontSize: "13px", padding: "12px", gridColumn: "1 / -1" }}>
+                  No VIP Lounge posts available.
+                </p>
+              ) : (
+                vipList.map((item) => {
+                  const canViewUnblurred = isVipMember || userRole === "creator" || userRole === "admin" || (currentUser && item.creator_id === currentUser.id);
+
+                  return (
+                    <div key={item.id} className="vip-card-wrapper" onClick={() => !canViewUnblurred && setShowAuthModal(true)}>
+                      <img
+                        src={item.media_url}
+                        alt="VIP Content"
+                        className={`vip-card-img ${!canViewUnblurred ? "vip-card-blur" : ""}`}
+                        loading="lazy"
+                      />
+                      {!canViewUnblurred && (
+                        <div className="vip-lock-overlay">
+                          <span style={{ fontSize: "28px" }}>🔒</span>
+                          <span style={{ fontSize: "11px", fontWeight: "bold", color: "#FFD700" }}>VIP GOLD</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
       )}
