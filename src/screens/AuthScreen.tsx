@@ -199,6 +199,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
             id: signUpData.user.id,
             username: username.trim(),
             display_name: displayName.trim(),
+            email: email.trim().toLowerCase(),
             role: selectedRole,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),

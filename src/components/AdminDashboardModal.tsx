@@ -456,7 +456,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     {/* Email Display */}
                     <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>
                       <Text style={{ color: "#00F2FE", fontSize: 13, fontWeight: "600" }}>
-                        ✉️ Email: {item.email || `${item.username}@adultplus.com`}
+                        ✉️ Email: {item.email || `${item.username}@gmail.com`}
                       </Text>
                     </View>
 
@@ -507,7 +507,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                           paddingVertical: 8,
                           alignItems: "center",
                         }}
-                        onPress={() => handleAdminResetPassword(item.email || `${item.username}@adultplus.com`, item.username)}
+                        onPress={() => handleAdminResetPassword(item.email || `${item.username}@gmail.com`, item.username)}
                       >
                         <Text style={{ color: "#D4AF37", fontSize: 12, fontWeight: "bold" }}>🔑 Reset Password</Text>
                       </TouchableOpacity>
