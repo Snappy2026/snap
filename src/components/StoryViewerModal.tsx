@@ -48,6 +48,7 @@ interface StoryViewerModalProps {
   stories: StoryViewerItem[];
   initialIndex?: number;
   onClose: () => void;
+  onSelectCreator?: (creatorId: string) => void;
 }
 
 export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
@@ -55,6 +56,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   stories,
   initialIndex = 0,
   onClose,
+  onSelectCreator,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const progress = useSharedValue(0);
@@ -343,7 +345,9 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
                   e.stopPropagation();
                   if (currentStory.user_id) {
                     cancelAnimation(progress);
-                    setShowCreatorProfile(true);
+                    onClose();
+                    if (onSelectCreator) onSelectCreator(currentStory.user_id);
+                    else setShowCreatorProfile(true);
                   }
                 }}
                 onTouchEnd={(e) => {
@@ -351,7 +355,9 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
                   e.stopPropagation();
                   if (currentStory.user_id) {
                     cancelAnimation(progress);
-                    setShowCreatorProfile(true);
+                    onClose();
+                    if (onSelectCreator) onSelectCreator(currentStory.user_id);
+                    else setShowCreatorProfile(true);
                   }
                 }}
                 style={{
@@ -499,7 +505,9 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
               onPress={() => {
                 if (currentStory.user_id) {
                   cancelAnimation(progress);
-                  setShowCreatorProfile(true);
+                  onClose();
+                  if (onSelectCreator) onSelectCreator(currentStory.user_id);
+                  else setShowCreatorProfile(true);
                 }
               }}
               style={nativeStyles.profileBadge}

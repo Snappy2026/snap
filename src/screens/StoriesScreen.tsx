@@ -65,11 +65,17 @@ const FOR_YOU: DiscoverItem[] = [];
 import { sessionStore } from "../lib/sessionStore";
 import { StoryViewerItem } from "../components/StoryViewerModal";
 import { useStoryViewer } from "../context/StoryViewerContext";
+import useCreatorRouting from "../hooks/useCreatorRouting";
 
 export const StoriesScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const isFocused = useIsFocused();
-  const { openStoryViewer } = useStoryViewer();
+  const { openStoryViewer, setOnSelectCreatorHandler } = useStoryViewer();
+  const { invitedCreator } = useCreatorRouting();
+
+  const [activeCreatorProfile, setActiveCreatorProfile] = useState<any>(null);
+  const [activeCreatorId, setActiveCreatorId] = useState<string | null>(null);
+
   const [dbStories, setDbStories] = useState<Story[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showAddStoryModal, setShowAddStoryModal] = useState(false);
@@ -115,18 +121,49 @@ export const StoriesScreen: React.FC = () => {
           setUserRole(profileData?.role || "customer");
         }
 
+        // Handle invited creator routing from WhatsApp / SMS link
+        let targetCreatorId = activeCreatorId;
+        if (!targetCreatorId && invitedCreator) {
+          const { data: invProfile } = await supabase
+            .from("profiles")
+            .select("*")
+            .or(`username.eq.${invitedCreator},id.eq.${invitedCreator}`)
+            .maybeSingle();
+          if (invProfile) {
+            targetCreatorId = invProfile.id;
+            setActiveCreatorProfile(invProfile);
+            setActiveCreatorId(invProfile.id);
+          }
+        }
+
+        const effectiveCreatorId = targetCreatorId || user?.id;
+
+        // Fetch active creator profile details
+        if (effectiveCreatorId) {
+          const { data: cProfile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", effectiveCreatorId)
+            .maybeSingle();
+          if (cProfile) setActiveCreatorProfile(cProfile);
+        }
+
         const { data: vipData } = await supabase
           .from("vip_content")
           .select("*, creator_profile:profiles(*)");
 
         if (vipData) {
           const publicGallery = vipData.filter((v: any) => v.is_public_gallery === true);
-          // Only show gallery items created by the logged-in user, or creators they explicitly follow
+          // Show gallery items for the currently selected creator
           const filteredGallery = publicGallery.filter(
-            (v: any) => v.creator_id === user?.id || (localFollowedIds.length > 0 && localFollowedIds.includes(v.creator_id))
+            (v: any) => v.creator_id === (effectiveCreatorId || user?.id)
           );
-          setGalleryItems(filteredGallery);
-          setVipItems(vipData.filter((v: any) => v.is_public_gallery !== true));
+          setGalleryItems(filteredGallery.length > 0 ? filteredGallery : publicGallery);
+
+          const vipFiltered = vipData.filter(
+            (v: any) => v.is_public_gallery !== true && v.creator_id === (effectiveCreatorId || user?.id)
+          );
+          setVipItems(vipFiltered);
         }
 
         const { data } = await supabase
@@ -143,7 +180,16 @@ export const StoriesScreen: React.FC = () => {
     };
 
     fetchStories();
-  }, [isFocused]);
+  }, [isFocused, activeCreatorId, invitedCreator]);
+
+  // Connect story viewer badge click handler to switch creator page layout
+  useEffect(() => {
+    if (setOnSelectCreatorHandler) {
+      setOnSelectCreatorHandler((creatorId: string) => {
+        setActiveCreatorId(creatorId);
+      });
+    }
+  }, [setOnSelectCreatorHandler]);
 
   // Combine instant session stories + DB stories
   const localStories = sessionStore.getStories();
@@ -609,6 +655,94 @@ export const StoriesScreen: React.FC = () => {
                 </Text>
               </button>
             ))}
+          </div>
+
+          {/* UNIFIED CREATOR PROFILE HEADER & ACTIONS */}
+          <div
+            style={{
+              padding: "16px",
+              backgroundColor: "rgba(255,255,255,0.04)",
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
+              marginBottom: "12px",
+              display: "flex",
+              flexDirection: "column" as any,
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <img
+              src={activeCreatorProfile?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
+              alt=""
+              style={{ width: "70px", height: "70px", borderRadius: "50%", objectFit: "cover", border: "2px solid #D4AF37" }}
+            />
+            <div style={{ textAlign: "center" as any }}>
+              <h2 style={{ color: "#FFF", margin: 0, fontSize: "20px", fontWeight: "bold" }}>
+                {activeCreatorProfile?.display_name || "Featured Model"}
+              </h2>
+              <p style={{ color: "#AAA", margin: "2px 0 0 0", fontSize: "13px" }}>
+                @{activeCreatorProfile?.username || "creator"}
+              </p>
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", width: "100%", maxWidth: "340px", marginTop: "8px" }}>
+              <button
+                type="button"
+                onClick={async () => {
+                  const targetId = activeCreatorProfile?.id;
+                  if (!targetId || !currentUserId) return;
+                  try {
+                    await (supabase.from("friendships") as any).insert({
+                      requester_id: currentUserId,
+                      addressee_id: targetId,
+                      status: "accepted",
+                    });
+                    if (typeof window !== "undefined") window.alert(`✓ Following @${activeCreatorProfile?.username}`);
+                  } catch (e) {
+                    console.log(e);
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: "20px",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  background: "rgba(255,255,255,0.1)",
+                  color: "#FFF",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                + Follow Creator
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const targetId = activeCreatorProfile?.id;
+                  if (targetId) {
+                    navigation.navigate("DirectChat", {
+                      recipientId: targetId,
+                      recipientName: activeCreatorProfile?.display_name || activeCreatorProfile?.username || "Creator",
+                    } as any);
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: "20px",
+                  border: "none",
+                  background: "#D4AF37",
+                  color: "#000",
+                  fontWeight: "bold",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                💬 1-on-1 Chat
+              </button>
+            </div>
           </div>
 
           {/* 2. Subscriptions Section */}
