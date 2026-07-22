@@ -97,33 +97,124 @@ export const App: React.FC = () => {
         setActiveCreator(null);
       }
 
-      // Fetch Featured Creators (Strictly filtering role = creator, excluding customer accounts like CJ)
+      // Clean Sample Model Creators for Demonstration
+      const sampleCreators = [
+        {
+          id: "demo-creator-1",
+          username: "sophia",
+          display_name: "Sophia Rose 👑",
+          role: "creator",
+          avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400",
+        },
+        {
+          id: "demo-creator-2",
+          username: "isabella",
+          display_name: "Isabella VIP 💎",
+          role: "creator",
+          avatar_url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400",
+        },
+        {
+          id: "demo-creator-3",
+          username: "maya",
+          display_name: "Maya Gold ✨",
+          role: "creator",
+          avatar_url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400",
+        },
+        {
+          id: "demo-creator-4",
+          username: "chloe",
+          display_name: "Chloe Luxe 🔥",
+          role: "creator",
+          avatar_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
+        },
+        {
+          id: "demo-creator-5",
+          username: "elena",
+          display_name: "Elena Adult+ 💋",
+          role: "creator",
+          avatar_url: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400",
+        },
+        {
+          id: "demo-creator-6",
+          username: "victoria",
+          display_name: "Victoria Chic 👑",
+          role: "creator",
+          avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
+        },
+      ];
+
+      // Sample Gallery & VIP Media
+      const sampleGalleryMedia = [
+        {
+          id: "sample-gal-1",
+          creator_id: "demo-creator-1",
+          media_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800",
+          is_public_gallery: true,
+        },
+        {
+          id: "sample-gal-2",
+          creator_id: "demo-creator-1",
+          media_url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800",
+          is_public_gallery: true,
+        },
+        {
+          id: "sample-gal-3",
+          creator_id: "demo-creator-1",
+          media_url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800",
+          is_public_gallery: true,
+        },
+      ];
+
+      const sampleVipMedia = [
+        {
+          id: "sample-vip-1",
+          creator_id: "demo-creator-1",
+          media_url: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800",
+          is_public_gallery: false,
+        },
+        {
+          id: "sample-vip-2",
+          creator_id: "demo-creator-1",
+          media_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800",
+          is_public_gallery: false,
+        },
+      ];
+
+      // Fetch Featured Creators
       const { data: creatorsData } = await supabase
         .from("profiles")
         .select("*")
         .filter("role", "eq", "creator")
         .order("created_at", { ascending: false });
 
-      if (creatorsData) {
-        setFeaturedCreators(
-          creatorsData.filter((c: any) => {
-            const handle = (c.username || "").toLowerCase();
-            const email = (c.email || "").toLowerCase();
-            const name = (c.display_name || "").toLowerCase();
-            return (
-              c.role === "creator" &&
-              !handle.includes("katie") &&
-              !handle.includes("katigee") &&
-              !handle.includes("hippy") &&
-              !handle.includes("hippygogo") &&
-              !handle.includes("modeltest") &&
-              !handle.includes("solly") &&
-              !handle.includes("modeljohn") &&
-              !email.includes("customer69") &&
-              !name.includes("cj")
-            );
-          })
-        );
+      if (creatorsData && creatorsData.length > 0) {
+        const filtered = creatorsData.filter((c: any) => {
+          const handle = (c.username || "").toLowerCase();
+          const email = (c.email || "").toLowerCase();
+          const name = (c.display_name || "").toLowerCase();
+          return (
+            c.role === "creator" &&
+            !handle.includes("katie") &&
+            !handle.includes("katigee") &&
+            !handle.includes("hippy") &&
+            !handle.includes("hippygogo") &&
+            !handle.includes("modeltest") &&
+            !handle.includes("solly") &&
+            !handle.includes("modeljohn") &&
+            !email.includes("customer69") &&
+            !name.includes("cj")
+          );
+        });
+        setFeaturedCreators(filtered.length > 0 ? filtered : sampleCreators);
+      } else {
+        setFeaturedCreators(sampleCreators);
+      }
+
+      if (linkHandle) {
+        const foundDemo = sampleCreators.find(s => s.username === cleanHandle);
+        if (foundDemo && !activeCreator) {
+          setActiveCreator(foundDemo);
+        }
       }
 
       // Fetch all public media for Discover Feed
@@ -139,7 +230,7 @@ export const App: React.FC = () => {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (media) {
+      if (media && media.length > 0) {
         if (linkHandle && activeCreator) {
           const creatorMedia = media.filter((m: any) => m.creator_id === activeCreator.id);
           setGalleryList(creatorMedia.filter((item: any) => Boolean(item.is_public_gallery)));
@@ -148,6 +239,9 @@ export const App: React.FC = () => {
           setGalleryList(media.filter((item: any) => Boolean(item.is_public_gallery)));
           setVipList(media.filter((item: any) => !Boolean(item.is_public_gallery)));
         }
+      } else {
+        setGalleryList(sampleGalleryMedia);
+        setVipList(sampleVipMedia);
       }
     };
 
