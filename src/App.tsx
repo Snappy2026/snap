@@ -365,23 +365,27 @@ export const App: React.FC = () => {
         </section>
       )}
 
-      {/* Featured Creators Section (Renders on Home Page) */}
-      {!activeCreator && featuredCreators.length > 0 && (
-        <section style={{ padding: "16px 16px 4px 16px" }}>
-          <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#D4AF37", marginBottom: "12px" }}>
+      {/* FEATURED CREATORS SECTION (Only on Home Page) */}
+      {!activeCreator && (
+        <section style={{ padding: "16px" }}>
+          <h3 style={{ fontSize: "18px", fontWeight: 800, color: "#D4AF37", marginBottom: "14px" }}>
             ⭐ Featured Creators
           </h3>
-          <div style={{ display: "flex", gap: "12px", overflowX: "auto", paddingBottom: "8px", scrollbarWidth: "none" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "14px" }}>
             {featuredCreators.map((c) => (
               <div
                 key={c.id}
                 style={{
+                  background: "linear-gradient(180deg, rgba(212,175,55,0.12) 0%, rgba(22,22,26,0.92) 100%)",
+                  border: "1px solid rgba(212,175,55,0.3)",
+                  borderRadius: "20px",
+                  padding: "16px 12px",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: "6px",
+                  gap: "8px",
                   cursor: "pointer",
-                  minWidth: "75px",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
                 }}
                 onClick={() => {
                   window.location.search = `?${c.username}`;
@@ -391,65 +395,89 @@ export const App: React.FC = () => {
                   src={c.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
                   alt={c.display_name}
                   style={{
-                    width: "60px",
-                    height: "60px",
+                    width: "68px",
+                    height: "68px",
                     borderRadius: "50%",
                     objectFit: "cover",
                     border: "2px solid #D4AF37",
-                    boxShadow: "0 0 12px rgba(212,175,55,0.4)",
+                    boxShadow: "0 0 16px rgba(212,175,55,0.4)",
                   }}
                 />
-                <span style={{ fontSize: "11px", fontWeight: "bold", color: "#fff" }}>@{c.username}</span>
+                <h4 style={{ fontSize: "15px", fontWeight: 800, color: "#fff", margin: 0, textAlign: "center" }}>
+                  {c.display_name || c.username}
+                </h4>
+                <p style={{ fontSize: "12px", color: "#D4AF37", fontWeight: "bold", margin: 0 }}>@{c.username}</p>
+                <button
+                  style={{
+                    width: "100%",
+                    padding: "8px",
+                    marginTop: "4px",
+                    borderRadius: "14px",
+                    border: "none",
+                    background: "var(--gold-gradient)",
+                    color: "#000",
+                    fontWeight: 800,
+                    fontSize: "12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  View Profile 👑
+                </button>
               </div>
             ))}
           </div>
         </section>
       )}
 
-      {/* Public Gallery Section */}
-      <h3 className="section-header-title">🖼️ Gallery</h3>
-      <div className="gallery-grid-carousel">
-        {galleryList.length === 0 ? (
-          <p style={{ color: "#888", fontStyle: "italic", fontSize: "14px", padding: "12px" }}>
-            No public gallery photos uploaded yet.
-          </p>
-        ) : (
-          galleryList.map((item) => (
-            <img key={item.id} src={item.media_url} alt="Gallery Post" className="gallery-card" loading="eager" />
-          ))
-        )}
-      </div>
+      {/* GALLERY & VIP SECTIONS (Only on Dedicated Creator Profile Page) */}
+      {activeCreator && (
+        <>
+          {/* Public Gallery Section */}
+          <h3 className="section-header-title">🖼️ Gallery</h3>
+          <div className="gallery-grid-carousel">
+            {galleryList.length === 0 ? (
+              <p style={{ color: "#888", fontStyle: "italic", fontSize: "14px", padding: "12px" }}>
+                No public gallery photos uploaded yet.
+              </p>
+            ) : (
+              galleryList.map((item) => (
+                <img key={item.id} src={item.media_url} alt="Gallery Post" className="gallery-card" loading="eager" />
+              ))
+            )}
+          </div>
 
-      {/* Exclusive VIP Section */}
-      <h3 className="section-header-title" style={{ color: "#FFD700" }}>👑 VIP Section</h3>
-      <div className="vip-grid-container">
-        {vipList.length === 0 ? (
-          <p style={{ color: "#888", fontStyle: "italic", fontSize: "14px", padding: "12px", gridColumn: "1 / -1" }}>
-            No VIP Lounge posts available.
-          </p>
-        ) : (
-          vipList.map((item) => {
-            const canViewUnblurred = isVipMember || userRole === "creator" || userRole === "admin" || (currentUser && item.creator_id === currentUser.id);
+          {/* Exclusive VIP Section */}
+          <h3 className="section-header-title" style={{ color: "#FFD700" }}>👑 VIP Section</h3>
+          <div className="vip-grid-container">
+            {vipList.length === 0 ? (
+              <p style={{ color: "#888", fontStyle: "italic", fontSize: "14px", padding: "12px", gridColumn: "1 / -1" }}>
+                No VIP Lounge posts available.
+              </p>
+            ) : (
+              vipList.map((item) => {
+                const canViewUnblurred = isVipMember || userRole === "creator" || userRole === "admin" || (currentUser && item.creator_id === currentUser.id);
 
-            return (
-              <div key={item.id} className="vip-card-wrapper" onClick={() => !canViewUnblurred && setShowAuthModal(true)}>
-                <img
-                  src={item.media_url}
-                  alt="VIP Content"
-                  className={`vip-card-img ${!canViewUnblurred ? "vip-card-blur" : ""}`}
-                  loading="lazy"
-                />
-                {!canViewUnblurred && (
-                  <div className="vip-lock-overlay">
-                    <span style={{ fontSize: "28px" }}>🔒</span>
-                    <span style={{ fontSize: "11px", fontWeight: "bold", color: "#FFD700" }}>VIP GOLD</span>
+                return (
+                  <div key={item.id} className="vip-card-wrapper" onClick={() => !canViewUnblurred && setShowAuthModal(true)}>
+                    <img
+                      src={item.media_url}
+                      alt="VIP Content"
+                      className={`vip-card-img ${!canViewUnblurred ? "vip-card-blur" : ""}`}
+                      loading="lazy"
+                    />
+                    {!canViewUnblurred && (
+                      <div className="vip-lock-overlay">
+                        <span style={{ fontSize: "28px" }}>🔒</span>
+                        <span style={{ fontSize: "11px", fontWeight: "bold", color: "#FFD700" }}>VIP GOLD</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })
-        )}
-      </div>
+                );
+              })
+            )}
+          </div>
+        </>
+      )}
 
       {/* Hidden File Input */}
       <input type="file" ref={fileInputRef} accept="image/*,video/*" style={{ display: "none" }} onChange={handleFileUpload} />
