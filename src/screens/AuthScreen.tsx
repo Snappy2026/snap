@@ -124,27 +124,28 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
           return;
         }
 
-        // Upsert profile with correct role
-        const assignedRole = isMasterAdminEmail ? "admin" : selectedRole;
-        try {
-          await (supabase.from("profiles") as any).upsert({
-            id: data.user.id,
-            username: isMasterAdminEmail ? "master_admin" : (email.split("@")[0]),
-            display_name: isMasterAdminEmail ? "Platform Master Admin" : (email.split("@")[0]),
-            role: assignedRole,
-            updated_at: new Date().toISOString(),
-          });
-        } catch (upsertErr) {
-          console.log("[Profile Upsert Notice]", upsertErr);
+        // For admin, ensure profile exists with admin role
+        if (isMasterAdminEmail) {
+          try {
+            await (supabase.from("profiles") as any).upsert({
+              id: data.user.id,
+              username: "master_admin",
+              display_name: "Platform Master Admin",
+              role: "admin",
+              updated_at: new Date().toISOString(),
+            });
+          } catch (upsertErr) {
+            console.log("[Admin Profile Upsert Notice]", upsertErr);
+          }
         }
 
-        // Check profile for existing role (e.g. creator)
+        // Read the existing profile role from DB (don't overwrite on login!)
         const { data: profileData } = await supabase
           .from("profiles")
           .select("role")
           .eq("id", data.user.id)
           .maybeSingle();
-        const finalRole = isMasterAdminEmail ? "admin" : ((profileData as any)?.role || assignedRole);
+        const finalRole = isMasterAdminEmail ? "admin" : ((profileData as any)?.role || "customer");
 
         if (finalRole === "creator") {
           setRegisteredUser(data.user);
