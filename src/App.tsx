@@ -381,22 +381,26 @@ export const App: React.FC = () => {
             No VIP Lounge posts available.
           </p>
         ) : (
-          vipList.map((item) => (
-            <div key={item.id} className="vip-card-wrapper" onClick={() => !isVipMember && setShowAuthModal(true)}>
-              <img
-                src={item.media_url}
-                alt="VIP Content"
-                className={`vip-card-img ${!isVipMember ? "vip-card-blur" : ""}`}
-                loading="lazy"
-              />
-              {!isVipMember && (
-                <div className="vip-lock-overlay">
-                  <span style={{ fontSize: "28px" }}>🔒</span>
-                  <span style={{ fontSize: "11px", fontWeight: "bold", color: "#FFD700" }}>VIP GOLD</span>
-                </div>
-              )}
-            </div>
-          ))
+          vipList.map((item) => {
+            const canViewUnblurred = isVipMember || userRole === "creator" || userRole === "admin" || (currentUser && item.creator_id === currentUser.id);
+
+            return (
+              <div key={item.id} className="vip-card-wrapper" onClick={() => !canViewUnblurred && setShowAuthModal(true)}>
+                <img
+                  src={item.media_url}
+                  alt="VIP Content"
+                  className={`vip-card-img ${!canViewUnblurred ? "vip-card-blur" : ""}`}
+                  loading="lazy"
+                />
+                {!canViewUnblurred && (
+                  <div className="vip-lock-overlay">
+                    <span style={{ fontSize: "28px" }}>🔒</span>
+                    <span style={{ fontSize: "11px", fontWeight: "bold", color: "#FFD700" }}>VIP GOLD</span>
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
 
