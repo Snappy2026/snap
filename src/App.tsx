@@ -910,6 +910,52 @@ export const App: React.FC = () => {
               alt="Snap Story"
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
+
+            {/* Creator Move to VIP Memories Action Overlay */}
+            {userRole !== "customer" && (
+              <div style={{ position: "absolute", bottom: "30px", left: "20px", right: "20px", zIndex: 100, display: "flex", justifyContent: "center" }}>
+                <button
+                  style={{
+                    padding: "14px 24px",
+                    borderRadius: "30px",
+                    border: "1px solid rgba(255,215,0,0.5)",
+                    background: "rgba(18, 18, 22, 0.85)",
+                    backdropFilter: "blur(16px)",
+                    color: "#FFD700",
+                    fontWeight: 900,
+                    fontSize: "14px",
+                    cursor: "pointer",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                  onClick={async () => {
+                    const newVipItem = {
+                      id: `vip-mem-${Date.now()}`,
+                      media_url: activeStoryModal.media_url,
+                      is_public_gallery: false,
+                      creator_id: currentUser?.id || "demo-creator",
+                    };
+                    setVipList((prev) => [newVipItem, ...prev]);
+
+                    if (currentUser) {
+                      await supabase.from("vip_content").insert([
+                        {
+                          creator_id: currentUser.id,
+                          media_url: activeStoryModal.media_url,
+                          is_public_gallery: false,
+                        },
+                      ]);
+                    }
+
+                    alert("✨ Saved Snap to your VIP Memories Lounge!");
+                  }}
+                >
+                  👑 Save Snap to VIP Memories
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
