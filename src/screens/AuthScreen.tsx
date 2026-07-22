@@ -538,6 +538,7 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     backgroundColor: "transparent",
+    ...(Platform.OS === "web" ? { cursor: "pointer" as any, touchAction: "manipulation" as any } : {}),
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.22)",
     height: 50,

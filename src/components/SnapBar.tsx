@@ -301,14 +301,18 @@ export const SnapBar: React.FC<SnapBarProps> = ({
       </Modal>
 
       {/* Master Admin Console Modal */}
-      <Modal
-        visible={showAdminModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowAdminModal(false)}
-      >
-        <AdminDashboardModal onClose={() => setShowAdminModal(false)} />
-      </Modal>
+      {showAdminModal && (
+        <Modal
+          visible={showAdminModal}
+          animationType="slide"
+          transparent={false}
+          onRequestClose={() => setShowAdminModal(false)}
+        >
+          <View style={styles.webFullModalOverlay}>
+            <AdminDashboardModal onClose={() => setShowAdminModal(false)} />
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 };
@@ -368,6 +372,11 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 15,
     fontWeight: "900",
+  },
+  webFullModalOverlay: {
+    flex: 1,
+    backgroundColor: "#000000",
+    ...(Platform.OS === "web" ? { position: "fixed" as any, top: 0, left: 0, right: 0, bottom: 0, zIndex: 999999 } : {}),
   },
   modalOverlay: {
     flex: 1,

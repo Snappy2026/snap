@@ -572,7 +572,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "#000000",
+    ...(Platform.OS === "web" ? { minHeight: "100vh" as any, width: "100%" } : {}),
   },
   header: {
     height: 56,
