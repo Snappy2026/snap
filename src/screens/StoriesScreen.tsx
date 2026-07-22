@@ -154,6 +154,7 @@ export const StoriesScreen: React.FC = () => {
             .from("profiles")
             .select("*")
             .eq("role", "creator")
+            .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle();
           if (defaultCreator) {
