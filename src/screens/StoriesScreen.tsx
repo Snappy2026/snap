@@ -349,10 +349,12 @@ export const StoriesScreen: React.FC = () => {
       openStoryViewer(
         myStories.map((s) => ({
           id: s.id,
+          user_id: s.user_id,
           media_url: s.media_url,
           media_type: s.media_type,
           user_profile: {
             display_name: s.user_profile?.display_name || "My Story",
+            avatar_url: s.user_profile?.avatar_url || undefined,
           },
         })),
       );
@@ -376,6 +378,7 @@ export const StoriesScreen: React.FC = () => {
     openStoryViewer([
       {
         id: story.id,
+        user_id: story.user_id,
         media_url: story.media_url,
         media_type: story.media_type,
         user_profile: {
@@ -383,6 +386,7 @@ export const StoriesScreen: React.FC = () => {
             story.user_profile?.display_name ||
             story.user_profile?.username ||
             "Snap Creator",
+          avatar_url: story.user_profile?.avatar_url || undefined,
         },
       },
     ]);
@@ -616,11 +620,15 @@ export const StoriesScreen: React.FC = () => {
                     openStoryViewer([
                       {
                         id: sub.id,
+                        user_id: sub.creator_id,
                         media_url: sub.media_url || sub.image,
                         media_type: sub.media_type || "image",
                         user_profile: {
                           display_name:
-                            sub.creator_profile?.username || sub.author,
+                            sub.creator_profile?.display_name ||
+                            sub.creator_profile?.username ||
+                            sub.author,
+                          avatar_url: sub.creator_profile?.avatar_url,
                         },
                       },
                     ]);
@@ -701,11 +709,15 @@ export const StoriesScreen: React.FC = () => {
                   openStoryViewer([
                     {
                       id: item.id,
+                      user_id: item.creator_id,
                       media_url: item.media_url || item.image,
                       media_type: item.media_type || "image",
                       user_profile: {
                         display_name:
-                          item.creator_profile?.username || item.publisher,
+                          item.creator_profile?.display_name ||
+                          item.creator_profile?.username ||
+                          item.publisher,
+                        avatar_url: item.creator_profile?.avatar_url,
                       },
                     },
                   ]);
@@ -869,11 +881,15 @@ export const StoriesScreen: React.FC = () => {
                     openStoryViewer([
                       {
                         id: sub.id,
+                        user_id: sub.creator_id,
                         media_url: sub.media_url || sub.image,
                         media_type: sub.media_type || "image",
                         user_profile: {
                           display_name:
-                            sub.creator_profile?.username || sub.author,
+                            sub.creator_profile?.display_name ||
+                            sub.creator_profile?.username ||
+                            sub.author,
+                          avatar_url: sub.creator_profile?.avatar_url,
                         },
                       },
                     ]);
@@ -912,11 +928,15 @@ export const StoriesScreen: React.FC = () => {
                   openStoryViewer([
                     {
                       id: item.id,
+                      user_id: item.creator_id,
                       media_url: item.media_url || item.image,
                       media_type: item.media_type || "image",
                       user_profile: {
                         display_name:
-                          item.creator_profile?.username || item.publisher,
+                          item.creator_profile?.display_name ||
+                          item.creator_profile?.username ||
+                          item.publisher,
+                        avatar_url: item.creator_profile?.avatar_url,
                       },
                     },
                   ]);
