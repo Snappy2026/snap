@@ -344,7 +344,7 @@ export const App: React.FC = () => {
     <div className="app-viewport">
       {/* Navbar Header */}
       <header className="app-header">
-        <h1 className="brand-logo">clubdior</h1>
+        <h1 className="brand-logo">adultplus</h1>
         <div className="header-actions">
           {userRole === "admin" && (
             <button className="btn-pill-gold" onClick={openAdminConsole}>
