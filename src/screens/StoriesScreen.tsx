@@ -122,14 +122,16 @@ export const StoriesScreen: React.FC = () => {
           setUserRole(resolvedRole);
         }
 
-        // Handle invited creator routing from WhatsApp / SMS link (case-insensitive)
+        // Handle invited creator routing from WhatsApp / SMS link (case-insensitive fuzzy match)
         let targetCreatorId = activeCreatorId;
         if (!targetCreatorId && invitedCreator) {
           const cleanHandle = invitedCreator.trim().toLowerCase();
           const { data: invProfile } = await supabase
             .from("profiles")
             .select("*")
-            .or(`username.ilike.${cleanHandle},id.eq.${invitedCreator}`)
+            .or(`username.ilike.%${cleanHandle}%,display_name.ilike.%${cleanHandle}%,id.eq.${invitedCreator}`)
+            .order("created_at", { ascending: false })
+            .limit(1)
             .maybeSingle();
           if (invProfile) {
             targetCreatorId = (invProfile as any).id;
