@@ -22,7 +22,6 @@ import {
 } from "react-native";
 import { supabase } from "../lib/supabase";
 import { launchCreatorLicenseCheckout } from "../lib/stripe";
-import AdminDashboardModal from "./AdminDashboardModal";
 
 interface CreatorSettingsModalProps {
   onClose: () => void;
@@ -42,11 +41,10 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
 }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showAdminModal, setShowAdminModal] = useState(false);
 
   // User Profile State
-  const [username, setUsername] = useState("creator_alex");
-  const [displayName, setDisplayName] = useState("Alex Vance");
+  const [username, setUsername] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState(
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
@@ -327,12 +325,6 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
             </View>
 
             <View style={{ gap: 6 }}>
-              <TouchableOpacity
-                style={styles.adminConsoleBtn}
-                onPress={() => setShowAdminModal(true)}
-              >
-                <Text style={styles.adminConsoleText}>🛡️ Admin Console</Text>
-              </TouchableOpacity>
               <TouchableOpacity
                 style={styles.signOutBtn}
                 onPress={handleSignOutUser}
@@ -727,15 +719,6 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
         </ScrollView>
       )}
 
-      {/* Admin Dashboard Modal */}
-      <Modal
-        visible={showAdminModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowAdminModal(false)}
-      >
-        <AdminDashboardModal onClose={() => setShowAdminModal(false)} />
-      </Modal>
     </SafeAreaView>
   );
 };
