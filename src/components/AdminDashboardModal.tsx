@@ -126,16 +126,25 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       setUsersList((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)),
       );
-      await (supabase.from("profiles") as any)
-        .update({ role: newRole })
+      const { error } = await (supabase.from("profiles") as any)
+        .update({ role: newRole, updated_at: new Date().toISOString() })
         .eq("id", userId);
+      if (error) {
+        console.error("[Change Role Error]", error);
+        if (Platform.OS === "web" && typeof window !== "undefined") {
+          window.alert(`❌ Role Update Error: ${error.message}`);
+        } else {
+          Alert.alert("Role Update Error", error.message);
+        }
+        return;
+      }
       const msg = `User role updated to ${newRole.toUpperCase()} successfully!`;
       if (Platform.OS === "web" && typeof window !== "undefined") {
         window.alert(`🛡️ Role Updated\n${msg}`);
       } else {
         Alert.alert("🛡️ Role Updated", msg);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("[Change Role Error]", err);
     }
   };

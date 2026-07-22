@@ -266,6 +266,7 @@ export const CustomerSettingsModal: React.FC<CustomerSettingsModalProps> = ({
                   try {
                     const { data: userData } = await supabase.auth.getUser();
                     if (userData?.user) {
+                      await supabase.auth.updateUser({ data: { role: "creator" } });
                       await (supabase.from("profiles") as any)
                         .update({ role: "creator", updated_at: new Date().toISOString() })
                         .eq("id", userData.user.id);
