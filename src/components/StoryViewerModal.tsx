@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { Video, ResizeMode } from "expo-av";
 import { supabase } from "../lib/supabase";
+import CreatorProfileModal from "./CreatorProfileModal";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -64,6 +65,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   );
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowingLoading, setIsFollowingLoading] = useState(false);
+  const [showCreatorProfile, setShowCreatorProfile] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -332,8 +334,55 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              {/* Creator Profile Avatar Button */}
+              {currentStory.user_id && currentStory.user_id !== currentUserId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    cancelAnimation(progress);
+                    setShowCreatorProfile(true);
+                  }}
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    border: "2px solid rgba(255,255,255,0.6)",
+                    background: "rgba(0,0,0,0.3)",
+                    cursor: "pointer",
+                    padding: 0,
+                    overflow: "hidden",
+                    WebkitAppearance: "none" as any,
+                    appearance: "none" as any,
+                    touchAction: "manipulation",
+                    flexShrink: 0,
+                  }}
+                  aria-label="View Creator Profile"
+                >
+                  <img
+                    src={currentStory.user_profile?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80"}
+                    alt=""
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      borderRadius: "50%",
+                    }}
+                  />
+                </button>
+              )}
               <span
-                style={{ color: "#FFF", fontSize: "15px", fontWeight: "bold" }}
+                style={{
+                  color: "#FFF",
+                  fontSize: "15px",
+                  fontWeight: "bold",
+                  cursor: currentStory.user_id && currentStory.user_id !== currentUserId ? "pointer" : "default",
+                }}
+                onClick={() => {
+                  if (currentStory.user_id && currentStory.user_id !== currentUserId) {
+                    cancelAnimation(progress);
+                    setShowCreatorProfile(true);
+                  }
+                }}
               >
                 {currentStory.user_profile?.display_name || "Adult+ Story"}
               </span>
@@ -454,6 +503,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
   // ── Use React Native <Modal> on ALL platforms ──
   // This is proven to work on iOS Safari (the Add Story modal uses it)
   return (
+    <>
     <Modal
       visible={visible}
       animationType="fade"
@@ -462,6 +512,16 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
     >
       {storyContent}
     </Modal>
+
+    {/* Creator Profile Modal */}
+    {showCreatorProfile && currentStory.user_id && (
+      <CreatorProfileModal
+        visible={showCreatorProfile}
+        creatorId={currentStory.user_id}
+        onClose={() => setShowCreatorProfile(false)}
+      />
+    )}
+    </>
   );
 };
 
