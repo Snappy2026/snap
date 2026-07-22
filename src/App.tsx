@@ -79,7 +79,7 @@ export const App: React.FC = () => {
         linkHandle = pathname;
       }
 
-      const cleanHandle = (linkHandle || "hippygogo").toLowerCase();
+      const cleanHandle = linkHandle ? linkHandle.trim().toLowerCase() : "";
 
       // If a link parameter is present (or ?creator=, ?hippygogo, /hippygogo), load THAT exact creator's profile layout!
       if (linkHandle) {
@@ -114,6 +114,7 @@ export const App: React.FC = () => {
               c.role === "creator" &&
               !handle.includes("katie") &&
               !handle.includes("katigee") &&
+              !handle.includes("hippy") &&
               !handle.includes("hippygogo") &&
               !handle.includes("modeltest") &&
               !handle.includes("solly") &&
