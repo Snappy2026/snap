@@ -58,8 +58,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [defaultGoldPrice, setDefaultGoldPrice] = useState("9.99");
 
   // Platform Volume Counters
-  const [totalVolume, setTotalVolume] = useState(2737.7);
-  const [totalAdminFee, setTotalAdminFee] = useState(136.89);
+  const [totalVolume, setTotalVolume] = useState(0.00);
+  const [totalAdminFee, setTotalAdminFee] = useState(0.00);
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -151,12 +151,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
       <View style={styles.kpiRow}>
         <View style={styles.kpiCard}>
           <Text style={styles.kpiLabel}>Total Users</Text>
-          <Text style={styles.kpiValue}>{usersList.length || 4}</Text>
+          <Text style={styles.kpiValue}>{usersList.length}</Text>
         </View>
 
         <View style={styles.kpiCard}>
           <Text style={styles.kpiLabel}>Active Creators</Text>
-          <Text style={styles.kpiValue}>{creatorsList.length || 2}</Text>
+          <Text style={styles.kpiValue}>{creatorsList.length}</Text>
         </View>
 
         <View style={[styles.kpiCard, styles.kpiCardHighlight]}>

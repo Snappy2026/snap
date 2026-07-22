@@ -79,8 +79,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
           return;
         }
 
-        if (onEnableDemoMode) onEnableDemoMode();
-        navigation.replace("MainTabs", { screen: "Camera" });
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .single();
+
+        if (profile && (profile as any).role === "creator") {
+          setRegisteredUser(data.user);
+          setShowCreatorModal(true);
+        } else {
+          if (onEnableDemoMode) onEnableDemoMode();
+          navigation.replace("MainTabs", { screen: "Camera" });
+        }
       } else {
         // Strict Sign Up
         const { data: signUpData, error } = await supabase.auth.signUp({
