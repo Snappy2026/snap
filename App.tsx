@@ -22,6 +22,12 @@ export default function App() {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const style = document.createElement('style');
       style.textContent = `
+                html, body, #root {
+          height: 100%;
+          min-height: 100vh;
+          overflow: hidden;
+          background-color: #000;
+        }
         /* Fix React Native Web touch-action blocking on mobile Safari */
         #root div[style*="touch-action"] {
           touch-action: auto !important;

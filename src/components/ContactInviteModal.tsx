@@ -25,38 +25,7 @@ export interface PhoneContact {
   isRegistered?: boolean;
 }
 
-const DEMO_CONTACTS: PhoneContact[] = [
-  {
-    id: "c1",
-    name: "David Miller",
-    phoneNumber: "+1 (415) 555-0192",
-    isRegistered: false,
-  },
-  {
-    id: "c2",
-    name: "Jessica Taylor",
-    phoneNumber: "+1 (415) 555-0143",
-    isRegistered: true,
-  },
-  {
-    id: "c3",
-    name: "Michael Brown",
-    phoneNumber: "+44 7700 900077",
-    isRegistered: false,
-  },
-  {
-    id: "c4",
-    name: "Emily Davis",
-    phoneNumber: "+1 (415) 555-0188",
-    isRegistered: false,
-  },
-  {
-    id: "c5",
-    name: "James Wilson",
-    phoneNumber: "+1 (415) 555-0122",
-    isRegistered: true,
-  },
-];
+const DEMO_CONTACTS: PhoneContact[] = [];
 
 interface ContactInviteModalProps {
   onClose: () => void;
