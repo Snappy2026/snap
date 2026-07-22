@@ -21,13 +21,6 @@ export const useCreatorRouting = () => {
         } catch (e) {
           console.log("[useCreatorRouting] LocalStorage notice", e);
         }
-      } else {
-        try {
-          const stored = localStorage.getItem("invited_creator_handle");
-          if (stored) setInvitedCreator(stored);
-        } catch (e) {
-          console.log("[useCreatorRouting] Storage read error", e);
-        }
       }
     }
   }, []);

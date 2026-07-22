@@ -139,13 +139,12 @@ export const StoriesScreen: React.FC = () => {
         }
 
         // Determine effective creator profile ID:
-        // 1. If logged in as Creator, show own profile by default unless explicitly viewing another creator
-        // 2. If logged in as Customer or Visitor, show targetCreatorId or default creator profile
-        let effectiveCreatorId = activeCreatorId;
+        // Priority 1: Target Creator ID from WhatsApp/SMS invite link or tapped story profile
+        // Priority 2: If logged in as Creator and no invite link specified, show own creator profile
+        // Priority 3: Fallback to first active creator in system
+        let effectiveCreatorId = targetCreatorId || activeCreatorId;
         if (!effectiveCreatorId && userRole === "creator" && user?.id) {
           effectiveCreatorId = user.id;
-        } else if (!effectiveCreatorId) {
-          effectiveCreatorId = targetCreatorId || user?.id || null;
         }
 
         if (!effectiveCreatorId) {
