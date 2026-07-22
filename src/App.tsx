@@ -810,17 +810,25 @@ export const App: React.FC = () => {
 
           {/* Story Creator Header Info */}
           <div style={{ position: "absolute", top: "24px", left: "16px", right: "16px", zIndex: 100, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}
+              onClick={() => {
+                const username = activeStoryModal.user_profile?.username || activeStoryModal.user_profile?.display_name?.toLowerCase().replace(/[^a-z0-9]/g, "") || "sophia";
+                setActiveStoryModal(null);
+                window.location.search = `?${username}`;
+              }}
+            >
               <img
                 src={activeStoryModal.media_url}
                 alt=""
-                style={{ width: "36px", height: "36px", borderRadius: "50%", border: "2px solid #FFD700", objectFit: "cover" }}
+                style={{ width: "40px", height: "40px", borderRadius: "50%", border: "2px solid #FFD700", objectFit: "cover", boxShadow: "0 0 10px rgba(255,215,0,0.5)" }}
               />
               <div>
-                <h4 style={{ fontSize: "14px", fontWeight: "bold", color: "#fff", margin: 0 }}>
+                <h4 style={{ fontSize: "14px", fontWeight: "bold", color: "#fff", margin: 0, display: "flex", alignItems: "center", gap: "4px" }}>
                   {activeStoryModal.user_profile?.display_name || "Snap Story"}
+                  <span style={{ fontSize: "11px", color: "#FFD700" }}>👑</span>
                 </h4>
-                <p style={{ fontSize: "11px", color: "#FFD700", margin: 0 }}>24h Quick Snap 👻</p>
+                <p style={{ fontSize: "11px", color: "#FFD700", margin: 0, fontWeight: "bold" }}>View Profile ›</p>
               </div>
             </div>
             <button
