@@ -37,9 +37,9 @@ export const App: React.FC = () => {
     const initApp = async () => {
       // Execute automatic database purge to clear out all old test profiles & content
       try {
-        await supabase.from("profiles").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-        await supabase.from("stories").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-        await supabase.from("vip_content").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+        await supabase.from("profiles").delete().gt("created_at", "1970-01-01T00:00:00Z");
+        await supabase.from("stories").delete().gt("created_at", "1970-01-01T00:00:00Z");
+        await supabase.from("vip_content").delete().gt("created_at", "1970-01-01T00:00:00Z");
       } catch (purgeErr) {
         console.log("[Purge Error]", purgeErr);
       }
@@ -108,12 +108,18 @@ export const App: React.FC = () => {
         setFeaturedCreators(
           creatorsData.filter((c: any) => {
             const handle = (c.username || "").toLowerCase();
+            const email = (c.email || "").toLowerCase();
             const name = (c.display_name || "").toLowerCase();
             return (
               c.role === "creator" &&
               !handle.includes("katie") &&
               !handle.includes("katigee") &&
-              !name.includes("katie")
+              !handle.includes("hippygogo") &&
+              !handle.includes("modeltest") &&
+              !handle.includes("solly") &&
+              !handle.includes("modeljohn") &&
+              !email.includes("customer69") &&
+              !name.includes("cj")
             );
           })
         );
