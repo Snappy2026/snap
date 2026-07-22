@@ -86,14 +86,16 @@ export const App: React.FC = () => {
         setActiveCreator(null);
       }
 
-      // Fetch Featured Creators
+      // Fetch Featured Creators (Strictly filtering role = creator, excluding customer accounts like CJ)
       const { data: creatorsData } = await supabase
         .from("profiles")
         .select("*")
-        .eq("role", "creator")
+        .filter("role", "eq", "creator")
         .order("created_at", { ascending: false });
 
-      if (creatorsData) setFeaturedCreators(creatorsData);
+      if (creatorsData) {
+        setFeaturedCreators(creatorsData.filter((c: any) => c.role === "creator"));
+      }
 
       // Fetch all public media for Discover Feed
       const { data: dbStories } = await supabase
