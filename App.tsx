@@ -22,7 +22,7 @@ export default function App() {
         if (Platform.OS === 'web' && typeof document !== 'undefined') {
       document.title = "ClubD";
       
-      const setMeta = (name, content) => {
+      const setMeta = (name: string, content: string) => {
         let el = document.querySelector(`meta[name="${name}"]`);
         if (!el) {
           el = document.createElement('meta');
