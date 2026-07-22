@@ -62,8 +62,8 @@ export const CreatorContentStudioModal: React.FC<CreatorContentStudioModalProps>
         .order("created_at", { ascending: false });
 
       if (mediaData) {
-        setGalleryItems((mediaData as VipContentItem[]).filter(item => item.is_public_gallery === true));
-        setVipItems((mediaData as VipContentItem[]).filter(item => item.is_public_gallery !== true));
+        setGalleryItems((mediaData as VipContentItem[]).filter(item => Boolean(item.is_public_gallery)));
+        setVipItems((mediaData as VipContentItem[]).filter(item => !Boolean(item.is_public_gallery)));
       }
     } catch (err) {
       console.error("[Creator Studio Fetch Error]", err);
