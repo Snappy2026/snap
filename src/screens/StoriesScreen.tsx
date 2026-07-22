@@ -523,41 +523,43 @@ export const StoriesScreen: React.FC = () => {
               gap: "16px",
             }}
           >
-            {/* ADD STORY BUTTON */}
-            <button
-              type="button"
-              onClick={() => setShowAddStoryModal(true)}
-              style={{
-                border: "none",
-                background: "none",
-                padding: 0,
-                margin: 0,
-                display: "flex",
-                flexDirection: "column" as any,
-                alignItems: "center",
-                cursor: "pointer",
-                WebkitAppearance: "none" as any,
-                appearance: "none" as any,
-                touchAction: "manipulation",
-                minWidth: "80px",
-                flexShrink: 0,
-              }}
-            >
-              <View style={[styles.avatarRing, styles.addStoryRing]}>
-                <Image
-                  source={{
-                    uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-                  }}
-                  style={styles.friendAvatar}
-                />
-                <View style={styles.plusBadge}>
-                  <Text style={styles.plusBadgeText}>＋</Text>
+            {/* ADD STORY BUTTON (CREATORS & ADMIN ONLY) */}
+            {userRole !== "customer" && (
+              <button
+                type="button"
+                onClick={() => setShowAddStoryModal(true)}
+                style={{
+                  border: "none",
+                  background: "none",
+                  padding: 0,
+                  margin: 0,
+                  display: "flex",
+                  flexDirection: "column" as any,
+                  alignItems: "center",
+                  cursor: "pointer",
+                  WebkitAppearance: "none" as any,
+                  appearance: "none" as any,
+                  touchAction: "manipulation",
+                  minWidth: "80px",
+                  flexShrink: 0,
+                }}
+              >
+                <View style={[styles.avatarRing, styles.addStoryRing]}>
+                  <Image
+                    source={{
+                      uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+                    }}
+                    style={styles.friendAvatar}
+                  />
+                  <View style={styles.plusBadge}>
+                    <Text style={styles.plusBadgeText}>＋</Text>
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.myStoryName} numberOfLines={1}>
-                Add Story
-              </Text>
-            </button>
+                <Text style={styles.myStoryName} numberOfLines={1}>
+                  Add Story
+                </Text>
+              </button>
+            )}
 
             {/* MY STORY (IF EXISTS) */}
             {myStories.length > 0 && (
