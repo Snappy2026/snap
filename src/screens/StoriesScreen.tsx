@@ -735,6 +735,13 @@ export const StoriesScreen: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
+                  if (!currentUserId) {
+                    if (typeof window !== "undefined") {
+                      window.alert(`🔒 Sign Up Required\n\nPlease create an account or sign in to start a 1-on-1 Chat with @${activeCreatorProfile?.username || "Creator"}`);
+                    }
+                    navigation.navigate("Auth" as any);
+                    return;
+                  }
                   if (!isVipMember) {
                     if (typeof window !== "undefined") {
                       window.alert(`🔒 VIP Subscription Required\n\nDirect 1-on-1 Chat with @${activeCreatorProfile?.username || "Creator"} is exclusively reserved for paid VIP subscribers ($9.99/mo).\n\nTap 👑 Join VIP to unlock!`);
@@ -885,9 +892,18 @@ export const StoriesScreen: React.FC = () => {
                   type="button"
                   onClick={() => {
                     if (!canViewVip) {
-                      window.alert(
-                        "👑 VIP Membership Required\n\nDirecting to VIP subscription checkout...",
-                      );
+                      if (!currentUserId) {
+                        if (typeof window !== "undefined") {
+                          window.alert(`👑 VIP Membership & Sign Up Required\n\nPlease sign up or log in to subscribe to @${activeCreatorProfile?.username || "Creator"}'s VIP Membership ($9.99/mo) and unlock exclusive media!`);
+                        }
+                        navigation.navigate("Auth" as any);
+                        return;
+                      }
+                      if (typeof window !== "undefined") {
+                        window.alert(
+                          `👑 VIP Membership Required\n\nDirecting to @${activeCreatorProfile?.username || "Creator"}'s VIP subscription checkout ($9.99/mo)...`,
+                        );
+                      }
                       navigation.navigate("MainTabs", {
                         screen: "VipMembers",
                       } as any);

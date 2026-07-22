@@ -167,7 +167,15 @@ export const AppNavigator: React.FC = () => {
     );
   }
 
-  const initialRoute = !session && !demoMode ? "Auth" : "MainTabs";
+  // Check for WhatsApp / SMS invite parameters on web
+  let hasInviteParam = false;
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    hasInviteParam = Boolean(params.get("creator") || params.get("invite") || params.get("ref"));
+  }
+
+  // Go straight to MainTabs if session exists, demo mode is enabled, OR arriving from an invite link!
+  const initialRoute = !session && !demoMode && !hasInviteParam ? "Auth" : "MainTabs";
 
   return (
     <StoryViewerProvider>
