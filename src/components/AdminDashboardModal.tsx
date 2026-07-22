@@ -559,7 +559,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 </TouchableOpacity>
               </View>
             </ScrollView>
-          )}
+          ))
         </View>
       )}
     </SafeAreaView>
