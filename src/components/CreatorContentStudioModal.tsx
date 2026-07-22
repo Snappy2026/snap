@@ -96,13 +96,18 @@ export const CreatorContentStudioModal: React.FC<CreatorContentStudioModalProps>
 
   const handleDeleteVipItem = async (id: string) => {
     try {
-      const { error } = await supabase.from("vip_content").delete().eq("id", id);
-      if (error) throw error;
+      // Optimistically remove from state immediately
       setGalleryItems(prev => prev.filter(item => item.id !== id));
       setVipItems(prev => prev.filter(item => item.id !== id));
+
+      if (!id.startsWith("uploaded-")) {
+        const { error } = await supabase.from("vip_content").delete().eq("id", id);
+        if (error) console.error("[Delete DB Error]", error);
+      }
+
       const msg = "Media post deleted successfully!";
       if (Platform.OS === "web" && typeof window !== "undefined") {
-        window.alert(msg);
+        window.alert(`🗑️ ${msg}`);
       } else {
         Alert.alert("Deleted", msg);
       }
