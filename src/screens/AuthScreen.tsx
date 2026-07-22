@@ -147,13 +147,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onEnableDemoMode }) => {
           .maybeSingle();
         const finalRole = isMasterAdminEmail ? "admin" : ((profileData as any)?.role || "customer");
 
-        if (finalRole === "creator") {
-          setRegisteredUser(data.user);
-          setShowCreatorModal(true);
-        } else {
-          if (onEnableDemoMode) onEnableDemoMode();
-          navigation.replace("MainTabs", { screen: "Camera" });
-        }
+        // On login, proceed straight to app for existing users!
+        if (onEnableDemoMode) onEnableDemoMode();
+        navigation.replace("MainTabs", { screen: "Camera" });
       } else {
         // Pre-check if username handle is already registered in profiles
         const { data: existingUser } = await supabase

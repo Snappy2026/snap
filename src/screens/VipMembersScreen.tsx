@@ -54,11 +54,11 @@ export const VipMembersScreen: React.FC = () => {
         if (userData.user) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("is_vip_member, vip_tier")
+            .select("role, is_vip_member, vip_tier")
             .eq("id", userData.user.id)
             .single();
 
-          if (profile && (profile as any).is_vip_member) {
+          if (profile && ((profile as any).is_vip_member || (profile as any).role === "creator" || (profile as any).role === "admin")) {
             setIsVipMember(true);
           }
         }
