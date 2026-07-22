@@ -22,7 +22,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
 import { supabase } from "../lib/supabase";
-import { launchStripeCheckout } from "../lib/stripe";
+
 import { VipContentItem } from "../types/database";
 
 const { width } = Dimensions.get("window");
@@ -76,32 +76,11 @@ export const VipMembersScreen: React.FC = () => {
   const handleUnlockVip = async (plan: "gold" | "platinum", price: string) => {
     setPurchasing(true);
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      const currentUser = userData.user;
-      let creatorStripeAccountId: string | undefined = undefined;
-
-      if (currentUser) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("stripe_account_id")
-          .eq("id", currentUser.id)
-          .single();
-        if (profile && (profile as any).stripe_account_id) {
-          creatorStripeAccountId = (profile as any).stripe_account_id;
-        }
-      }
-
-      // Redirect directly to Stripe Connect Checkout Session
-      await launchStripeCheckout(
-        plan,
-        currentUser?.id || "demo-user",
-        creatorStripeAccountId,
-      );
-    } catch (err: unknown) {
-      console.error("[Stripe Checkout Exception]", err);
       if (typeof window !== "undefined") {
-        window.open("https://checkout.stripe.com", "_blank");
+        window.alert("🚧 Coming Soon!\nPayment integration is being set up. Check back soon!");
       }
+    } catch (err: unknown) {
+      console.error("[Purchase Error]", err);
     } finally {
       setPurchasing(false);
     }

@@ -21,7 +21,6 @@ import {
   Modal,
 } from "react-native";
 import { supabase } from "../lib/supabase";
-import { launchCreatorLicenseCheckout } from "../lib/stripe";
 
 interface CreatorSettingsModalProps {
   onClose: () => void;
@@ -152,10 +151,7 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
     }
   };
 
-  // Creator Membership Price & Stripe Connect Settings
-  const [goldMonthlyPrice, setGoldMonthlyPrice] = useState("9.99");
-  const [platinumYearlyPrice, setPlatinumYearlyPrice] = useState("99.00");
-  const [stripeAccountId, setStripeAccountId] = useState("");
+
 
   // Snap & Privacy Control Settings
   const [defaultSnapTimer, setDefaultSnapTimer] = useState<number>(5);
@@ -184,11 +180,7 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
             if (p.username) setUsername(p.username);
             if (p.display_name) setDisplayName(p.display_name);
             if (p.avatar_url) setAvatarUrl(p.avatar_url);
-            if (p.stripe_account_id) setStripeAccountId(p.stripe_account_id);
-            if (p.custom_gold_price)
-              setGoldMonthlyPrice(String(p.custom_gold_price));
-            if (p.custom_yearly_price)
-              setPlatinumYearlyPrice(String(p.custom_yearly_price));
+
           }
         }
       } catch (err) {
@@ -211,16 +203,13 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
             username: username.trim(),
             display_name: displayName.trim(),
             avatar_url: avatarUrl,
-            stripe_account_id: stripeAccountId.trim(),
-            custom_gold_price: parseFloat(goldMonthlyPrice) || 9.99,
-            custom_yearly_price: parseFloat(platinumYearlyPrice) || 99.0,
             updated_at: new Date().toISOString(),
           })
           .eq("id", userData.user.id);
       }
 
-      const msg =
-        "Stripe Connect Account ID, membership pricing, and snap privacy settings saved successfully!";
+      const msg = "Profile settings saved successfully!";
+
       if (Platform.OS === "web" && typeof window !== "undefined") {
         window.alert(`⚙️ Settings Saved!\n${msg}`);
       } else {
@@ -387,222 +376,6 @@ export const CreatorSettingsModal: React.FC<CreatorSettingsModalProps> = ({
             </ScrollView>
           </View>
 
-          {/* 👑 Founder Creator Annual Pass Promo (£75 1-Off Fee) */}
-          <View style={styles.founderPassCard}>
-            <View style={styles.founderPassHeaderRow}>
-              <Text style={styles.founderPassBadge}>
-                🔥 BEST VALUE CREATOR PLAN
-              </Text>
-              <Text style={styles.founderPassPrice}>
-                £75 <Text style={{ fontSize: 12, color: "#AAA" }}>/ year</Text>
-              </Text>
-            </View>
-            <Text style={styles.founderPassTitle}>
-              Founder Creator Annual License
-            </Text>
-            <Text style={styles.founderPassDesc}>
-              Pay{" "}
-              <Text style={{ color: "#D4AF37", fontWeight: "bold" }}>
-                £75 one-time
-              </Text>{" "}
-              today and keep{" "}
-              <Text style={{ color: "#00F2FE", fontWeight: "bold" }}>
-                100% of all subscriber & PPV earnings
-              </Text>{" "}
-              with{" "}
-              <Text style={{ color: "#D4AF37", fontWeight: "bold" }}>
-                0% platform transaction fees
-              </Text>{" "}
-              for an entire year!
-            </Text>
-
-            <View style={styles.founderPassPerksRow}>
-              <Text style={styles.founderPassPerk}>
-                ⚡ 0% Platform Transaction Fees
-              </Text>
-              <Text style={styles.founderPassPerk}>
-                💳 Direct 100% Stripe Bank Payouts
-              </Text>
-              <Text style={styles.founderPassPerk}>
-                ⭐ Gold Verified Profile Badge
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.buyFounderPassBtn}
-              onPress={async () => {
-                const { data } = await supabase.auth.getUser();
-                await launchCreatorLicenseCheckout(
-                  data?.user?.id || "demo-user",
-                );
-              }}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.buyFounderPassText}>
-                👑 Upgrade to Founder Pass (£75/yr)
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* SECTION 1: Stripe Connected Account & Payouts Setup */}
-          <View
-            style={[
-              styles.sectionCard,
-              { borderColor: "#635BFF", borderWidth: 2 },
-            ]}
-          >
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionIcon}>💳</Text>
-              <Text style={[styles.sectionTitle, { color: "#635BFF" }]}>
-                Stripe Account Payout Setup
-              </Text>
-            </View>
-            <Text style={styles.sectionDesc}>
-              Connect your Stripe account to receive direct payouts for your VIP
-              Memberships and Pay-Per-View (PPV) Snaps. 95% of all earnings go
-              directly to your bank account via Stripe Connect!
-            </Text>
-
-            <View style={styles.inputGroupFull}>
-              <Text style={styles.inputLabelHighlight}>
-                YOUR STRIPE CONNECTED ACCOUNT ID (`acct_...`)
-              </Text>
-              <View style={styles.stripeInputBox}>
-                <Text style={styles.currencySymbol}>💳</Text>
-                <TextInput
-                  value={stripeAccountId}
-                  onChangeText={setStripeAccountId}
-                  placeholder="e.g. acct_1N9X82F45B31K009"
-                  placeholderTextColor="#888"
-                  style={styles.stripeInputText}
-                  autoCapitalize="none"
-                />
-              </View>
-              <Text style={styles.stripeHelpText}>
-                🔑 Don't have a Stripe account ID yet? Log into your Stripe
-                Dashboard at stripe.com ➔ Settings ➔ Account Details to copy
-                your Account ID starting with `acct_`.
-              </Text>
-            </View>
-          </View>
-
-          {/* SECTION 2: Membership Price Controls */}
-          <View style={styles.sectionCard}>
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionIcon}>👑</Text>
-              <Text style={styles.sectionTitle}>
-                Membership Subscription Prices
-              </Text>
-            </View>
-            <Text style={styles.sectionDesc}>
-              Set how much followers pay to access your VIP exclusive stories
-              and direct messages.
-            </Text>
-
-            <View style={styles.inputRow}>
-              <Text style={styles.inputLabel}>VIP Gold (Monthly USD)</Text>
-              <View style={styles.priceInputBox}>
-                <Text style={styles.currencySymbol}>$</Text>
-                <TextInput
-                  value={goldMonthlyPrice}
-                  onChangeText={setGoldMonthlyPrice}
-                  style={styles.priceInput}
-                  keyboardType="numeric"
-                />
-              </View>
-            </View>
-
-            <View style={styles.inputRow}>
-              <Text style={styles.inputLabel}>VIP Annual (Yearly USD)</Text>
-              <View style={styles.priceInputBox}>
-                <Text style={styles.currencySymbol}>$</Text>
-                <TextInput
-                  value={platinumYearlyPrice}
-                  onChangeText={setPlatinumYearlyPrice}
-                  style={styles.priceInput}
-                  keyboardType="numeric"
-                />
-              </View>
-            </View>
-            {/* 5% Admin Fee Deduction & Net Payout Calculator Box */}
-            <View style={styles.feeInfoBox}>
-              <View style={styles.feeHeaderRow}>
-                <Text style={styles.feeIcon}>⚡</Text>
-                <Text style={styles.feeTitle}>Platform Fee & Payout Split</Text>
-              </View>
-              <Text style={styles.feeText}>
-                A{" "}
-                <Text style={{ color: "#D4AF37", fontWeight: "bold" }}>
-                  5% Admin Fee
-                </Text>{" "}
-                is automatically deducted on each subscriber purchase and routed
-                to platform administration. You receive{" "}
-                <Text style={{ color: "#00F2FE", fontWeight: "bold" }}>
-                  95% net payout
-                </Text>{" "}
-                directly to your Stripe account.
-              </Text>
-
-              <View style={styles.payoutTable}>
-                <View style={styles.payoutRow}>
-                  <Text style={styles.payoutPlan}>
-                    VIP Gold (${goldMonthlyPrice}/mo):
-                  </Text>
-                  <Text style={styles.payoutCalc}>
-                    Fee: -$
-                    {(parseFloat(goldMonthlyPrice || "0") * 0.05).toFixed(2)} |{" "}
-                    <Text style={{ color: "#00F2FE", fontWeight: "bold" }}>
-                      Net: $
-                      {(parseFloat(goldMonthlyPrice || "0") * 0.95).toFixed(2)}
-                      /mo
-                    </Text>
-                  </Text>
-                </View>
-                <View style={styles.payoutRow}>
-                  <Text style={styles.payoutPlan}>
-                    VIP Annual (${platinumYearlyPrice}/yr):
-                  </Text>
-                  <Text style={styles.payoutCalc}>
-                    Fee: -$
-                    {(parseFloat(platinumYearlyPrice || "0") * 0.05).toFixed(2)}{" "}
-                    |{" "}
-                    <Text style={{ color: "#00F2FE", fontWeight: "bold" }}>
-                      Net: $
-                      {(parseFloat(platinumYearlyPrice || "0") * 0.95).toFixed(
-                        2,
-                      )}
-                      /yr
-                    </Text>
-                  </Text>
-                </View>
-              </View>
-            </View>
-            <View style={styles.stripeStatusRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.stripeStatusTitle}>
-                  Stripe Connect Status
-                </Text>
-                <Text style={styles.stripeStatusSub}>
-                  {stripeAccountId
-                    ? `🟢 Active (${stripeAccountId})`
-                    : "🔴 Setup Required"}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.stripeConnectBtn}
-                onPress={() => {
-                  if (typeof window !== "undefined") {
-                    window.open(
-                      "https://connect.stripe.com/express/oauth/authorize",
-                      "_blank",
-                    );
-                  }
-                }}
-              >
-                <Text style={styles.stripeConnectText}>Connect Express 💳</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
 
           {/* SECTION 2: Snap & Ephemeral Controls */}
           <View style={styles.sectionCard}>

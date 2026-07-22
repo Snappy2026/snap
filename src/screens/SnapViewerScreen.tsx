@@ -31,7 +31,7 @@ const { width } = Dimensions.get("window");
 type SnapViewerRouteProp = RouteProp<RootStackParamList, "SnapViewer">;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-import { launchPpvCheckout } from "../lib/stripe";
+
 
 export const SnapViewerScreen: React.FC = () => {
   const route = useRoute<SnapViewerRouteProp>();
@@ -83,19 +83,11 @@ export const SnapViewerScreen: React.FC = () => {
   const handleUnlockPpvSnap = async () => {
     setUnlocking(true);
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      const currentUser = userData.user;
-
-      await launchPpvCheckout({
-        snapId: snap.id,
-        price: snap.price_amount || 1.99,
-        userId: currentUser?.id || "demo-user",
-      });
-
-      setIsUnlocked(true);
+      if (typeof window !== "undefined") {
+        window.alert("🚧 Coming Soon!\nPayment integration is being set up. Check back soon!");
+      }
     } catch (err) {
       console.error("[PPV Unlock Error]", err);
-      setIsUnlocked(true);
     } finally {
       setUnlocking(false);
     }
