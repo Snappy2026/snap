@@ -100,9 +100,13 @@ export const SnapBar: React.FC<SnapBarProps> = ({
           </View>
         </TouchableOpacity>
 
-        {/* Center: Clean Adult+ Title */}
+        {/* Center: Clean Logo Header */}
         <View style={styles.centerBrandContainer}>
-          <Text style={styles.brandTitleText}>{title || "Adult+"}</Text>
+          <Image
+            source={require("../assets/logo.png")}
+            style={styles.headerLogoImage}
+            resizeMode="contain"
+          />
         </View>
 
         {/* Right Actions Group */}
@@ -221,6 +225,10 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  headerLogoImage: {
+    width: 140,
+    height: 38,
   },
   brandTitleText: {
     color: "#D4AF37",
