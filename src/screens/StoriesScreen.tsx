@@ -95,50 +95,6 @@ export const StoriesScreen: React.FC = () => {
 
     const fetchStories = async () => {
       try {
-        // Purge historical 'katiegee' / 'katigee' records from database
-        try {
-          const { data: katieProfiles } = await supabase
-            .from("profiles")
-            .select("id")
-            .or("username.ilike.%katie%,username.ilike.%katigee%");
-          if (katieProfiles && katieProfiles.length > 0) {
-            const katieIds = katieProfiles.map((p: any) => p.id);
-            await supabase.from("stories").delete().in("user_id", katieIds);
-            await supabase.from("vip_content").delete().in("creator_id", katieIds);
-            await supabase.from("profiles").delete().in("id", katieIds);
-          }
-        } catch (e) {
-          // Silent catch
-        }
-
-        const { data: userData } = await supabase.auth.getUser();
-
-        let localFollowedIds: string[] = [];
-        if (userData?.user) {
-          const { data: follows } = await (supabase.from("friendships") as any)
-            .select("addressee_id")
-            .eq("requester_id", userData.user.id)
-            .eq("status", "accepted");
-          if (follows) {
-            localFollowedIds = follows.map((f: any) => f.addressee_id);
-            setFollowedCreatorIds(localFollowedIds);
-          }
-        }
-        const user = userData?.user;
-        setCurrentUserId(user?.id || null);
-
-        if (user?.id) {
-          const { data: profileData } = (await supabase
-            .from("profiles")
-            .select("role, is_vip_member")
-            .eq("id", user.id)
-            .maybeSingle()) as any;
-          const resolvedRole = profileData?.role || user.user_metadata?.role || "creator";
-          setIsVipMember(profileData?.is_vip_member || false);
-          setUserRole(resolvedRole);
-        }
-
-        // Handle invited creator routing from WhatsApp / SMS link (?creator=handle or ?invite=handle)
         let urlCreatorParam: string | null = null;
         if (Platform.OS === "web" && typeof window !== "undefined") {
           const params = new URLSearchParams(window.location.search);
@@ -146,36 +102,27 @@ export const StoriesScreen: React.FC = () => {
         }
         const effectiveParam = urlCreatorParam || invitedCreator;
 
-        let targetCreatorId: string | null = null;
-        if (effectiveParam) {
-          const cleanHandle = effectiveParam.trim().toLowerCase();
-          // First attempt exact username or ID match for role=creator
-          const { data: exactProfile } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("role", "creator")
-            .or(`username.ilike.${cleanHandle},id.eq.${effectiveParam}`)
-            .maybeSingle();
+        // Run user session fetch and creator invite resolution concurrently
+        const [userDataRes, invProfileRes] = await Promise.all([
+          supabase.auth.getUser(),
+          effectiveParam
+            ? supabase
+                .from("profiles")
+                .select("*")
+                .eq("role", "creator")
+                .or(`username.ilike.${effectiveParam.trim().toLowerCase()},id.eq.${effectiveParam}`)
+                .maybeSingle()
+            : Promise.resolve({ data: null }),
+        ]);
 
-          let invProfile = exactProfile;
-          if (!invProfile) {
-            // Second attempt fuzzy search for role=creator if exact match not found
-            const { data: fuzzyProfile } = await supabase
-              .from("profiles")
-              .select("*")
-              .eq("role", "creator")
-              .or(`username.ilike.%${cleanHandle}%,display_name.ilike.%${cleanHandle}%`)
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .maybeSingle();
-            invProfile = fuzzyProfile;
-          }
+        const user = userDataRes.data?.user;
+        setCurrentUserId(user?.id || null);
 
-          if (invProfile) {
-            targetCreatorId = (invProfile as any).id;
-            setActiveCreatorProfile(invProfile);
-            setActiveCreatorId((invProfile as any).id);
-          }
+        let targetCreatorId = activeCreatorId;
+        if (invProfileRes.data) {
+          targetCreatorId = (invProfileRes.data as any).id;
+          setActiveCreatorProfile(invProfileRes.data);
+          setActiveCreatorId((invProfileRes.data as any).id);
         }
 
         if (!targetCreatorId) {
