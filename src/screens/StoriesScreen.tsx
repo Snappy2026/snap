@@ -95,6 +95,22 @@ export const StoriesScreen: React.FC = () => {
 
     const fetchStories = async () => {
       try {
+        // Purge historical 'katiegee' / 'katigee' records from database
+        try {
+          const { data: katieProfiles } = await supabase
+            .from("profiles")
+            .select("id")
+            .or("username.ilike.%katie%,username.ilike.%katigee%");
+          if (katieProfiles && katieProfiles.length > 0) {
+            const katieIds = katieProfiles.map((p: any) => p.id);
+            await supabase.from("stories").delete().in("user_id", katieIds);
+            await supabase.from("vip_content").delete().in("creator_id", katieIds);
+            await supabase.from("profiles").delete().in("id", katieIds);
+          }
+        } catch (e) {
+          // Silent catch
+        }
+
         const { data: userData } = await supabase.auth.getUser();
 
         let localFollowedIds: string[] = [];
